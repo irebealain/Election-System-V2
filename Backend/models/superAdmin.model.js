@@ -16,6 +16,6 @@ const superAdminSchema = new mongoose.Schema({
   timestamps: true
 })
 
-const superAdmin = mongoose.model("superAdmins", superAdminSchema)
+const SuperAdmin = mongoose.model("superAdmins", superAdminSchema)
 
-export default superAdmin
+export default SuperAdmin
