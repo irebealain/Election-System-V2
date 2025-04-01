@@ -11,7 +11,7 @@ const candidateSchema = new mongoose.Schema({
   },
   profilePic: {
     type: String,
-    required: True
+    required: true
   },
   mandate: {
     type: String,
