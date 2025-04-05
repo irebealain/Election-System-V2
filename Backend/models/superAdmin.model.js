@@ -11,6 +11,10 @@ const superAdminSchema = new mongoose.Schema({
       /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
       "Please enter a valid email address"
     ]
+  },
+  profilePic: {
+    type: String,
+    default: ""
   }
 }, {
   timestamps: true

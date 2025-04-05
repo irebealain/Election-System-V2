@@ -24,6 +24,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  profilePic: {
+    type: String,
+    default: ""
+  },
   electionId: {
     type: mongoose.Schema.Types.ObjectId,  // Reference to Election model
     ref: "Election",

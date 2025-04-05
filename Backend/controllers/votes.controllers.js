@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import Candidate from "../models/candidate.model.js";
 import Election from "../models/election.model.js";
 import Position from "../models/postion.model.js";
 import Vote from "../models/votes.model.js";
