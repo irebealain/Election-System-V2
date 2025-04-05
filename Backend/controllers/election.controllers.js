@@ -14,28 +14,54 @@ export const getElections = async (req, res) => {
 export const createElections = async (req, res) => {
   const election = req.body
 
-  if (!election.title || !election.startDate || !election.status || !election.createdBy){
-    return res.status(400).json({success: false, message: "Please provide all the fields."})
+  // Validate required fields
+  if (!election.title || !election.startDate || !election.createdBy) {
+    return res.status(400).json({ success: false, message: "Please provide all required fields." })
   }
 
-  const parsedDate = new Date(election.startDate);
+  // Parse and validate the startDate
+  const parsedDate = new Date(election.startDate)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // Normalize today's date
+
   if (isNaN(parsedDate.getTime())) {
-    return res.status(400).json({ success: false, message: "Invalid date format. Use YYYY-MM-DD." });
+    return res.status(400).json({ success: false, message: "Invalid date format. Use YYYY-MM-DD." })
+  }
+
+  // Prevent past dates
+  if (parsedDate < today) {
+    return res.status(400).json({ success: false, message: "Start date cannot be in the past." })
+  }
+
+  // Determining the election status
+  let status = "upcoming"
+  if (parsedDate.toDateString() === today.toDateString()) {
+    status = "ongoing"
   }
 
   try {
-    // Check for the duplicate dates
-    const existingElection = await Election.findOne(election);
+    // Check for duplicates (by title and startDate)
+    const existingElection = await Election.findOne({
+      title: election.title,
+      startDate: parsedDate,
+    })
+
     if (existingElection) {
-      return res.status(400).json({ success: false, message: "Election with this title and date already exists." });
+      return res.status(400).json({ success: false, message: "Election with this title and date already exists." })
     }
 
-    const newElection = new Election(election)
+    // Create the new election with status
+    const newElection = new Election({
+      ...election,
+      startDate: parsedDate,
+      status,
+    })
+
     await newElection.save()
-    res.status(201).json({success: true, data: newElection})
+    res.status(201).json({ success: true, data: newElection });
   } catch (error) {
-    console.error("Error in created election:", error.message)
-    res.status(500).json({success: false, message: "Server Error"})
+    console.error("Error in creating election:", error.message);
+    res.status(500).json({ success: false, message: "Server Error" })
   }
 }
 // Updating a election
@@ -58,7 +84,7 @@ export const updateElection = async (req, res) => {
 export const deleteElection = async (req, res) => {
   const {id} = req.params
   try {
-    await Election.findByIdAndDelete(id);
+    await Election.findByIdAndDelete(id)
     res.status(200).json({success: true, message: "Election deleted."})
   } catch (error) {
     res.status(404).json({success: false, message: "Election not found."})

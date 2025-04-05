@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Candidate from "../models/candidate.model.js";
+import Election from "../models/election.model.js";
+import Position from "../models/postion.model.js";
 
 // Getting all the candidates
 export const getCandidates = async (req, res) => {
@@ -14,13 +16,24 @@ export const getCandidates = async (req, res) => {
 export const createCandidates = async (req, res) => {
   const candidate = req.body
 
-  if (!candidate.firstName || !candidate.lastName || !candidate.profilePic || !candidate.mandate){
+  if (!candidate.firstName || !candidate.lastName || !candidate.profilePic || !candidate.mandate ||!candidate.positionId || !candidate.electionId){
     return res.status(400).json({success: false, message: "Please provide all the fields."})
   }
-
-  const newCandidate = new Candidate(candidate)
-
   try {
+    const position = await Position.findById(candidate.positionId)
+    // Validating the position of the candidate
+    if (!position) {
+      return res.status(400).json({success: false, message: "Position not found."})
+    }
+    // Checking the election status
+    const election = await Election.findById(candidate.electionId)
+    if (!election) {
+      return res.status(404).json({ success: false, message: "Election not found." })
+    }
+    if (election.status === "completed") {
+      return res.status(400).json({ success: false, message: "You cannot register for a completed election." });
+    }
+    const newCandidate = new Candidate(candidate)
     await newCandidate.save()
     res.status(201).json({success: true, data: newCandidate})
   } catch (error) {
