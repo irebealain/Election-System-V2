@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import User from "../models/users.model.js";
 import Election from "../models/election.model.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || 'secretkey';
 // Getting all the elections
 export const getUsers = async (req, res) => {
   try {
@@ -10,8 +14,8 @@ export const getUsers = async (req, res) => {
     res.status(500).json({success: false, message: "Server error."})
   }
 }
-// Creating a new user.
-export const createUsers = async (req, res) => {
+// Signup as new user.
+export const userSignup = async (req, res) => {
   const user = req.body
   // checking all the fields
   if(!user.firstName || !user.lastName ||!user.email || !user.password || !user.electionId || !user.level){
@@ -28,10 +32,35 @@ export const createUsers = async (req, res) => {
     if (election.status === "completed") {
       return res.status(400).json({ success: false, message: "You cannot register for a completed election." });
     }
+    // Checking if the user exists
+    const existingUser = await User.findOne({email: user.email})
+
+    if (existingUser){
+      return res.status(400).json({success: false, message: "User already exists."})
+    }
+    // Hashing password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(user.password, salt)
     // Saving a new user
-    const newUser = new User(user)
+    const newUser = new User({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      email: user.email,
+      password: hashedPassword,
+      electionId: user.electionId,
+      level: user.level
+    })
     await newUser.save()
-    res.status(201).json({success: true, data: newUser})
+    // Generate JWT token
+    const token = jwt.sign({id: newUser._id, role: newUser.role}, JWT_SECRET, {expiresIn: '4d'})
+    res.status(201).json({
+      success: true, 
+      message: "User created successfully.",
+      data: {
+        token,
+        newUser
+      }
+    })
   } catch (error) {
     console.error("Error in created User:", error.message)
     res.status(500).json({success: false, message: "Server Error"})

@@ -4,21 +4,27 @@ const superAdminSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true, // Ensures no duplicate emails
-    lowercase: true, // Converts to lowercase
-    trim: true, // Removes spaces before & after
+    unique: true,
+    lowercase: true,
+    trim: true,
     match: [
-      /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-      "Please enter a valid email address"
+      /^[a-zA-Z0-9._%+-]+@asyv\.org$/, // Only org emails
+      "Email must be an organizational email (e.g., @asyv.org)"
     ]
+  },
+  googleId: {
+    type: String, // Unique Google user ID
+    required: true
   },
   profilePic: {
     type: String,
     default: ""
+  },
+  role: {
+    type: String,
+    default: "superAdmin"
   }
-}, {
-  timestamps: true
-})
+}, { timestamps: true });
 
 const SuperAdmin = mongoose.model("superAdmins", superAdminSchema)
 

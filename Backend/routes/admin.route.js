@@ -1,11 +1,11 @@
 import express from "express";
-import { createAdmin, deleteAdmin, getAdmins, updateAdmin } from "../controllers/admin.controllers.js";
+import { adminSignup, deleteAdmin, getAdmins, updateAdmin } from "../controllers/admin.controllers.js";
 const router = express.Router();
 
 //Displaying all the admin
 router.get('/', getAdmins)
 // Creating a new admin
-router.post('/', createAdmin)
+router.post('/signup', adminSignup)
 // Updating the admin
 router.put('/:id', updateAdmin)
 // Deleting admin

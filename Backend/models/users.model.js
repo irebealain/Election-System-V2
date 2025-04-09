@@ -20,9 +20,15 @@ const userSchema = new mongoose.Schema({
       "Please enter a valid email address"
     ]
   },
+  role: {
+    type: String,
+    default: "student"
+  },
   password: {
     type: String,
-    required: true
+  },
+  googleId: {
+    type: String,
   },
   profilePic: {
     type: String,

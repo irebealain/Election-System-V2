@@ -1,15 +1,21 @@
 import express from "express";
-import { createSuperAdmin, deleteSuperAdmin, getSuperAdmins, updateSuperAdmin } from "../controllers/superAdmin.controllers.js";
+import {
+  getSuperAdmins,
+  signupSuperAdmin,
+  loginSuperAdmin,
+  updateSuperAdmin,
+  deleteSuperAdmin,
+  approveAdmin,
+} from "../controllers/superAdmin.controllers.js";
+import { protect, isSuperAdmin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-//Displaying all the superAdmin
-router.get('/', getSuperAdmins)
-// Creating a new superAdmin
-router.post('/', createSuperAdmin)
-// Updating a superAdmin
-router.put('/:id', updateSuperAdmin)
-// Deleting superAdmin
-router.delete('/:id', deleteSuperAdmin)
+router.post("/signup", signupSuperAdmin);         // Create SuperAdmin via Google
+router.post("/login", loginSuperAdmin);           // Login via Google
+router.get("/", protect, isSuperAdmin, getSuperAdmins);
+router.put("/:id", protect, isSuperAdmin, updateSuperAdmin);
+router.delete("/:id", protect, isSuperAdmin, deleteSuperAdmin);
+router.put("/approve/:adminId", protect, isSuperAdmin, approveAdmin); // Admin approval
 
-export default router
+export default router;

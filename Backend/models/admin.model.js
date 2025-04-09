@@ -22,6 +22,21 @@ const adminSchema = new mongoose.Schema({
   },
   password: {
     type: String,
+  },
+  googleId: {
+    type: String,
+  },
+  isApproved: {
+    type: Boolean,
+    default: false
+  },
+  role: {
+    type: String,
+    default: "admin",
+  },
+  electionId :{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Elections",
     required: true
   },
   createdBy: {
@@ -29,7 +44,7 @@ const adminSchema = new mongoose.Schema({
     ref: "SuperAdmins",
     required: true
   }
-})
+}, {timestamps: true})
 
 const Admin = mongoose.model("Admins", adminSchema)
 

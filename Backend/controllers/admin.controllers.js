@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 import Admin from "../models/admin.model.js";
+import Election from "../models/election.model.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
 
+const JWT_SECRET = process.env.JWT_SECRET || 'secretkey';
 // Getting all the admins
 export const getAdmins = async (req, res) => {
   try {
@@ -10,19 +14,50 @@ export const getAdmins = async (req, res) => {
     res.status(500).json({success: false, message: "Server error"})
   }
 }
-// Creating a new superAdmin
-export const createAdmin = async (req, res) => {
+// Signing up a new admin
+export const adminSignup = async (req, res) => {
   const admin = req.body
 
-  if (!admin.firstName || !admin.lastName || !admin.email || !admin.password || !admin.createdBy){
+  if (!admin.firstName || !admin.lastName || !admin.email || !admin.password ||!admin.electionId || !admin.createdBy){
     return res.status(400).json({success: false, message: "Please provide all the fields."})
   }
 
-  const newAdmin = new Admin(admin)
-
   try {
+    // Check if the election exists and if its status is not 'completed'
+    const election = await Election.findById(admin.electionId);
+
+    if (!election) {
+      return res.status(404).json({ success: false, message: "Election not found." });
+    }
+
+    if (election.status === "completed") {
+      return res.status(400).json({ success: false, message: "You cannot register for a completed election." });
+    }
+    // Checking if the admin exists
+    const existingAdmin = await Admin.findOne({email: admin.email})
+    if (existingAdmin){
+      return res.status(400).json({success: false, message: "Admin already exists."})
+    }
+    // Hashing password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(admin.password, salt)
+    // Saving a new admin in the database
+    const newAdmin = new Admin({
+      firstName: admin.firstName,
+      lastName: admin.lastName,
+      email: admin.email,
+      password: hashedPassword,
+      electionId: admin.electionId,
+      createdBy: admin.createdBy,
+      approved: false  // Initially, the admin is not approved
+    })
     await newAdmin.save()
-    res.status(201).json({success: true, data: newAdmin})
+    res.status(201).json({
+      success: true, 
+      message: "Admin created successfully. Awaiting approval from super admin.",
+      data: {
+        newAdmin
+      }})
   } catch (error) {
     console.error("Error in created Admin:", error.message)
     res.status(500).json({success: false, message: "Server Error"})
