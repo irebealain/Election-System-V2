@@ -66,6 +66,38 @@ export const userSignup = async (req, res) => {
     res.status(500).json({success: false, message: "Server Error"})
   }
 }
+// Login to a user
+export const userLogin = async (req, res) => {
+  const {email, password} = req.body
+  // Checking if the user exists
+  if (!email || !password) {
+    return res.status(400).json({success: false, message: "Please provide all required fields."})
+  }
+  try {
+    const user = await User.findOne({email})
+    if (!user) {
+      return res.status(404).json({success: false, message: "User not found."})
+    }
+    // Checking the password
+    const isMatch = await bcrypt.compare(password, user.password)
+    if (!isMatch) {
+      return res.status(400).json({success: false, message: "Invalid credentials."})
+    }
+    // Generate JWT token
+    const token = jwt.sign({id: user._id, role: user.role}, JWT_SECRET, {expiresIn: '4d'})
+    res.status(200).json({
+      success: true,
+      message: "User logged in successfully.",
+      data: {
+        token,
+        user
+      }
+    })
+  } catch (error) {
+    console.error("Error in login User:", error.message)
+    res.status(500).json({success: false, message: "Server Error"})
+  }
+}
 // Updating a users
 export const updateUser = async (req, res) => {
   const { id } = req.params
@@ -92,4 +124,4 @@ export const deleteUser = async (req, res) => {
     res.status(404).json({success: false, message: "User not found."})
   }
   
-}
+} 
