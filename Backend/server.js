@@ -8,14 +8,19 @@ import electionRoutes from "./routes/elections.route.js";
 import userRoutes from "./routes/users.route.js"
 import positionRoutes from "./routes/positions.route.js";
 import voteRoutes from "./routes/votes.route.js";
-
+import cors from "cors";
 const app = express()
 const port = 3000
-
 dotenv.config();
 app.use(express.json());
-app.use("/api/candidates", candidateRoutes)
-app.use("/api/superAdmins", superAdminRoutes)
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+})); 
+app.use("/api/candidates/", candidateRoutes)
+app.use("/api/superAdmins/", superAdminRoutes)
 app.use("/api/admins/", adminRoutes)
 app.use("/api/elections/", electionRoutes)
 app.use("/api/users/", userRoutes)

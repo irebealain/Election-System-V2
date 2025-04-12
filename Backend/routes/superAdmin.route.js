@@ -11,8 +11,8 @@ import { protect, isSuperAdmin } from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.post("/signup", signupSuperAdmin);         // Create SuperAdmin via Google
-router.post("/login", loginSuperAdmin);           // Login via Google
+router.post("/signup", signupSuperAdmin);// Create SuperAdmin via Google
+router.post("/login", loginSuperAdmin); // Login via Google
 router.get("/", protect, isSuperAdmin, getSuperAdmins);
 router.put("/:id", protect, isSuperAdmin, updateSuperAdmin);
 router.delete("/:id", protect, isSuperAdmin, deleteSuperAdmin);

@@ -42,7 +42,7 @@ const adminSchema = new mongoose.Schema({
   createdBy: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "SuperAdmins",
-    required: true
+    null: true
   }
 }, {timestamps: true})
 

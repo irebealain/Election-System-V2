@@ -16,15 +16,19 @@ export const protect = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      req.user =
-        await User.findById(decoded.id).select("-password") ||
-        await Admin.findById(decoded.id).select("-password");
-
-      if (!req.user) {
-        return res.status(401).json({ success: false, message: "Invalid token or user not found" });
+      // check User
+      let user = await User.findById(decoded.id).select("-password");
+      if (user){
+        req.user = {...user._doc, role: "user" };
+        return next();
       }
-
-      return next();
+      // check Admin
+      let admin = await Admin.findById(decoded.id).select("-password");
+      if (admin) {
+        req.user = {...admin._doc, role: "admin" };
+        return next();
+      }
+      return res.status(401).json({ success: false, message: "User not found" });
     } catch (err) {
       return res.status(401).json({ success: false, message: "JWT verification failed" });
     }
@@ -45,9 +49,9 @@ export const protect = async (req, res, next) => {
         return res.status(401).json({ success: false, message: "SuperAdmin not found" });
       }
 
-      req.user = superAdmin;
+      req.user = {...superAdmin._doc, role: "superAdmin" };
       return next();
-    } catch (err) {
+    } catch (err) { 
       return res.status(401).json({ success: false, message: "Google token invalid" });
     }
   }
@@ -55,14 +59,14 @@ export const protect = async (req, res, next) => {
   return res.status(401).json({ success: false, message: "No authorization token provided" });
 };
 
-// 🔐 Only SuperAdmin Access
+// Only SuperAdmin Access
 export const isSuperAdmin = (req, res, next) => {
   if (req.user?.role === "superAdmin") return next();
   return res.status(403).json({ success: false, message: "Only SuperAdmins can access this route" });
 };
 
-// 🔐 Only Admin Access
+// Only Admin Access
 export const isAdmin = (req, res, next) => {
-  if (req.user?.role === "admin") return next();
-  return res.status(403).json({ success: false, message: "Only Admins can access this route" });
+  if (req.user?.role === "admin" || req.user?.role === "superAdmin") return next();
+  return res.status(403).json({ success: false, message: "Only Admins and Super Admins can access this route" });
 };

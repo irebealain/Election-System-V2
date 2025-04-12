@@ -38,7 +38,9 @@ export const createElections = async (req, res) => {
   if (parsedDate.toDateString() === today.toDateString()) {
     status = "ongoing"
   }
-
+  else if (status === "ongoing" && parsedDate < today) {
+    status = "completed"
+  }
   try {
     // Check for duplicates (by title and startDate)
     const existingElection = await Election.findOne({

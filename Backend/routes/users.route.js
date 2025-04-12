@@ -1,5 +1,6 @@
 import express from "express";
-import {deleteUser, getUsers, updateUser, userLogin, userSignup } from "../controllers/users.controllers.js";
+import {deleteUser, getUsers, googleUserLogin, googleUserSignup, updateUser, userLogin, userSignup } from "../controllers/users.controllers.js";
+import { isAdmin, protect } from "../middlewares/auth.js";
 
 const router = express.Router();
 
@@ -7,11 +8,15 @@ const router = express.Router();
 router.get('/', getUsers)
 // Creating a new user
 router.post('/signup', userSignup)
+//User Signup using Google Auth
+router.post('/auth/signup', googleUserSignup)
 // Login user
 router.post('/login', userLogin)
+// User login using Google Auth
+router.post('/auth/login', googleUserLogin)
 // Updating the user
-router.put('/:id', updateUser)
+router.put('/:id',protect, isAdmin, updateUser)
 // Deleting user
-router.delete('/:id', deleteUser)
+router.delete('/:id', protect, isAdmin, deleteUser)
 
 export default router

@@ -54,7 +54,6 @@ export const signupSuperAdmin = async (req, res) => {
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID, // Ensure the token is from your app
     });
-
     const payload = ticket.getPayload();
     const email = payload.email;
 
@@ -165,10 +164,9 @@ export const approveAdmin = async (req, res) => {
     // Find the admin by ID and update their status to approved
     const updatedAdmin = await Admin.findByIdAndUpdate(
       adminId,
-      { status: "approved" },
+      { isApproved: true, createdBy:  req.user.firstName && req.user.lastName},
       { new: true }
-    );
-
+    )
     if (!updatedAdmin) {
       return res
         .status(404)
