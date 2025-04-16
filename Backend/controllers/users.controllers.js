@@ -5,43 +5,61 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
 
-const JWT_SECRET = process.env.JWT_SECRET || 'secretkey';
+const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 // Getting all the elections
 export const getUsers = async (req, res) => {
   try {
-    const user = await User.find({})
-    res.status(200).json({success: true, data: user})
+    const user = await User.find({});
+    res.status(200).json({ success: true, data: user });
   } catch (error) {
-    res.status(500).json({success: false, message: "Server error."})
+    res.status(500).json({ success: false, message: "Server error." });
   }
-}
+};
 // Signup as new user.
 export const userSignup = async (req, res) => {
-  const user = req.body
+  const user = req.body;
   // checking all the fields
-  if(!user.firstName || !user.lastName ||!user.email || !user.password || !user.electionId || !user.level){
-    return res.status(400).json({success: false, message: "Please provide all required fields"})
+  if (
+    !user.firstName ||
+    !user.lastName ||
+    !user.email ||
+    !user.password ||
+    !user.electionId ||
+    !user.level
+  ) {
+    return res
+      .status(400)
+      .json({ success: false, message: "Please provide all required fields" });
   }
   try {
     // Check if the election exists and if its status is not 'completed'
     const election = await Election.findById(user.electionId);
 
     if (!election) {
-      return res.status(404).json({ success: false, message: "Election not found." });
+      return res
+        .status(404)
+        .json({ success: false, message: "Election not found." });
     }
 
     if (election.status === "completed") {
-      return res.status(400).json({ success: false, message: "You cannot register for a completed election." });
+      return res
+        .status(400)
+        .json({
+          success: false,
+          message: "You cannot register for a completed election.",
+        });
     }
     // Checking if the user exists
-    const existingUser = await User.findOne({email: user.email})
+    const existingUser = await User.findOne({ email: user.email });
 
-    if (existingUser){
-      return res.status(400).json({success: false, message: "User already exists."})
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ success: false, message: "User already exists." });
     }
     // Hashing password
-    const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(user.password, salt)
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(user.password, salt);
     // Saving a new user
     const newUser = new User({
       firstName: user.firstName,
@@ -49,83 +67,94 @@ export const userSignup = async (req, res) => {
       email: user.email,
       password: hashedPassword,
       electionId: user.electionId,
-      level: user.level
-    })
-    await newUser.save()
+      level: user.level,
+    });
+    await newUser.save();
     // Generate JWT token
-    const token = jwt.sign({id: newUser._id, role: newUser.role}, JWT_SECRET, {expiresIn: '4d'})
+    const token = jwt.sign(
+      { id: newUser._id, role: newUser.role },
+      JWT_SECRET,
+      { expiresIn: "4d" }
+    );
     res.status(201).json({
-      success: true, 
+      success: true,
       message: "User created successfully.",
       data: {
         token,
-        newUser
-      }
-    })
+        newUser,
+      },
+    });
   } catch (error) {
-    console.error("Error in created User:", error.message)
-    res.status(500).json({success: false, message: "Server Error"})
+    console.error("Error in created User:", error.message);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
-}
+};
 // Login to a user
 export const userLogin = async (req, res) => {
-  const {email, password} = req.body
+  const { email, password } = req.body;
   // Checking if the user exists
   if (!email || !password) {
-    return res.status(400).json({success: false, message: "Please provide all required fields."})
+    return res
+      .status(400)
+      .json({ success: false, message: "Please provide all required fields." });
   }
   try {
-    const user = await User.findOne({email})
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({success: false, message: "User not found."})
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found." });
     }
     // Checking the password
-    const isMatch = await bcrypt.compare(password, user.password)
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({success: false, message: "Invalid credentials."})
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid credentials." });
     }
     // Generate JWT token
-    const token = jwt.sign({id: user._id, role: user.role}, JWT_SECRET, {expiresIn: '4d'})
+    const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, {
+      expiresIn: "4d",
+    });
     res.status(200).json({
       success: true,
       message: "User logged in successfully.",
       data: {
         token,
-        user
-      }
-    })
+        user,
+      },
+    });
   } catch (error) {
-    console.error("Error in login User:", error.message)
-    res.status(500).json({success: false, message: "Server Error"})
+    console.error("Error in login User:", error.message);
+    res.status(500).json({ success: false, message: "Server Error" });
   }
-}
+};
 // Updating a users
 export const updateUser = async (req, res) => {
-  const { id } = req.params
-  const updates = req.body
+  const { id } = req.params;
+  const updates = req.body;
 
   if (!mongoose.Types.ObjectId.isValid(id)) {
-    return res.status(404).json({ success: false, message: "User not found." })
+    return res.status(404).json({ success: false, message: "User not found." });
   }
 
   try {
-    const updateUser = await User.findByIdAndUpdate(id, updates, { new: true })
-    res.status(200).json({ success: true, data: updateUser })
+    const updateUser = await User.findByIdAndUpdate(id, updates, { new: true });
+    res.status(200).json({ success: true, data: updateUser });
   } catch (error) {
-    res.status(500).json({ success: false, message: "Server error." })
+    res.status(500).json({ success: false, message: "Server error." });
   }
-}
+};
 // Deleting a User
 export const deleteUser = async (req, res) => {
-  const {id} = req.params
+  const { id } = req.params;
   try {
     await User.findByIdAndDelete(id);
-    res.status(200).json({success: true, message: "User deleted."})
+    res.status(200).json({ success: true, message: "User deleted." });
   } catch (error) {
-    res.status(404).json({success: false, message: "User not found."})
+    res.status(404).json({ success: false, message: "User not found." });
   }
-  
-} 
+};
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Sign up the user using Google Auth
 export const googleUserSignup = async (req, res) => {
@@ -220,7 +249,7 @@ export const googleUserSignup = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
-  // Login the user using Google Auth
+// Login the user using Google Auth
 export const googleUserLogin = async (req, res) => {
   const { token } = req.body;
   try {
@@ -233,23 +262,23 @@ export const googleUserLogin = async (req, res) => {
     const email = payload.email;
 
     // Check if the User exists
-    const user = await User.findOne({email});
-    if (!user){
+    const user = await User.findOne({ email });
+    if (!user) {
       return res.status(401).json({
         success: false,
         message: "User not found, please sign up",
-      })
+      });
     }
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      data: { user }
-    })
+      data: { user },
+    });
   } catch (error) {
     console.error("Error during Google login:", error.message);
     return res.status(500).json({
       success: false,
-      message: "Error during login, please try again",
+      message: error.message || "Error during login, please try again",
     });
   }
-}
+};
