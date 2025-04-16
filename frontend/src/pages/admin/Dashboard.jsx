@@ -1,4 +1,6 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
+import { getAllCandidates } from "../../services/candidateService"
+import { getAllPositions } from "../../services/positionService"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
 import {
@@ -14,27 +16,13 @@ import {
   Pie,
   Cell,
 } from "recharts"
-
-// Sample data for charts
-const electionData = [
-  { name: "Spring 2023", candidates: 12, positions: 4 },
-  { name: "Fall 2022", candidates: 10, positions: 4 },
-  { name: "Spring 2022", candidates: 8, positions: 3 },
-  { name: "Fall 2021", candidates: 9, positions: 3 },
-]
+import { getAllUsers } from "../../services/UserService"
+import { getAllElections } from "../../services/electionService"
 
 const studentData = [
   { name: "Total", value: 120 },
   { name: "Voted", value: 85 },
 ]
-
-// Sample data for tables
-const students = [
-  { id: 1, name: "John Doe", level: "Upper", voted: true, registeredAt: "2023-04-10" },
-  { id: 2, name: "Jane Smith", level: "Lower", voted: true, registeredAt: "2023-04-11" },
-  { id: 3, name: "Michael Johnson", level: "Upper", voted: false, registeredAt: "2023-04-12" },
-]
-
 const admins = [
   { id: 1, name: "Admin User", email: "admin@example.com", status: "Active", lastLogin: "2023-04-15" },
   { id: 2, name: "Jane Admin", email: "jane@example.com", status: "Active", lastLogin: "2023-04-14" },
@@ -43,8 +31,43 @@ const admins = [
 const COLORS = ["#46A977", "#F79F21", "#FC5656", "#3E2DBF"]
 
 function AdminDashboard() {
+  const [students, setStudents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [positions, setPositions] = useState([])
+  const [candidates, setCandidates] = useState([])
+  const [electionData, setElectionData] = useState([])
   useEffect(() => {
     document.title = "Admin Dashboard | Election System"
+    // Fetch data from the backend API
+    const fetchData = async () => {
+      try {
+        const [data, positionsData, candidatesData, elections] = await Promise.all([
+          getAllUsers(), 
+          getAllPositions(),
+          getAllCandidates(),
+          getAllElections()])
+
+          setStudents(data)
+          setCandidates(candidatesData)
+          setPositions(positionsData)
+
+          setElectionData([
+            {
+              name: elections.title,
+              candidates: candidatesData.length,
+              positions: positionsData.length,
+            },
+          ])
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+      finally {
+        // Handle loading state or any other UI updates
+        setLoading(false);
+      }
+    }
+    fetchData()
+
   }, [])
 
   return (
@@ -60,7 +83,9 @@ function AdminDashboard() {
             <CardTitle className="text-sm font-medium">Total Elections</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">4</div>
+            <div className="text-3xl font-bold">
+              {elections.length}
+            </div>
             <p className="text-xs text-muted-foreground">+1 from last year</p>
           </CardContent>
         </Card>
@@ -72,20 +97,55 @@ function AdminDashboard() {
           <CardContent>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={electionData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" fontSize={12} />
-                  <YAxis fontSize={12} />
-                  <Tooltip />
-                  <Legend />
-                  <Bar dataKey="candidates" fill="#46A977" />
-                  <Bar dataKey="positions" fill="#F79F21" />
+                <BarChart data={electionData} className="fill-none" margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
+                  <XAxis 
+                    dataKey="name" 
+                    fontSize={10}
+                    tickLine={false}
+                    axisLine={{ stroke: '#E0E0E0' }}
+                  label={{ value: 'Election', position: 'insideBottom', offset: 9, fontSize: 12 }}
+                  />
+                  <YAxis 
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={{ stroke: '#E0E0E0' }}
+                    tickFormatter={(value) => `${value}`}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+                    contentStyle={{ 
+                      backgroundColor: '#fff',
+                      border: '1px solid #E0E0E0',
+                      borderRadius: '8px',
+                      padding: '10px'
+                    }}
+                  />
+                  <Legend 
+                    verticalAlign="top" 
+                    height={36}
+                    iconType="circle"
+                  />
+                  <Bar 
+                    dataKey="candidates" 
+                    fill="#46A977"
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                    animationDuration={1500}
+                  />
+                  <Bar 
+                    dataKey="positions" 
+                    fill="#F79F21"
+                    radius={[4, 4, 0, 0]}
+                    barSize={30}
+                    animationDuration={1500}
+                  />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
 
+        </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Student Participation</CardTitle>
@@ -133,6 +193,7 @@ function AdminDashboard() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b">
+                    <th className="text-left p-2">Profile</th>
                     <th className="text-left p-2">Student</th>
                     <th className="text-left p-2">Level</th>
                     <th className="text-left p-2">Status</th>
@@ -140,13 +201,19 @@ function AdminDashboard() {
                 </thead>
                 <tbody>
                   {students.map((student) => (
-                    <tr key={student.id} className="border-b">
+                    <tr key={student._id} className="border-b">
                       <td className="p-2 font-medium">
                         <div className="flex items-center gap-2">
                           <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                            {student.name.charAt(0)}
+                            {student.profilePicture}
                           </div>
-                          {student.name}
+                        </div>
+                      </td>
+                      <td className="p-2 font-medium">
+                        <div className="flex items-center gap-2">
+                          
+                            {student.firstName}-{student.lastName}
+                          
                         </div>
                       </td>
                       <td className="p-2">{student.level}</td>

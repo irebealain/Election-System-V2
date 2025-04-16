@@ -20,7 +20,7 @@ app.use(cors({
   credentials: true,
 })); 
 app.use("/api/candidates/", candidateRoutes)
-app.use("/api/superAdmins/", superAdminRoutes)
+app.use("/api/superadmins/", superAdminRoutes)
 app.use("/api/admins/", adminRoutes)
 app.use("/api/elections/", electionRoutes)
 app.use("/api/users/", userRoutes)
@@ -28,5 +28,5 @@ app.use("/api/positions/", positionRoutes)
 app.use("/api/votes/", voteRoutes)
 app.listen(port, () => {
   connectDB();
-  console.log(`App listening on port ${port}`)
+  console.log(`Server started on port ${port}`)
 })

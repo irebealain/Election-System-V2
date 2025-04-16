@@ -9,7 +9,7 @@ import toast from "react-hot-toast"
 import { motion, AnimatePresence } from "framer-motion"
 import logo from "../assets/Logo.svg"
 import { useGoogleLogin } from "@react-oauth/google"
-
+import axios from "@/lib/axios";
 function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
@@ -139,38 +139,26 @@ function LoginPage() {
         let endpoint;
         switch (role) {
           case "student":
-            endpoint = "/api/users/auth/login";
+            endpoint = "/users/auth/login";
             break;
           case "admin":
-            endpoint = "/api/admins/auth/login";
+            endpoint = "/admins/auth/login";
             break;
           case "superadmin":
-            endpoint = "/api/superadmins/login";
+            endpoint = "/superadmins/login";
             break;
           default:
-            endpoint = "/api/auth/student/login";
+            endpoint = "/auth/student/login";
         }
         
         // Send the token to your backend
-        const response = await fetch(endpoint, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            googleToken: tokenResponse.access_token,
-            ...(role === "student" && { level: studentLevel }),
-          }),
+        const response = await axios.post(endpoint, {
+          googleToken: tokenResponse.access_token,
+          ...(role === "student" && { level: studentLevel }),
         });
         
-        if (!response.ok) {
-          throw new Error('Authentication failed');
-        }
-        
-        const userData = await response.json();
-        login(userData);
+        login(response.data);
         toast.success("Logged in successfully with Google!");
-        
         redirectBasedOnRole(role);
       } catch (error) {
         toast.error(`Login failed: ${error.message}`);
