@@ -1,136 +1,159 @@
-import { useState, useEffect } from "react"
-import { useNavigate, Link } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "../components/common/Card"
-import Button from "../components/common/Button"
+import { useState, useEffect } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "../components/common/Card";
+import Button from "../components/common/Button";
 // import ModeToggle from "../components/common/ModeToggle"
-import { Eye, EyeOff, Mail, Lock, User, AlertCircle, Check } from "lucide-react"
-import toast from "react-hot-toast"
-import { motion, AnimatePresence } from "framer-motion"
-import logo from "../assets/Logo.svg"
-import { useGoogleLogin } from "@react-oauth/google"
+import {
+  Eye,
+  EyeOff,
+  Mail,
+  Lock,
+  User,
+  AlertCircle,
+  Check,
+} from "lucide-react";
+import toast from "react-hot-toast";
+import { motion, AnimatePresence } from "framer-motion";
+import logo from "../assets/Logo.svg";
+import { useGoogleLogin } from "@react-oauth/google";
 
 function LoginPage() {
-  const { login } = useAuth()
-  const navigate = useNavigate()
-  const [isLogin, setIsLogin] = useState(true)
-  const [role, setRole] = useState("student")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [name, setName] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [showPassword, setShowPassword] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [errors, setErrors] = useState({})
-  const [validations, setValidations] = useState({})
-  const [studentLevel, setStudentLevel] = useState("upper") // Default to "upper" level
+  const { login } = useAuth();
+  const navigate = useNavigate();
+  const [isLogin, setIsLogin] = useState(true);
+  const [role, setRole] = useState("student");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [validations, setValidations] = useState({});
+  const [studentLevel, setStudentLevel] = useState("upper"); // Default to "upper" level
 
   // For animation purposes
-  const [showForm, setShowForm] = useState(false)
+  const [showForm, setShowForm] = useState(false);
 
   useEffect(() => {
     // Fade in form animation on mount
-    setShowForm(true)
-    document.title = isLogin ? "Login | Election System" : "Sign Up | Election System"
-  }, [isLogin])
+    setShowForm(true);
+    document.title = isLogin
+      ? "Login | Election System"
+      : "Sign Up | Election System";
+  }, [isLogin]);
 
   const validateEmail = (email) => {
-    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
-      setErrors({ ...errors, email: "Email is required" })
-      setValidations({ ...validations, email: false })
-      return false
+      setErrors({ ...errors, email: "Email is required" });
+      setValidations({ ...validations, email: false });
+      return false;
     } else if (!regex.test(email)) {
-      setErrors({ ...errors, email: "Please enter a valid email" })
-      setValidations({ ...validations, email: false })
-      return false
+      setErrors({ ...errors, email: "Please enter a valid email" });
+      setValidations({ ...validations, email: false });
+      return false;
     } else {
-      setErrors({ ...errors, email: null })
-      setValidations({ ...validations, email: true })
-      return true
+      setErrors({ ...errors, email: null });
+      setValidations({ ...validations, email: true });
+      return true;
     }
-  }
+  };
 
   const validatePassword = (password) => {
     if (!password) {
-      setErrors({ ...errors, password: "Password is required" })
-      setValidations({ ...validations, password: false })
-      return false
+      setErrors({ ...errors, password: "Password is required" });
+      setValidations({ ...validations, password: false });
+      return false;
     } else if (password.length < 6) {
-      setErrors({ ...errors, password: "Password must be at least 6 characters" })
-      setValidations({ ...validations, password: false })
-      return false
+      setErrors({
+        ...errors,
+        password: "Password must be at least 6 characters",
+      });
+      setValidations({ ...validations, password: false });
+      return false;
     } else {
-      setErrors({ ...errors, password: null })
-      setValidations({ ...validations, password: true })
-      return true
+      setErrors({ ...errors, password: null });
+      setValidations({ ...validations, password: true });
+      return true;
     }
-  }
+  };
 
   const validateName = (name) => {
     if (!name && !isLogin) {
-      setErrors({ ...errors, name: "Name is required" })
-      setValidations({ ...validations, name: false })
-      return false
+      setErrors({ ...errors, name: "Name is required" });
+      setValidations({ ...validations, name: false });
+      return false;
     } else if (name && name.length < 2 && !isLogin) {
-      setErrors({ ...errors, name: "Name is too short" })
-      setValidations({ ...validations, name: false })
-      return false
+      setErrors({ ...errors, name: "Name is too short" });
+      setValidations({ ...validations, name: false });
+      return false;
     } else {
-      setErrors({ ...errors, name: null })
-      setValidations({ ...validations, name: true })
-      return true
+      setErrors({ ...errors, name: null });
+      setValidations({ ...validations, name: true });
+      return true;
     }
-  }
+  };
 
   const validateConfirmPassword = (confirmPassword) => {
     if (!isLogin) {
       if (!confirmPassword) {
-        setErrors({ ...errors, confirmPassword: "Please confirm your password" })
-        setValidations({ ...validations, confirmPassword: false })
-        return false
+        setErrors({
+          ...errors,
+          confirmPassword: "Please confirm your password",
+        });
+        setValidations({ ...validations, confirmPassword: false });
+        return false;
       } else if (confirmPassword !== password) {
-        setErrors({ ...errors, confirmPassword: "Passwords do not match" })
-        setValidations({ ...validations, confirmPassword: false })
-        return false
+        setErrors({ ...errors, confirmPassword: "Passwords do not match" });
+        setValidations({ ...validations, confirmPassword: false });
+        return false;
       } else {
-        setErrors({ ...errors, confirmPassword: null })
-        setValidations({ ...validations, confirmPassword: true })
-        return true
+        setErrors({ ...errors, confirmPassword: null });
+        setValidations({ ...validations, confirmPassword: true });
+        return true;
       }
     }
-    return true
-  }
+    return true;
+  };
   // Handle input changes for the level
   const validateStudentLevel = (level) => {
     if (role === "student" && !level) {
-      setErrors({ ...errors, studentLevel: "Student level is required" })
-      setValidations({ ...validations, studentLevel: false })
-      return false
+      setErrors({ ...errors, studentLevel: "Student level is required" });
+      setValidations({ ...validations, studentLevel: false });
+      return false;
     } else {
-      setErrors({ ...errors, studentLevel: null })
-      setValidations({ ...validations, studentLevel: true })
-      return true
+      setErrors({ ...errors, studentLevel: null });
+      setValidations({ ...validations, studentLevel: true });
+      return true;
     }
-  }
+  };
   const handleInputChange = (e) => {
-    const { id, value } = e.target
+    const { id, value } = e.target;
 
     if (id === "email") {
-      setEmail(value)
-      validateEmail(value)
+      setEmail(value);
+      validateEmail(value);
     } else if (id === "password") {
-      setPassword(value)
-      validatePassword(value)
-      if (confirmPassword) validateConfirmPassword(confirmPassword)
+      setPassword(value);
+      validatePassword(value);
+      if (confirmPassword) validateConfirmPassword(confirmPassword);
     } else if (id === "name") {
-      setName(value)
-      validateName(value)
+      setName(value);
+      validateName(value);
     } else if (id === "confirmPassword") {
-      setConfirmPassword(value)
-      validateConfirmPassword(value)
+      setConfirmPassword(value);
+      validateConfirmPassword(value);
     }
-  }
+  };
 
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
@@ -150,27 +173,27 @@ function LoginPage() {
           default:
             endpoint = "/api/auth/student/login";
         }
-        
+
         // Send the token to your backend
         const response = await fetch(endpoint, {
-          method: 'POST',
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            googleToken: tokenResponse.access_token,
+            token: tokenResponse.access_token,
             ...(role === "student" && { level: studentLevel }),
           }),
         });
-        
+
         if (!response.ok) {
-          throw new Error('Authentication failed');
+          throw new Error("Authentication failed");
         }
-        
+
         const userData = await response.json();
         login(userData);
         toast.success("Logged in successfully with Google!");
-        
+
         redirectBasedOnRole(role);
       } catch (error) {
         toast.error(`Login failed: ${error.message}`);
@@ -181,35 +204,43 @@ function LoginPage() {
     onError: () => {
       toast.error("Google login failed");
       setLoading(false);
-    }
+    },
   });
-  
+
   // Update your Google button click handler
-  const handleGoogleAuth = () => {
+  const handleGoogleAuth = async () => {
     setLoading(true);
     googleLogin();
   };
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     // Validate all fields
-    const isEmailValid = validateEmail(email)
-    const isPasswordValid = validatePassword(password)
-    const isNameValid = validateName(name)
-    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
-    const isStudentLevelValid = role === "student" ? validateStudentLevel(studentLevel) : true
-    if (!isLogin && (!isEmailValid || !isPasswordValid || !isNameValid || !isConfirmPasswordValid) || (role === "student" && !isStudentLevelValid)) {
-      toast.error("Please fix the errors in the form")
-      return
+    const isEmailValid = validateEmail(email);
+    const isPasswordValid = validatePassword(password);
+    const isNameValid = validateName(name);
+    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+    const isStudentLevelValid =
+      role === "student" ? validateStudentLevel(studentLevel) : true;
+    if (
+      (!isLogin &&
+        (!isEmailValid ||
+          !isPasswordValid ||
+          !isNameValid ||
+          !isConfirmPasswordValid)) ||
+      (role === "student" && !isStudentLevelValid)
+    ) {
+      toast.error("Please fix the errors in the form");
+      return;
     }
 
     if (isLogin && (!isEmailValid || !isPasswordValid)) {
-      toast.error("Please fix the errors in the form")
-      return
+      toast.error("Please fix the errors in the form");
+      return;
     }
 
-    setLoading(true)
+    setLoading(true);
 
     // Simulate API request
     setTimeout(() => {
@@ -218,34 +249,34 @@ function LoginPage() {
         name: isLogin ? email.split("@")[0] : name,
         email,
         role,
-        ...( role === "student" && { level: studentLevel} ),
-      }
+        ...(role === "student" && { level: studentLevel }),
+      };
 
-      login(userData)
+      login(userData);
 
       if (isLogin) {
-        toast.success("Logged in successfully!")
+        toast.success("Logged in successfully!");
       } else {
-        toast.success("Account created successfully!")
+        toast.success("Account created successfully!");
       }
 
       // Redirect based on role
-      redirectBasedOnRole(role)
-      setLoading(false)
-    }, 1500)
-  }
+      redirectBasedOnRole(role);
+      setLoading(false);
+    }, 1500);
+  };
 
   const handleToggleForm = () => {
     // Reset errors and form when toggling between login and signup
-    setErrors({})
-    setValidations({})
-    setShowForm(false)
+    setErrors({});
+    setValidations({});
+    setShowForm(false);
 
     setTimeout(() => {
-      setIsLogin(!isLogin)
-      setShowForm(true)
-    }, 300)
-  }
+      setIsLogin(!isLogin);
+      setShowForm(true);
+    }, 300);
+  };
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -254,10 +285,9 @@ function LoginPage() {
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center">
               <span className="text-2xl font-bold font-satoshi">
-                <img src= {logo} alt="" />
+                <img src={logo} alt="" />
               </span>
             </Link>
-
           </div>
         </div>
       </header>
@@ -287,7 +317,10 @@ function LoginPage() {
                   <form onSubmit={handleSubmit} className="space-y-4">
                     {!isLogin && (
                       <div className="space-y-2">
-                        <label htmlFor="name" className="block text-sm font-medium">
+                        <label
+                          htmlFor="name"
+                          className="block text-sm font-medium"
+                        >
                           Full Name
                         </label>
                         <div className="relative">
@@ -300,7 +333,11 @@ function LoginPage() {
                             onChange={handleInputChange}
                             placeholder="John Doe"
                             className={`w-full h-10 rounded-md border ${
-                              errors.name ? "border-red-500" : validations.name ? "border-green-500" : "border-input"
+                              errors.name
+                                ? "border-red-500"
+                                : validations.name
+                                ? "border-green-500"
+                                : "border-input"
                             } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                           />
                           {validations.name && (
@@ -311,14 +348,18 @@ function LoginPage() {
                         </div>
                         {errors.name && (
                           <p className="text-red-500 text-xs flex items-center mt-1">
-                            <AlertCircle size={12} className="mr-1" /> {errors.name}
+                            <AlertCircle size={12} className="mr-1" />{" "}
+                            {errors.name}
                           </p>
                         )}
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <label htmlFor="email" className="block text-sm font-medium">
+                      <label
+                        htmlFor="email"
+                        className="block text-sm font-medium"
+                      >
                         Email
                       </label>
                       <div className="relative">
@@ -332,7 +373,11 @@ function LoginPage() {
                           onChange={handleInputChange}
                           placeholder="you@example.com"
                           className={`w-full h-10 rounded-md border ${
-                            errors.email ? "border-red-500" : validations.email ? "border-green-500" : "border-input"
+                            errors.email
+                              ? "border-red-500"
+                              : validations.email
+                              ? "border-green-500"
+                              : "border-input"
                           } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                         />
                         {validations.email && (
@@ -343,13 +388,17 @@ function LoginPage() {
                       </div>
                       {errors.email && (
                         <p className="text-red-500 text-xs flex items-center mt-1">
-                          <AlertCircle size={12} className="mr-1" /> {errors.email}
+                          <AlertCircle size={12} className="mr-1" />{" "}
+                          {errors.email}
                         </p>
                       )}
                     </div>
 
                     <div className="space-y-2">
-                      <label htmlFor="password" className="block text-sm font-medium">
+                      <label
+                        htmlFor="password"
+                        className="block text-sm font-medium"
+                      >
                         Password
                       </label>
                       <div className="relative">
@@ -365,8 +414,8 @@ function LoginPage() {
                             errors.password
                               ? "border-red-500"
                               : validations.password
-                                ? "border-green-500"
-                                : "border-input"
+                              ? "border-green-500"
+                              : "border-input"
                           } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                         />
                         <button
@@ -374,19 +423,27 @@ function LoginPage() {
                           onClick={() => setShowPassword(!showPassword)}
                           className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
                         >
-                          {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                          {showPassword ? (
+                            <EyeOff size={18} />
+                          ) : (
+                            <Eye size={18} />
+                          )}
                         </button>
                       </div>
                       {errors.password && (
                         <p className="text-red-500 text-xs flex items-center mt-1">
-                          <AlertCircle size={12} className="mr-1" /> {errors.password}
+                          <AlertCircle size={12} className="mr-1" />{" "}
+                          {errors.password}
                         </p>
                       )}
                     </div>
 
                     {!isLogin && (
                       <div className="space-y-2">
-                        <label htmlFor="confirmPassword" className="block text-sm font-medium">
+                        <label
+                          htmlFor="confirmPassword"
+                          className="block text-sm font-medium"
+                        >
                           Confirm Password
                         </label>
                         <div className="relative">
@@ -402,8 +459,8 @@ function LoginPage() {
                               errors.confirmPassword
                                 ? "border-red-500"
                                 : validations.confirmPassword
-                                  ? "border-green-500"
-                                  : "border-input"
+                                ? "border-green-500"
+                                : "border-input"
                             } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                           />
                           <button
@@ -411,19 +468,26 @@ function LoginPage() {
                             onClick={() => setShowPassword(!showPassword)}
                             className="absolute inset-y-0 right-0 flex items-center pr-3 text-muted-foreground"
                           >
-                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            {showPassword ? (
+                              <EyeOff size={18} />
+                            ) : (
+                              <Eye size={18} />
+                            )}
                           </button>
                         </div>
                         {errors.confirmPassword && (
                           <p className="text-red-500 text-xs flex items-center mt-1">
-                            <AlertCircle size={12} className="mr-1" /> {errors.confirmPassword}
+                            <AlertCircle size={12} className="mr-1" />{" "}
+                            {errors.confirmPassword}
                           </p>
                         )}
                       </div>
                     )}
 
                     <div className="space-y-2">
-                      <label className="block text-sm font-medium">Select Role</label>
+                      <label className="block text-sm font-medium">
+                        Select Role
+                      </label>
                       <div className="flex flex-col space-y-2">
                         <div className="flex items-center space-x-2">
                           <input
@@ -472,7 +536,9 @@ function LoginPage() {
 
                     {role === "student" && (
                       <div className="space-y-2">
-                        <label className="block text-sm font-medium">Student Level</label>
+                        <label className="block text-sm font-medium">
+                          Student Level
+                        </label>
                         <div className="relative">
                           <select
                             id="studentLevel"
@@ -482,8 +548,8 @@ function LoginPage() {
                               errors.studentLevel
                                 ? "border-red-500"
                                 : validations.studentLevel
-                                  ? "border-green-500"
-                                  : "border-input"
+                                ? "border-green-500"
+                                : "border-input"
                             } bg-background px-3 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                             required
                           >
@@ -493,7 +559,8 @@ function LoginPage() {
                         </div>
                         {errors.studentLevel && (
                           <p className="text-red-500 text-xs flex items-center mt-1">
-                            <AlertCircle size={12} className="mr-1" /> {errors.studentLevel}
+                            <AlertCircle size={12} className="mr-1" />{" "}
+                            {errors.studentLevel}
                           </p>
                         )}
                       </div>
@@ -538,7 +605,9 @@ function LoginPage() {
                         <span className="w-full border-t"></span>
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
+                        <span className="bg-background px-2 text-muted-foreground">
+                          Or continue with
+                        </span>
                       </div>
                     </div>
 
@@ -601,11 +670,20 @@ function LoginPage() {
               </Card>
 
               <div className="hidden md:block relative rounded-lg overflow-hidden">
-                <img src="/placeholder.svg" alt="Election System" className="object-cover w-full h-full rounded-lg" />
+                <img
+                  src="/placeholder.svg"
+                  alt="Election System"
+                  className="object-cover w-full h-full rounded-lg"
+                />
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-[#F79F21]/50 flex items-center justify-center">
                   <div className="text-white text-center p-8">
-                    <h2 className="text-3xl font-bold mb-4 font-satoshi">Modern Election System</h2>
-                    <p className="text-lg">Secure, transparent, and efficient elections for your institution.</p>
+                    <h2 className="text-3xl font-bold mb-4 font-satoshi">
+                      Modern Election System
+                    </h2>
+                    <p className="text-lg">
+                      Secure, transparent, and efficient elections for your
+                      institution.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -614,7 +692,7 @@ function LoginPage() {
         </AnimatePresence>
       </main>
     </div>
-  )
+  );
 }
 
-export default LoginPage
+export default LoginPage;
