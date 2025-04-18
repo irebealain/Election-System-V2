@@ -18,57 +18,56 @@ import {
 } from "recharts"
 import { getAllUsers } from "../../services/UserService"
 import { getAllElections } from "../../services/electionService"
-
-const studentData = [
-  { name: "Total", value: 120 },
-  { name: "Voted", value: 85 },
-]
-const admins = [
-  { id: 1, name: "Admin User", email: "admin@example.com", status: "Active", lastLogin: "2023-04-15" },
-  { id: 2, name: "Jane Admin", email: "jane@example.com", status: "Active", lastLogin: "2023-04-14" },
-]
-
-const COLORS = ["#46A977", "#F79F21", "#FC5656", "#3E2DBF"]
+import { getAllAdmins } from "../../services/adminService"
 
 function AdminDashboard() {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [positions, setPositions] = useState([])
   const [candidates, setCandidates] = useState([])
+  const [admins, setAdmins] = useState([])
   const [electionData, setElectionData] = useState([])
+
   useEffect(() => {
     document.title = "Admin Dashboard | Election System"
     // Fetch data from the backend API
     const fetchData = async () => {
       try {
-        const [data, positionsData, candidatesData, elections] = await Promise.all([
+
+        const [usersData, positionsData, candidatesData, electionsData, adminsData] = await Promise.all([
           getAllUsers(), 
           getAllPositions(),
           getAllCandidates(),
-          getAllElections()])
+          getAllElections(),
+          getAllAdmins()
+        ])
+        setStudents(usersData || [])
+        setCandidates(candidatesData || [])
+        setPositions(positionsData || [])
+        setAdmins(adminsData || [])
 
-          setStudents(data)
-          setCandidates(candidatesData)
-          setPositions(positionsData)
-
-          setElectionData([
-            {
-              name: elections.title,
-              candidates: candidatesData.length,
-              positions: positionsData.length,
-            },
-          ])
+        const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
+        
+        setElectionData([
+          {
+            name: currentElection?.title || "Current Election",
+            candidates: candidatesData?.length || 0,
+            positions: positionsData?.length || 0,
+          },
+        ])
       } catch (error) {
         console.error("Error fetching data:", error);
       }
       finally {
-        // Handle loading state or any other UI updates
         setLoading(false);
       }
     }
     fetchData()
-
   }, [])
+
+  if (loading) {
+    return <div>Loading...</div>
+  }
 
   return (
     <div className="space-y-6">
@@ -84,7 +83,7 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">
-              {elections.length}
+              {electionData.length}
             </div>
             <p className="text-xs text-muted-foreground">+1 from last year</p>
           </CardContent>
@@ -104,7 +103,6 @@ function AdminDashboard() {
                     fontSize={10}
                     tickLine={false}
                     axisLine={{ stroke: '#E0E0E0' }}
-                  label={{ value: 'Election', position: 'insideBottom', offset: 9, fontSize: 12 }}
                   />
                   <YAxis 
                     fontSize={12}
@@ -113,17 +111,25 @@ function AdminDashboard() {
                     tickFormatter={(value) => `${value}`}
                   />
                   <Tooltip 
-                    cursor={{ fill: 'rgba(0, 0, 0, 0.1)' }}
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                     contentStyle={{ 
-                      backgroundColor: '#fff',
-                      border: '1px solid #E0E0E0',
-                      borderRadius: '8px',
-                      padding: '10px'
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      color: '#333333'
                     }}
+                    wrapperStyle={{ outline: 'none' }}
+                    labelStyle={{ color: '#666666', marginBottom: '4px' }}
+                    itemStyle={{ padding: '4px 0'}}
                   />
                   <Legend 
-                    verticalAlign="top" 
-                    height={36}
+                    verticalAlign="bottom"
+                    wrapperStyle={{ fontSize: '12px' }}
+                    height={28}
                     iconType="circle"
                   />
                   <Bar 
@@ -144,8 +150,8 @@ function AdminDashboard() {
               </ResponsiveContainer>
             </div>
           </CardContent>
-
         </Card>
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Student Participation</CardTitle>
@@ -155,27 +161,44 @@ function AdminDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={studentData}
+                    data={[
+                      { name: 'Voted', value: students.filter(student => student.voted).length },
+                      { name: 'Not Voted', value: students.filter(student => !student.voted).length }
+                    ]}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
                     fill="#8884d8"
-                    paddingAngle={5}
+                    paddingAngle={9}
                     dataKey="value"
-                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                    label={false}
+                    labelLine={false}
+                    animationBegin={0}
+                    animationDuration={1500}
                   >
-                    {studentData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
+                    <Cell fill="#46A977" />
+                    <Cell fill="#FF6B6B" />
                   </Pie>
-                  <Tooltip />
-                </PieChart>
-              </ResponsiveContainer>
+                  <Tooltip 
+                    contentStyle={{ 
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      color: '#46A977'
+                    }}
+                    wrapperStyle={{ outline: 'none' }}
+                  />
+                </PieChart>              
+                </ResponsiveContainer>
             </div>
           </CardContent>
-        </Card>
-      </div>
+        </Card>              
+        </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
@@ -189,41 +212,39 @@ function AdminDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Profile</th>
-                    <th className="text-left p-2">Student</th>
-                    <th className="text-left p-2">Level</th>
-                    <th className="text-left p-2">Status</th>
+            <div className="overflow-x-auto max-h-[400px]">
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0">
+                  <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold">Profile</th>
+                    <th className="text-left p-3 font-semibold">Student</th>
+                    <th className="text-left p-3 font-semibold">Level</th>
+                    <th className="text-left p-3 font-semibold">Status</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {students.map((student) => (
+                  {students.slice(0, 10).map((student) => (
                     <tr key={student._id} className="border-b">
-                      <td className="p-2 font-medium">
+                      <td className="p-3">
                         <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shadow-sm">
                             {student.profilePicture}
                           </div>
                         </div>
                       </td>
-                      <td className="p-2 font-medium">
+                      <td className="p-3 font-medium">
                         <div className="flex items-center gap-2">
-                          
-                            {student.firstName}-{student.lastName}
-                          
+                          {student.firstName} {student.lastName}
                         </div>
                       </td>
-                      <td className="p-2">{student.level}</td>
-                      <td className="p-2">
+                      <td className="p-3">{student.level}</td>
+                      <td className="p-3">
                         {student.voted ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
                             Voted
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-100">
                             Not Voted
                           </span>
                         )}
@@ -247,49 +268,48 @@ function AdminDashboard() {
             </Button>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b">
-                    <th className="text-left p-2">Admin</th>
-                    <th className="text-left p-2">Status</th>
-                    <th className="text-left p-2">Last Login</th>
+            <div className="overflow-x-auto max-h-[400px]">
+              <table className="w-full border-collapse">
+                <thead className="sticky top-0">
+                  <tr className="border-b bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-semibold">Admin</th>
+                    <th className="text-left p-3 font-semibold">Status</th>
+                    <th className="text-left p-3 font-semibold">Last Login</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {admins.map((admin) => (
-                    <tr key={admin.id} className="border-b">
-                      <td className="p-2 font-medium">
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                            {admin.name.charAt(0)}
+                  {admins.slice(0, 10).map((admin) => (
+                    <tr key={admin._id} className="border-b">
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-9 w-9 rounded-full bg-muted flex items-center justify-center shadow-sm">
+                            {admin.firstName.charAt(0)}
                           </div>
                           <div>
-                            <div>{admin.name}</div>
+                            <div className="font-medium">{admin.firstName} {admin.lastName}</div>
                             <div className="text-xs text-muted-foreground">{admin.email}</div>
                           </div>
                         </div>
                       </td>
-                      <td className="p-2">
-                        {admin.status === "Active" ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
+                      <td className="p-3">
+                        {admin.isApproved ? (
+                          <span className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
                             Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-100">
-                            Pending
+                          <span className="inline-flex items-center rounded-full bg-gray-100 px-3 py-1 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                            Inactive
                           </span>
                         )}
                       </td>
-                      <td className="p-2">{admin.lastLogin}</td>
+                      <td className="p-3">{admin.lastLoginAt}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           </CardContent>
-        </Card>
-      </div>
+        </Card>      </div>
     </div>
   )
 }

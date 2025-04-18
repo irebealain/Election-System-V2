@@ -46,7 +46,7 @@ function Navbar() {
                 onBlur={() => setSearchOpen(false)}
               />
               <Button
-                variant=""
+                variant="ghost"
                 size="icon"
                 className="absolute right-0 top-0"
                 onClick={() => setSearchOpen(false)}
@@ -66,7 +66,7 @@ function Navbar() {
             <Button
               variant="ghost"
               size="icon"
-              className="relative  rounded-[40px]"
+              className="relative"
               onClick={() => setNotificationsOpen(!notificationsOpen)}
             >
               <Bell className="h-5 w-5" />
@@ -77,7 +77,7 @@ function Navbar() {
             </Button>
 
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 mt-2 w-80 rounded-[20px] border bg-background shadow-lg">
                 <div className="p-3 border-b">
                   <h3 className="font-medium">Notifications</h3>
                 </div>
@@ -128,7 +128,7 @@ function Navbar() {
             </Button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 mt-2 w-48 rounded-[20px] border bg-background shadow-lg">
                 <div className="p-3 border-b">
                   <h3 className="font-medium">My Account</h3>
                 </div>

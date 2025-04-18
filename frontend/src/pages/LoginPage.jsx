@@ -31,7 +31,7 @@ function LoginPage() {
   const [errors, setErrors] = useState({});
   const [validations, setValidations] = useState({});
   const [studentLevel, setStudentLevel] = useState("upper"); // Default to "upper" level
-
+  // const [formData, setFormData] = useState({ email: "", password: "", role: "" });
   // For animation purposes
   const [showForm, setShowForm] = useState(false);
 
@@ -146,45 +146,70 @@ function LoginPage() {
       validateConfirmPassword(value);
     }
   };
-
+  const redirectBasedOnRole = (role) => {
+    if (role === "student") {
+      navigate ("/student/dashboard");
+    } else if (role === "admin") {
+      navigate ("/admin/dashboard");
+    } else if (role === "superadmin") {
+      navigate ("/superadmin/dashboard");
+    }
+    else {
+      navigate ("/login");
+    }
+  };
+  // Google login function
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
       try {
-        // Determine the endpoint based on the role
+        // Get user info - this is good!
+        const userInfoResponse = await axios.get(
+          'https://www.googleapis.com/oauth2/v3/userinfo',
+          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
+        );
+        const userInfo = userInfoResponse.data;
+        
+        // Endpoint selection - let's improve this part
         let endpoint;
         switch (role) {
           case "student":
-            endpoint = "/users/auth/login";
+            endpoint = `${import.meta.env.VITE_API_URL}/api/auth/student/google`;
             break;
           case "admin":
-            endpoint = "/admins/auth/login";
+            endpoint = `${import.meta.env.VITE_API_URL}/api/admins/auth/login`;
             break;
           case "superadmin":
-            endpoint = "/superadmins/login";
+            endpoint = `${import.meta.env.VITE_API_URL}/api/superadmins/login`;
             break;
           default:
-            endpoint = "/auth/student/login";
+            endpoint = `${import.meta.env.VITE_API_URL}/api/users/auth/login`;
         }
-
-        // Send the token to your backend
+        
+        // Send both access token and user info
         const response = await axios.post(endpoint, {
-          googleToken: tokenResponse.access_token,
+          token: tokenResponse.access_token,
+          googleUserInfo: userInfo,
           ...(role === "student" && { level: studentLevel }),
         });
         
+        // Handle response and login
         login(response.data);
         toast.success("Logged in successfully with Google!");
         redirectBasedOnRole(role);
       } catch (error) {
-        toast.error(`Login failed: ${error.message}`);
+        toast.error(`Login failed: ${error.response?.data?.message || error.message}`);
       } finally {
         setLoading(false);
       }
     },
-    onError: () => {
+    onError: (error) => {
+      console.error("Google login error:", error);
       toast.error("Google login failed");
       setLoading(false);
     },
+    // Use auth flow rather than implicit for better security
+    flow: "auth-code",
+    scope: "openid email profile",
   });
 
   // Update your Google button click handler
@@ -312,7 +337,7 @@ function LoginPage() {
                             value={name}
                             onChange={handleInputChange}
                             placeholder="John Doe"
-                            className={`w-full h-10 rounded-md border ${
+                            className={`w-full h-10 rounded-[20px] border ${
                               errors.name
                                 ? "border-red-500"
                                 : validations.name
@@ -352,7 +377,7 @@ function LoginPage() {
                           value={email}
                           onChange={handleInputChange}
                           placeholder="you@example.com"
-                          className={`w-full h-10 rounded-md border ${
+                          className={`w-full h-10 rounded-[20px] border ${
                             errors.email
                               ? "border-red-500"
                               : validations.email
@@ -390,7 +415,7 @@ function LoginPage() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={handleInputChange}
-                          className={`w-full h-10 rounded-md border ${
+                          className={`w-full h-10 rounded-[20px] border ${
                             errors.password
                               ? "border-red-500"
                               : validations.password
@@ -435,7 +460,7 @@ function LoginPage() {
                             type={showPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={handleInputChange}
-                            className={`w-full h-10 rounded-md border ${
+                            className={`w-full h-10 rounded-[20px] border ${
                               errors.confirmPassword
                                 ? "border-red-500"
                                 : validations.confirmPassword
@@ -524,7 +549,7 @@ function LoginPage() {
                             id="studentLevel"
                             value={studentLevel}
                             onChange={(e) => setStudentLevel(e.target.value)}
-                            className={`w-full h-10 rounded-md border ${
+                            className={`w-full h-10 rounded-[20px] border ${
                               errors.studentLevel
                                 ? "border-red-500"
                                 : validations.studentLevel
@@ -649,11 +674,11 @@ function LoginPage() {
                 </CardFooter>
               </Card>
 
-              <div className="hidden md:block relative rounded-lg overflow-hidden">
+              <div className="hidden md:block relative rounded-[20px] overflow-hidden">
                 <img
                   src="/placeholder.svg"
                   alt="Election System"
-                  className="object-cover w-full h-full rounded-lg"
+                  className="object-cover w-full h-full rounded-[20px]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-[#F79F21]/50 flex items-center justify-center">
                   <div className="text-white text-center p-8">

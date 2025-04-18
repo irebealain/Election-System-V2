@@ -4,7 +4,7 @@ import Button from "../../components/common/Button"
 import { Award, ArrowRight, Users, CheckCircle, TrendingUp } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import confetti from "canvas-confetti"
-
+import { getAllElections } from "../../services/electionService"
 // Sample data for positions and candidates
 const electionData = {
   President: [
@@ -68,10 +68,27 @@ function Elections() {
   const [isDetailsOpen, setIsDetailsOpen] = useState(false)
   const confettiRef = useRef(null)
   const canvasRef = useRef(null)
-
+  const [elections, setElections] = useState([])
+  const [loading, setLoading] = useState(true)
   useEffect(() => {
     document.title = "Elections | Admin Dashboard"
-
+    // Fetch elections data from the backend API
+    const fetchData = async () => {
+      try {
+        const [electionsData] = await Promise.all([
+          getAllElections(),
+        ])
+        setElections(electionsData || [])
+        const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
+      } catch (error) {
+        console.error("Error fetching data:", error)
+        
+      }
+      finally {
+        setLoading(false)
+      }
+    }
+    fetchData()
     // Create canvas for confetti
     if (!canvasRef.current) {
       const canvas = document.createElement("canvas")
@@ -96,7 +113,7 @@ function Elections() {
       }
     }
   }, [])
-
+  
   useEffect(() => {
     if (selectedPosition) {
       const data = electionData[selectedPosition].map((candidate) => {
@@ -151,7 +168,37 @@ function Elections() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Elections</h1>
-        <p className="text-muted-foreground">Current election: Spring 2023</p>
+              <p className="text-muted-foreground">
+                Current election: {elections && elections.length > 0 ? (
+    elections.find(election => {
+      // Check if election has a date property
+      if (!election.date) return false;
+      
+      // Parse the date safely
+      try {
+        const electionDate = new Date(election.date);
+        const today = new Date();
+        
+        // Check for ongoing election (same day)
+        if (election.status?.toLowerCase() === 'ongoing' && 
+            electionDate.toDateString() === today.toDateString()) {
+          return true;
+        }
+        
+        // Check for incoming election (future date)
+        if (election.status?.toLowerCase() === 'incoming' && 
+            electionDate > today) {
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error("Error parsing date:", error);
+        return false;
+      }
+    })?.title || "No current election"
+  ) : "No elections available"}
+              </p>
       </div>
 
       {/* Overall Participation Card */}
@@ -282,8 +329,8 @@ function Elections() {
 
       {/* Position Details Dialog */}
       {isDetailsOpen && selectedPosition && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-background rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 !mt-0">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <TrendingUp className="h-5 w-5 mr-2 text-primary" />
@@ -294,7 +341,7 @@ function Elections() {
               </p>
 
               {/* Winner Card */}
-              <div className="bg-primary/10 p-4 rounded-lg mb-6 flex items-center justify-between">
+              <div className="bg-primary/10 p-4 rounded-[20px] mb-6 flex items-center justify-between">
                 <div className="flex items-center">
                   <Award className="h-8 w-8 text-primary mr-3" />
                   <div>
@@ -304,7 +351,7 @@ function Elections() {
                     </p>
                   </div>
                 </div>
-                <div className="text-right">
+                <div className="text-right p-4">
                   <p className="text-sm text-muted-foreground">Winning Percentage</p>
                   <p className="text-xl font-bold">
                     {positionCards.find((card) => card.position === selectedPosition)?.winnerPercentage}%
@@ -337,7 +384,7 @@ function Elections() {
               {/* Candidate Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {chartData.map((candidate, index) => (
-                  <Card key={index} className={`bg-muted/30 ${index === 0 ? "ring-2 ring-primary" : ""}`}>
+                  <Card key={index} className={`bg-muted/30 ${index === 0 ? "ring-2 ring-primary" : ""} pt-4`}>
                     <CardContent className="p-4">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
@@ -355,7 +402,7 @@ function Elections() {
                             <p className="text-sm text-muted-foreground">{candidate.votes} votes</p>
                           </div>
                         </div>
-                        <div className="text-2xl font-bold">{candidate.percentage}%</div>
+                        <div className="text-4xl font-bold">{candidate.percentage}%</div>
                       </div>
                     </CardContent>
                   </Card>

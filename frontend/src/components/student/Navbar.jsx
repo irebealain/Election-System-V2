@@ -57,9 +57,9 @@ function Navbar() {
             </Button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-48 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 mt-2 w-48 rounded-[20px] border bg-background shadow-lg">
                 <div className="p-3 border-b">
-                  <h3 className="font-medium">My Account</h3>
+                  <h3 className="font-medium">Account Details</h3>
                 </div>
                 <div className="p-2">
                   <Button variant="ghost" className="w-full !justify-start text-sm">

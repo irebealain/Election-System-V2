@@ -1,31 +1,57 @@
-import { createContext, useContext, useState, useEffect } from "react"
+import { createContext, useState, useContext, useEffect } from 'react';
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    // Check if user is stored in localStorage
-    const storedUser = localStorage.getItem("user")
-    if (storedUser) {
-      setUser(JSON.parse(storedUser))
-    }
-    setLoading(false)
-  }, [])
-
-  const login = (userData) => {
-    setUser(userData)
-    localStorage.setItem("user", JSON.stringify(userData))
-  }
-
-  const logout = () => {
-    setUser(null)
-    localStorage.removeItem("user")
-  }
-
-  return <AuthContext.Provider value={{ user, login, logout, loading }}>{children}</AuthContext.Provider>
+export function useAuth() {
+  return useContext(AuthContext);
 }
 
-export const useAuth = () => useContext(AuthContext)
+export function AuthProvider({ children }) {
+  const [currentUser, setCurrentUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [token, setToken] = useState(localStorage.getItem('authToken'));
+
+  // Load user from token on startup
+  useEffect(() => {
+    if (token) {
+      // Decode token or fetch user data if needed
+      try {
+        // For JWT example (you may need a proper JWT library)
+        const userData = JSON.parse(atob(token.split('.')[1]));
+        setCurrentUser(userData);
+      } catch (error) {
+        console.error("Failed to parse token", error);
+        localStorage.removeItem('authToken');
+        setToken(null);
+      }
+    }
+    setLoading(false);
+  }, [token]);
+
+  const login = (data) => {
+    // Store token in localStorage
+    localStorage.setItem('authToken', data.token);
+    setToken(data.token);
+    setCurrentUser(data.user);
+  };
+
+  const logout = () => {
+    localStorage.removeItem('authToken');
+    setToken(null);
+    setCurrentUser(null);
+  };
+
+  const value = {
+    currentUser,
+    token,
+    login,
+    logout,
+    loading,
+  };
+
+  return (
+    <AuthContext.Provider value={value}>
+      {children}
+    </AuthContext.Provider>
+  );
+}

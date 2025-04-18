@@ -1,37 +1,44 @@
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts"
-
-// Sample data for charts
-const voterData = [
-  { name: "Voted", value: 65, color: "#46A977" },
-  { name: "Not Voted", value: 35, color: "#F79F21" },
-]
-
-const positionData = [
-  { name: "President", candidates: 4 },
-  { name: "Vice President", candidates: 3 },
-  { name: "Secretary", candidates: 2 },
-  { name: "Treasurer", candidates: 3 },
-]
-
-const levelData = [
-  { name: "Upper", value: 60, color: "#46A977" },
-  { name: "Lower", value: 40, color: "#F79F21" },
-]
-
-// Sample data for table
-const students = [
-  { id: 1, name: "John Doe", level: "Upper", voted: true, registeredAt: "2023-04-10" },
-  { id: 2, name: "Jane Smith", level: "Lower", voted: true, registeredAt: "2023-04-11" },
-  { id: 3, name: "Michael Johnson", level: "Upper", voted: false, registeredAt: "2023-04-12" },
-  { id: 4, name: "Emily Davis", level: "Lower", voted: true, registeredAt: "2023-04-13" },
-  { id: 5, name: "Robert Wilson", level: "Upper", voted: false, registeredAt: "2023-04-14" },
-]
+import { getAllCandidates } from "../../services/candidateService"
+import { getAllPositions } from "../../services/positionService"
+import { getAllUsers } from "../../services/UserService"
+import { getAllElections } from "../../services/electionService"
+import { CartesianGrid } from 'recharts';
 
 function StudentDashboard() {
+  const [students, setStudents] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [positions, setPositions] = useState([])
+  const [candidates, setCandidates] = useState([])
+  const [electionData, setElectionData] = useState([])
   useEffect(() => {
     document.title = "Student Dashboard | Election System"
+    const fetchData = async () => {
+          try {
+    
+            const [usersData, positionsData, candidatesData, electionsData] = await Promise.all([
+              getAllUsers(), 
+              getAllPositions(),
+              getAllCandidates(),
+              getAllElections()
+            ])
+            setStudents(usersData || [])
+            setCandidates(candidatesData || [])
+            setPositions(positionsData || [])
+    
+            const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
+            
+            setElectionData([currentElection])
+          } catch (error) {
+            console.error("Error fetching data:", error);
+          }
+          finally {
+            setLoading(false);
+          }
+        }
+        fetchData()
   }, [])
 
   return (
@@ -51,20 +58,43 @@ function StudentDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={voterData}
+                    data={[
+                      {
+                        name: "Voted",
+                        value: students.filter(student => student.voted).length,
+                      },
+                      {
+                        name: "Not Voted",
+                        value: students.filter(student => !student.voted).length,
+                      }
+                    ]}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
-                    paddingAngle={5}
+                    paddingAngle={4}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                   >
-                    {voterData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+                    <Cell fill="#46A977" />
+                    <Cell fill="#FF6B6B" />
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                    contentStyle={{ 
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
+                      fontSize: '14px',
+                      fontWeight: '600',
+                      color: '#333333'
+                    }}
+                    wrapperStyle={{ outline: 'none' }}
+                    labelStyle={{ color: '#666666', marginBottom: '4px' }}
+                    itemStyle={{ padding: '4px 0'}}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -78,19 +108,33 @@ function StudentDashboard() {
           <CardContent>
             <div className="h-[200px]">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={positionData}>
+                <BarChart width={500} height={300} data={positions.filter(positions => positions.electionId === electionData._id)}>
                   <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
                   <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip />
-                  <Bar dataKey="candidates" fill="#46A977" radius={[4, 4, 0, 0]} />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                    contentStyle={{ 
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '12px',
+                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                      fontSize: '12px',
+                      fontWeight: '500',
+                      color: '#333333'
+                    }}
+                    wrapperStyle={{ outline: 'none' }}
+                    labelStyle={{ color: '#666666', marginBottom: '4px' }}
+                    itemStyle={{ padding: '4px 0'}}
+                  />
+                  <Bar dataKey="candidates" fill="#46A977" radius={[4, 4, 0, 0]} barSize={30} />
+                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <Card>          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Voters by Level</CardTitle>
           </CardHeader>
           <CardContent>
@@ -98,20 +142,63 @@ function StudentDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={levelData}
+                    data={students.reduce((acc, student) => {
+                      const level = student.level;
+                      const existingLevel = acc.find((item) => item.name === level);
+                      if (existingLevel) {
+                        existingLevel.value += 1;
+                      } else {
+                        acc.push({ name: level, value: 1 });
+                      }
+                      return acc;
+                    }, [])}
                     cx="50%"
                     cy="50%"
                     innerRadius={60}
                     outerRadius={80}
-                    paddingAngle={5}
+
+                    paddingAngle={2}
                     dataKey="value"
                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    fill="#46A977"
                   >
-                    {levelData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.color} />
-                    ))}
+
+
+
+                    {students.reduce((acc, student) => {
+                      const colors = ['#10B981', '#F59E0B'];
+                      return colors.map((color, index) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={color}
+                          stroke="none"
+                          style={{
+                            filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2))',
+                          }}
+                        />
+                      ));
+                    }, [])}
                   </Pie>
-                  <Tooltip />
+                  <Tooltip 
+                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
+                    contentStyle={{ 
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e0e0e0',
+                      borderRadius: '12px',
+                      padding: '12px',
+
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
+                      fontSize: '12px',
+                      fontWeight: '500',
+
+                      color: '#333333',
+                      backdropFilter: 'blur(8px)',
+                    }}
+                    wrapperStyle={{ outline: 'none' }}
+
+                    labelStyle={{ color: '#666666', marginBottom: '2px', fontWeight: '600' }}
+                    itemStyle={{ padding: '4px 0', marginLeft: '10px'}}
+                  />
                 </PieChart>
               </ResponsiveContainer>
             </div>
@@ -137,13 +224,13 @@ function StudentDashboard() {
               </thead>
               <tbody>
                 {students.map((student) => (
-                  <tr key={student.id} className="border-b">
+                  <tr key={student._id} className="border-b">
                     <td className="p-2 font-medium">
                       <div className="flex items-center gap-2">
                         <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                          {student.name.charAt(0)}
+                          {student.firstName.charAt(0)}
                         </div>
-                        {student.name}
+                        {student.firstName} {student.lastName}
                       </div>
                     </td>
                     <td className="p-2">{student.level}</td>
@@ -158,7 +245,7 @@ function StudentDashboard() {
                         </span>
                       )}
                     </td>
-                    <td className="p-2">{student.registeredAt}</td>
+                    <td className="p-2">{student.startDate}</td>
                   </tr>
                 ))}
               </tbody>

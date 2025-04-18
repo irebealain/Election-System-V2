@@ -15,14 +15,14 @@ import NotFoundPage from "./pages/NotFoundPage"
 // Admin Pages
 import AdminDashboard from "./pages/admin/Dashboard"
 import AdminElections from "./pages/admin/Elections"
-// import AdminStudents from "./pages/admin/Students"
+import StudentsTable from "./pages/admin/StudentTable"
 // import AdminStatistics from "./pages/admin/Statistics"
-// import AdminSettings from "./pages/admin/Settings"
-
+import Settings from "./pages/admin/AdminSettings"
+import Notifications from "./pages/admin/Notifications"
 // Student Pages
 import StudentDashboard from "./pages/student/Dashboard"
 import StudentElections from "./pages/student/Elections"
-import Settings from "./pages/student/StudentSettings"
+import AdminSettings from "./pages/admin/AdminSettings"
 
 // SuperAdmin Pages
 import SuperAdminDashboard from "./pages/superadmin/Dashboard"
@@ -68,9 +68,10 @@ function App() {
       >
         <Route path="dashboard" element={<AdminDashboard />} />
         <Route path="elections" element={<AdminElections />} />
-        {/* <Route path="students" element={<AdminStudents />} /> */}
+        <Route path="students" element={<StudentsTable />} />
         {/* <Route path="statistics" element={<AdminStatistics />} /> */}
-        {/* <Route path="settings" element={<AdminSettings />} /> */}
+        <Route path="settings" element={<AdminSettings />} />
+        <Route path="settings" element={<Notifications />} />
       </Route>
 
       {/* Student Routes */}

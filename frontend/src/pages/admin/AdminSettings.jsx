@@ -9,7 +9,7 @@ import { Camera, Save, Trash, LogOut, User, Bell, Shield, Key, Mail } from "luci
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
 
-function Settings() {
+function AdminSettings() {
   const { user, logout } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
   const [isLoading, setIsLoading] = useState(false)
@@ -43,15 +43,15 @@ function Settings() {
     setFormData({ ...formData, [name]: value })
   }
 
-  // const handleNotificationToggle = (key) => {
-  //   setFormData({
-  //     ...formData,
-  //     notifications: {
-  //       ...formData.notifications,
-  //       [key]: !formData.notifications[key],
-  //     },
-  //   })
-  // }
+  const handleNotificationToggle = (key) => {
+    setFormData({
+      ...formData,
+      notifications: {
+        ...formData.notifications,
+        [key]: !formData.notifications[key],
+      },
+    })
+  }
 
   const handlePrivacyToggle = (key) => {
     setFormData({
@@ -99,16 +99,16 @@ function Settings() {
     }, 1000)
   }
 
-  // const handleNotificationUpdate = (e) => {
-  //   e.preventDefault()
-  //   setIsLoading(true)
+  const handleNotificationUpdate = (e) => {
+    e.preventDefault()
+    setIsLoading(true)
 
-  //   // Simulate API call
-  //   setTimeout(() => {
-  //     toast.success("Notification preferences updated!")
-  //     setIsLoading(false)
-  //   }, 1000)
-  // }
+    // Simulate API call
+    setTimeout(() => {
+      toast.success("Notification preferences updated!")
+      setIsLoading(false)
+    }, 1000)
+  }
 
   const handlePrivacyUpdate = (e) => {
     e.preventDefault()
@@ -142,7 +142,7 @@ function Settings() {
         <p className="text-muted-foreground">Manage your account settings and preferences.</p>
       </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={handleTabChange}>
+      <Tabs defaultValue={activeTab} onValueChange={handleTabChange} >
         <TabsList className="mb-4">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User size={16} />
@@ -151,6 +151,10 @@ function Settings() {
           <TabsTrigger value="account" className="flex items-center gap-2">
             <Key size={16} />
             <span>Account</span>
+          </TabsTrigger>
+          <TabsTrigger value="notifications" className="flex items-center gap-2">
+            <Bell size={16} />
+            <span>Notifications</span>
           </TabsTrigger>
           <TabsTrigger value="privacy" className="flex items-center gap-2">
             <Shield size={16} />
@@ -198,7 +202,7 @@ function Settings() {
                           name="name"
                           value={formData.name}
                           onChange={handleInputChange}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                         />
                       </div>
                       <div className="space-y-2">
@@ -211,7 +215,7 @@ function Settings() {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                             disabled
                           />
                           <Mail className="h-5 w-5 text-muted-foreground" />
@@ -228,7 +232,7 @@ function Settings() {
                         name="bio"
                         value={formData.bio}
                         onChange={handleInputChange}
-                        className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full min-h-[80px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                       />
                     </div>
                   </div>
@@ -291,7 +295,7 @@ function Settings() {
                     type="password"
                     value={formData.oldPassword}
                     onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
@@ -304,7 +308,7 @@ function Settings() {
                     type="password"
                     value={formData.newPassword}
                     onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
@@ -317,7 +321,7 @@ function Settings() {
                     type="password"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="flex justify-end">
@@ -335,19 +339,82 @@ function Settings() {
               <CardDescription>Irreversible and destructive actions.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
+
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium">Log out from all devices</h4>
+                  <h4 className="font-medium">Delete account</h4>
                   <p className="text-sm text-muted-foreground">
-                    This will log you out from all devices except this one.
+                    This will permanently delete your account and all associated data.
                   </p>
                 </div>
-                <Button variant="outline">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
+                <Button variant="destructive">
+                  <Trash className="mr-2 h-4 w-4" />
+                  Delete
                 </Button>
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
 
+        <TabsContent value="notifications" className="space-y-4">
+          <Card className="settings-card">
+            <CardHeader>
+              <CardTitle>Notification Preferences</CardTitle>
+              <CardDescription>Configure how you receive notifications.</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleNotificationUpdate} className="space-y-4">
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <label htmlFor="emailNotifications" className="text-sm font-medium">
+                        Email notifications
+                      </label>
+                      <p className="text-sm text-muted-foreground">Receive notifications via email.</p>
+                    </div>
+                    <Switch
+                      id="emailNotifications"
+                      checked={formData.notifications.email}
+                      onCheckedChange={() => handleNotificationToggle("email")}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <label htmlFor="electionUpdates" className="text-sm font-medium">
+                        Election updates
+                      </label>
+                      <p className="text-sm text-muted-foreground">Get notified about new admins that need approval.</p>
+                    </div>
+                    <Switch
+                      id="electionUpdates"
+                      checked={formData.notifications.elections}
+                      onCheckedChange={() => handleNotificationToggle("elections")}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <label htmlFor="resultNotifications" className="text-sm font-medium">
+                        Results notifications every after one hour
+                      </label>
+                      <p className="text-sm text-muted-foreground">Get notified when election results are available.</p>
+                    </div>
+                    <Switch
+                      id="resultNotifications"
+                      checked={formData.notifications.results}
+                      onCheckedChange={() => handleNotificationToggle("results")}
+                    />
+                  </div>
+
+                </div>
+
+                <div className="flex justify-end">
+                  <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+                    {isLoading ? "Saving..." : "Save preferences"}
+                  </Button>
+                </div>
+              </form>
             </CardContent>
           </Card>
         </TabsContent>
@@ -364,9 +431,9 @@ function Settings() {
                   <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <label htmlFor="showProfile" className="text-sm font-medium">
-                        Show profile to other students
+                        Show your profile to students
                       </label>
-                      <p className="text-sm text-muted-foreground">Allow other students to see your profile details.</p>
+                      <p className="text-sm text-muted-foreground">Allow students to see your profile details.</p>
                     </div>
                     <Switch
                       id="showProfile"
@@ -375,21 +442,6 @@ function Settings() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-0.5">
-                      <label htmlFor="showVotingActivity" className="text-sm font-medium">
-                        Share voting activity
-                      </label>
-                      <p className="text-sm text-muted-foreground">
-                        Allow others to see that you've voted (not who you voted for).
-                      </p>
-                    </div>
-                    <Switch
-                      id="showVotingActivity"
-                      checked={formData.privacy.showVotingActivity}
-                      onCheckedChange={() => handlePrivacyToggle("showVotingActivity")}
-                    />
-                  </div>
                 </div>
 
                 <div className="flex justify-end">
@@ -406,4 +458,4 @@ function Settings() {
   )
 }
 
-export default Settings
+export default AdminSettings

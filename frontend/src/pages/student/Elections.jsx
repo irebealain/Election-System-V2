@@ -211,7 +211,7 @@ function Elections() {
                 {Object.keys(groupedCandidates).map((position) => (
                   <div
                     key={position}
-                    className={`p-3 rounded-lg border ${
+                    className={`p-3 rounded-[20px] border ${
                       votes[position] ? "border-primary bg-primary/10" : "border-muted"
                     }`}
                   >
@@ -300,7 +300,7 @@ function Elections() {
           <div className="flex justify-end mt-8">
             <Button
               size="lg"
-              className="bg-primary hover:bg-primary/90"
+              className="bg-primary hover:bg-primary/90 !rounded-[20px]"
               onClick={handleSubmitVotes}
               disabled={votedCount === 0 || submitting}
             >

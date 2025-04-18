@@ -6,10 +6,11 @@ import { AuthProvider } from "./context/AuthContext"
 import { ThemeProvider } from "./context/ThemeContext"
 import "./index.css"
 import { GoogleOAuthProvider } from "@react-oauth/google"
+import { GOOGLE_CLIENT_ID } from "./config/env"
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <GoogleOAuthProvider clientId="492629292714-a2ogqovpojt02phkiovto1iep5moatd5.apps.googleusercontent.com">
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider>
