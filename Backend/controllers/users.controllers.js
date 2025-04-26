@@ -128,7 +128,7 @@ export const userLogin = async (req, res) => {
     console.error("Error in login User:", error.message);
     res.status(500).json({ success: false, message: "Server Error" });
   }
-};
+}; 
 // Updating a users
 export const updateUser = async (req, res) => {
   const { id } = req.params;
@@ -158,16 +158,30 @@ export const deleteUser = async (req, res) => {
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 // Sign up the user using Google Auth
 export const googleUserSignup = async (req, res) => {
-  const { token, level, electionId } = req.body;
+  const { token, level } = req.body;
 
-  if (!token || !level || !electionId) {
+  if (!token || !level) {
     return res.status(400).json({
       success: false,
-      message: "Token, level, and electionId are required.",
+      message: "Token and level are required.",
+      token,
+      level,
     });
   }
 
   try {
+    // First, find the current election
+    const currentElection = await Election.findOne({
+      status: { $in: ['ongoing', 'upcoming'] }
+    });
+
+    if (!currentElection) {
+      return res.status(400).json({
+        success: false,
+        message: "No active election found. Please try again later."
+      });
+    }
+
     // 1. Verify Google ID Token
     const ticket = await client.verifyIdToken({
       idToken: token,
@@ -177,17 +191,7 @@ export const googleUserSignup = async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    // 2. Optional domain restriction
-    if (process.env.NODE_ENV === "production") {
-      if (!email.endsWith("@asyv.org")) {
-        return res.status(403).json({
-          success: false,
-          message: "Email must be from the organization domain",
-        });
-      }
-    }
-
-    // 3. Check if user already exists
+    // 2. Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(400).json({
@@ -196,52 +200,44 @@ export const googleUserSignup = async (req, res) => {
       });
     }
 
-    // 4. Check if election exists
-    const election = await Election.findById(electionId);
-    if (!election) {
-      return res.status(404).json({
-        success: false,
-        message: "Election not found.",
-      });
-    }
-
-    if (election.status === "completed") {
-      return res.status(400).json({
-        success: false,
-        message: "You cannot register for a completed election.",
-      });
-    }
-
-    // 5. Split name into firstName and lastName
+    // 3. Split name into firstName and lastName
     const [firstName, ...rest] = payload.name.split(" ");
     const lastName = rest.join(" ") || " ";
 
-    // 6. Create user
-    const newUser = new User({
+    // 4. Create user
+    const user = new User({
       firstName,
       lastName,
       email,
       googleId: payload.sub,
       level,
-      electionId,
-      picture: payload.picture || "", // Optional
+      role: "student",
+      electionId: currentElection._id,
+      picture: payload.picture || "",
     });
 
-    await newUser.save();
+    await user.save();
 
-    // 7. Generate JWT token
+    // 5. Generate JWT token
     const jwtToken = jwt.sign(
-      { id: newUser._id, role: newUser.role },
+      { id: user._id, role: user.role },
       JWT_SECRET,
       { expiresIn: "4d" }
     );
-    // 8. Send response
+    // 6. Send response
     res.status(201).json({
       success: true,
-      message: "User created successfully.",
-      data: {
-        token: jwtToken,
-        user: newUser,
+      message: "Logged in successfully",
+      token: jwtToken,
+      user: { 
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        level: user.level,
+        electionId: currentElection._id,
+        picture: user.picture,
+        role: user.role,
       },
     });
   } catch (error) {
@@ -253,6 +249,18 @@ export const googleUserSignup = async (req, res) => {
 export const googleUserLogin = async (req, res) => {
   const { token } = req.body;
   try {
+    // First, find the current election
+    const currentElection = await Election.findOne({
+      status: { $in: ['ongoing', 'upcoming'] }
+    });
+
+    if (!currentElection) {
+      return res.status(400).json({
+        success: false,
+        message: "No active election found. Please try again later."
+      });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_ID,
@@ -260,19 +268,32 @@ export const googleUserLogin = async (req, res) => {
 
     const payload = ticket.getPayload();
     const email = payload.email;
-
+    const name = payload.name;
+    const picture = payload.picture || "";
     // Check if the User exists
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({
-        success: false,
-        message: "User not found, please sign up",
-      });
+      return googleUserSignup(req, res);
     }
+    const appToken = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "4d" }
+    );
     res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      data: { user },
+      token: appToken,
+      user: { 
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        level: user.level,
+        electionId: currentElection._id,
+        picture: picture,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Error during Google login:", error.message);

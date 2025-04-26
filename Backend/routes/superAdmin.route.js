@@ -13,7 +13,7 @@ const router = express.Router();
 
 router.post("/signup", signupSuperAdmin);// Create SuperAdmin via Google
 router.post("/login", loginSuperAdmin); // Login via Google
-router.get("/", protect, isSuperAdmin, getSuperAdmins);
+router.get("/", getSuperAdmins);
 router.put("/:id", protect, isSuperAdmin, updateSuperAdmin);
 router.delete("/:id", protect, isSuperAdmin, deleteSuperAdmin);
 router.put("/approve/:adminId", protect, isSuperAdmin, approveAdmin); // Admin approval

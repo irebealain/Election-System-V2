@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import Admin from "../models/admin.model.js";
-import Election from "../models/election.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { OAuth2Client } from "google-auth-library";
+import Election from "../models/election.model.js";
+import SuperAdmin from "../models/superAdmin.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secretkey';
 // Getting all the admins
@@ -127,17 +128,35 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Sign up the admin sign up using Google Auth
 export const googleAdminSignup = async (req, res) => {
-  const { token, electionId, createdBy } = req.body;
+  const { token } = req.body;
 
-  // Validate required fields
-  if (!token || !electionId || !createdBy) {
+  if (!token) {
     return res.status(400).json({
       success: false,
-      message: "Token, electionId, and createdBy are required.",
+      message: "Token is required.",
     });
   }
 
   try {
+    const currentElection = await Election.findOne({
+      status: { $in: ['ongoing', 'upcoming'] }
+    });
+
+    if (!currentElection) {
+      return res.status(400).json({
+        success: false,
+        message: "No active election found. Please try again later."
+      });
+    }
+
+    const superAdmin = await SuperAdmin.findOne({});
+    if (!superAdmin) {
+      return res.status(400).json({
+        success: false,
+        message: "No superadmin found in the system. Please contact support."
+      });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -146,17 +165,6 @@ export const googleAdminSignup = async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
 
-    // Optional domain check
-    if (process.env.NODE_ENV === "production") {
-      if (!email.endsWith("@asyv.org")) {
-        return res.status(403).json({
-          success: false,
-          message: "Email must be from the organization domain",
-        });
-      }
-    }
-
-    // Check if Admin already exists
     const existingAdmin = await Admin.findOne({ email });
     if (existingAdmin) {
       return res.status(409).json({
@@ -165,36 +173,39 @@ export const googleAdminSignup = async (req, res) => {
       });
     }
 
-    // Check if election exists
-    const election = await Election.findById(electionId);
-    if (!election) {
-      return res.status(404).json({
-        success: false,
-        message: "Election not found",
-      });
-    }
-
-    // Split name
     const [firstName, ...rest] = payload.name.split(" ");
     const lastName = rest.join(" ") || "";
 
-    // Create Admin
-    const newAdmin = new Admin({
+    const user = new Admin({
       firstName,
       lastName,
       email,
       profilePic: payload.picture || "",
       googleId: payload.sub,
-      electionId,
-      createdBy,
+      electionId: currentElection._id,
+      createdBy: superAdmin._id,
+      isApproved: false
     });
 
-    await newAdmin.save();
+    await user.save();
 
     res.status(201).json({
       success: true,
-      message: "Admin registered successfully",
-      data: { admin: newAdmin },
+      message: "Admin registered successfully. Waiting for superadmin approval.",
+      token: jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: '4d' }),
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePic: user.profilePic,
+        electionId: user.electionId,
+        createdBy: user.createdBy,
+        isApproved: user.isApproved,
+        role: user.role,
+        requiresApproval: true
+      }
+      
     });
   } catch (error) {
     console.log("Error during Google signup:", error.message);
@@ -206,69 +217,58 @@ export const googleAdminSignup = async (req, res) => {
 };
 // Login the Admin using Google Auth
 export const googleAdminLogin = async (req, res) => {
-  const { token } = req.body;
+  const { token: googleToken } = req.body;
 
   try {
-    // DEV MODE ONLY: Mock login
-    if (process.env.NODE_ENV === "development") {
-      const mockEmail = "irebalain@gmail.com";
-      const mockGoogleId = "google-oauth-id-string123456789-fake";
-      const admin = await Admin.findOne({
-        email: mockEmail,
-        googleId: mockGoogleId,
-      });
-      if (!admin) {
-        return res.status(401).json({
-          success: false,
-          message: "Admin not found, please sign up",
-        });
-      }
-
-      if (!admin.isApproved) {
-        return res.status(403).json({
-          success: false,
-          message: "Admin account is pending approval by the SuperAdmin.",
-        });
-      }
-
-      return res.status(200).json({
-        success: true,
-        message: "Logged in successfully",
-        data: { admin },
-      });
-    }
-
-    // Verify the Google token
-    const ticket = await client.verifyIdToken({
-      idToken: token,
-      audience: process.env.GOOGLE_CLIENT_ID,
+    // First, find the current election
+    const currentElection = await Election.findOne({
+      status: { $in: ['ongoing', 'upcoming'] }
     });
 
-    const payload = ticket.getPayload();
-    const email = payload.email;
-
-    // Check if the Admin exists
-    const admin = await Admin.findOne({ email, googleId: payload.sub });
-    if (!admin) {
-      return res.status(401).json({
+    if (!currentElection) {
+      return res.status(400).json({
         success: false,
-        message: "Admin not found, please sign up",
+        message: "No active election found. Please try again later."
       });
     }
 
-    // Check if Admin is approved
-    if (!admin.isApproved) {
+    const ticket = await client.verifyIdToken({
+      idToken: googleToken,
+      audience: process.env.GOOGLE_ID,
+    });
+    const payload = ticket.getPayload();
+    const email = payload.email;
+    const name = payload.name;
+    const picture = payload.picture || "";
+
+    const user = await Admin.findOne({email});
+    if (!user) {
+      return googleAdminSignup(req, res);
+    }
+
+    if (!user.isApproved) {
       return res.status(403).json({
         success: false,
         message: "Admin account is pending approval by the SuperAdmin.",
       });
     }
-
-    // Login successful
-    res.status(200).json({
+    
+    const appToken = jwt.sign({id: user._id, role: user.role}, JWT_SECRET, {expiresIn: '4d'});
+    return res.status(200).json({
       success: true,
       message: "Logged in successfully",
-      data: { admin },
+      token: appToken,
+      user: {
+        id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email,
+        profilePic: user.profilePic,
+        electionId: currentElection._id,
+        createdBy: user.createdBy,
+        isApproved: user.isApproved,
+        role: user.role,
+      },
     });
   } catch (error) {
     console.error("Error during Google login:", error.message);

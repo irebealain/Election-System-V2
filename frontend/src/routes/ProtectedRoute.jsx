@@ -1,40 +1,75 @@
-import { Navigate, useLocation } from "react-router-dom"
-import { useAuth } from "../context/AuthContext"
+// In src/components/ProtectedRoute.jsx
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
 
-function ProtectedRoute({ children, allowedRoles = [] }) {
-  const { user, loading } = useAuth()
-  const location = useLocation()
-
+// For routes that require authentication
+export function ProtectedRoute() {
+  const { currentUser, loading } = useAuth();
+  
   if (loading) {
-    // Show loading state while checking authentication
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-      </div>
-    )
+    return <div>Loading...</div>;
   }
-
-  // If user is not logged in, redirect to login page
-  if (!user) {
-    return <Navigate to="/login" state={{ from: location }} replace />
-  }
-
-  // If user doesn't have the required role, redirect to appropriate dashboard
-  if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
-    switch (user.role) {
-      case "admin":
-        return <Navigate to="/admin/dashboard" replace />
-      case "student":
-        return <Navigate to="/student/dashboard" replace />
-      case "superadmin":
-        return <Navigate to="/superadmin/dashboard" replace />
-      default:
-        return <Navigate to="/login" replace />
-    }
-  }
-
-  // If user is authenticated and has the required role, render the children
-  return children
+  
+  return currentUser ? <Outlet /> : <Navigate to="/login" />;
 }
 
-export default ProtectedRoute
+// For routes that require admin approval
+export function ApprovedAdminRoute() {
+  const { currentUser, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (currentUser.role !== "admin") {
+    return <Navigate to="/" />;
+  }
+  
+  if (!currentUser.isApproved) {
+    return <Navigate to="/waiting-approval" />;
+  }
+  
+  return <Outlet />;
+}
+
+// For routes specific to students
+export function StudentRoute() {
+  const { currentUser, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (currentUser.role !== "student") {
+    return <Navigate to="/" />;
+  }
+  
+  return <Outlet />;
+}
+
+// For routes specific to superadmins
+export function SuperAdminRoute() {
+  const { currentUser, loading } = useAuth();
+  
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+  
+  if (!currentUser) {
+    return <Navigate to="/login" />;
+  }
+  
+  if (currentUser.role !== "superadmin") {
+    return <Navigate to="/" />;
+  }
+  
+  return <Outlet />;
+}

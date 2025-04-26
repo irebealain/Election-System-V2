@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, redirect } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+// import jwt_decode from "jwt-decode";
+
 import {
   Card,
   CardHeader,
@@ -17,6 +19,22 @@ import { motion, AnimatePresence } from "framer-motion"
 import logo from "../assets/Logo.svg"
 import { useGoogleLogin } from "@react-oauth/google"
 import axios from "@/lib/axios";
+
+// Custom toast component with animation
+const AnimatedToast = ({ message }) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 50, scale: 0.3 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+      className="bg-primary text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+    >
+      <Check className="h-5 w-5" />
+      <span>{message}</span>
+    </motion.div>
+  );
+};
+
 function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -31,6 +49,8 @@ function LoginPage() {
   const [errors, setErrors] = useState({});
   const [validations, setValidations] = useState({});
   const [studentLevel, setStudentLevel] = useState("upper"); // Default to "upper" level
+  const [currentElectionId, setCurrentElectionId] = useState(null);
+  const [superAdminId, setSuperAdminId] = useState(null);
   // const [formData, setFormData] = useState({ email: "", password: "", role: "" });
   // For animation purposes
   const [showForm, setShowForm] = useState(false);
@@ -41,6 +61,34 @@ function LoginPage() {
     document.title = isLogin
       ? "Login | Election System"
       : "Sign Up | Election System";
+
+    // Fetch current election and superadmin
+    const fetchData = async () => {
+      try {
+        // Fetch current election
+        const electionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`);
+        if (electionsResponse.data.success && electionsResponse.data.data.length > 0) {
+          // Find the current/ongoing election
+          const currentElection = electionsResponse.data.data.find(election => 
+            election.status === 'ongoing' || election.status === 'upcoming'
+          );
+          if (currentElection) {
+            setCurrentElectionId(currentElection._id);
+          }
+        }
+
+        // Fetch superadmin
+        const superadminResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/superadmins`);
+        if (superadminResponse.data.success && superadminResponse.data.data.length > 0) {
+          // Get the first superadmin (assuming there's at least one)
+          setSuperAdminId(superadminResponse.data.data[0]._id);
+        }
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
   }, [isLogin]);
 
   const validateEmail = (email) => {
@@ -146,57 +194,87 @@ function LoginPage() {
       validateConfirmPassword(value);
     }
   };
-  const redirectBasedOnRole = (role) => {
-    if (role === "student") {
-      navigate ("/student/dashboard");
-    } else if (role === "admin") {
-      navigate ("/admin/dashboard");
-    } else if (role === "superadmin") {
-      navigate ("/superadmin/dashboard");
-    }
-    else {
-      navigate ("/login");
+  const handleSuccessfulLogin = (user) => {
+    toast.success("Logged in successfully with Google!");
+    
+    // Check user role and approval status
+    if (user.role === "admin") {
+      if (user.isApproved === true) {
+        navigate("/admin/dashboard");
+      } else {
+        // Admin not approved
+        toast.info("Your admin account is pending approval.");
+        navigate("/waiting-approval");
+      }
+    } else if (user.role === "student") {
+      navigate("/student/dashboard");
+    } else if (user.role === "superAdmin") {
+      navigate("/superadmin/dashboard");
+    } else {
+      // Default redirect
+      navigate("/");
     }
   };
   // Google login function
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
+      // console.log(tokenResponse);
       try {
-        // Get user info - this is good!
-        const userInfoResponse = await axios.get(
-          'https://www.googleapis.com/oauth2/v3/userinfo',
-          { headers: { Authorization: `Bearer ${tokenResponse.access_token}` } }
-        );
-        const userInfo = userInfoResponse.data;
-        
-        // Endpoint selection - let's improve this part
-        let endpoint;
-        switch (role) {
-          case "student":
-            endpoint = `${import.meta.env.VITE_API_URL}/api/auth/student/google`;
-            break;
-          case "admin":
-            endpoint = `${import.meta.env.VITE_API_URL}/api/admins/auth/login`;
-            break;
-          case "superadmin":
-            endpoint = `${import.meta.env.VITE_API_URL}/api/superadmins/login`;
-            break;
-          default:
-            endpoint = `${import.meta.env.VITE_API_URL}/api/users/auth/login`;
-        }
-        
-        // Send both access token and user info
-        const response = await axios.post(endpoint, {
-          token: tokenResponse.access_token,
-          googleUserInfo: userInfo,
-          ...(role === "student" && { level: studentLevel }),
-        });
-        
-        // Handle response and login
-        login(response.data);
-        toast.success("Logged in successfully with Google!");
-        redirectBasedOnRole(role);
-      } catch (error) {
+        setLoading(true);
+        // Check if we have an ID token directly
+        if (!tokenResponse.id_token) {
+          // If we don't have an ID token directly, we need to get it
+          // We can use the code to exchange for tokens including id_token
+          const tokenResult = await axios.post(
+            'https://oauth2.googleapis.com/token',
+            {
+              code: tokenResponse.code,
+              client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+              client_secret: import.meta.env.VITE_GOOGLE_CLIENT_SECRET,
+              redirect_uri: window.location.origin,
+              grant_type: 'authorization_code',
+            }
+          );
+          
+          console.log("Token exchange response:", tokenResult.data);
+          
+          // id token
+          const idToken = tokenResult.data.id_token;
+          // Select endpoint based on role
+          let endpoint;
+          switch (role) {
+            case "student":
+              endpoint = `${import.meta.env.VITE_API_URL}/api/users/auth/login`;
+              break;
+            case "admin":
+              endpoint = `${import.meta.env.VITE_API_URL}/api/admins/auth/login`;
+              break;
+            case "superAdmin":
+              endpoint = `${import.meta.env.VITE_API_URL}/api/superadmins/login`;
+              break;
+            default:
+              endpoint = `${import.meta.env.VITE_API_URL}/api/users/auth/login`;
+          }
+          
+          // Send the ID token to your backend instead of access token
+          const response = await axios.post(endpoint, {
+            token: idToken, // Send ID token instead of access token
+            ...(role === "student" && { level: studentLevel }),
+          });
+          console.log("Login response:", response.data);
+          // Store user data and token in AuthContext
+          const {user, token} = response.data;
+          login({token, currentUser: user});
+          toast.success("Logged in successfully with Google!");
+          handleSuccessfulLogin(response.data.user);
+          
+        }  
+      } catch (error) {        
+        console.log(`Login failed: ${error.response?.data?.message || error.message}`,error.response?.data);
+        // if(error.response?.data?.requireSignUp){
+        //   // navigate("/signup");
+        // }
+
         toast.error(`Login failed: ${error.response?.data?.message || error.message}`);
       } finally {
         setLoading(false);
@@ -207,7 +285,7 @@ function LoginPage() {
       toast.error("Google login failed");
       setLoading(false);
     },
-    // Use auth flow rather than implicit for better security
+    // Using the auth-code flow
     flow: "auth-code",
     scope: "openid email profile",
   });
@@ -217,8 +295,10 @@ function LoginPage() {
     setLoading(true);
     googleLogin();
   };
-
-  const handleSubmit = (e) => {
+  const handleError = () => {
+      console.log('Login Failed');
+    };
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate all fields
@@ -226,16 +306,9 @@ function LoginPage() {
     const isPasswordValid = validatePassword(password);
     const isNameValid = validateName(name);
     const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
-    const isStudentLevelValid =
-      role === "student" ? validateStudentLevel(studentLevel) : true;
-    if (
-      (!isLogin &&
-        (!isEmailValid ||
-          !isPasswordValid ||
-          !isNameValid ||
-          !isConfirmPasswordValid)) ||
-      (role === "student" && !isStudentLevelValid)
-    ) {
+    const isStudentLevelValid = role === "student" ? validateStudentLevel(studentLevel) : true;
+
+    if (!isLogin && (!isEmailValid || !isPasswordValid || !isNameValid || !isConfirmPasswordValid || !isStudentLevelValid)) {
       toast.error("Please fix the errors in the form");
       return;
     }
@@ -245,30 +318,140 @@ function LoginPage() {
       return;
     }
 
+    if (!isLogin && !currentElectionId) {
+      toast.error("No active election found. Please try again later.");
+      return;
+    }
+
+    if (!isLogin && role === "admin" && !superAdminId) {
+      toast.error("System error: No superadmin found. Please try again later.");
+      return;
+    }
+
     setLoading(true);
 
-    // Simulate API request
-    setTimeout(() => {
-      const userData = {
-        id: Math.floor(Math.random() * 1000),
-        name: isLogin ? email.split("@")[0] : name,
-        email,
-        role,
-        ...(role === "student" && { level: studentLevel }),
-      };
-
-      login(userData);
-
+    try {
       if (isLogin) {
-        toast.success("Logged in successfully!");
-      } else {
-        toast.success("Account created successfully!");
-      }
+        // Handle login
+        let endpoint;
+        switch (role) {
+          case "student":
+            endpoint = `${import.meta.env.VITE_API_URL}/api/users/login`;
+            break;
+          case "admin":
+            endpoint = `${import.meta.env.VITE_API_URL}/api/admins/login`;
+            break;
+          default:
+            endpoint = `${import.meta.env.VITE_API_URL}/api/users/login`;
+        }
 
-      // Redirect based on role
-      redirectBasedOnRole(role);
+        const response = await axios.post(endpoint, {
+          email,
+          password
+        });
+
+        if (response.data.success) {
+          login(response.data.data);
+          handleSuccessfulLogin(response.data.data);
+        } else {
+          toast.error(response.data.message || "Login failed");
+        }
+      } else {
+        // Handle signup
+        // Split full name into first and last name
+        const nameParts = name.trim().split(' ');
+        let firstName, lastName;
+        
+        if (nameParts.length === 1) {
+          // If only one name is provided, use it as first name and set last name as empty
+          firstName = nameParts[0];
+          lastName = "";
+        } else {
+          // Take the first part as first name and join the rest as last name
+          firstName = nameParts[0];
+          lastName = nameParts.slice(1).join(' ');
+        }
+
+        let endpoint;
+        let payload;
+
+        switch (role) {
+          case "student":
+            endpoint = `${import.meta.env.VITE_API_URL}/api/users/signup`;
+            payload = {
+              firstName,
+              lastName,
+              email,
+              password,
+              electionId: currentElectionId,
+              role: "student",
+              level: studentLevel
+            };
+            break;
+          case "admin":
+            endpoint = `${import.meta.env.VITE_API_URL}/api/admins/signup`;
+            payload = {
+              firstName,
+              lastName,
+              email,
+              password,
+              electionId: currentElectionId,
+              role: "admin"
+            };
+            break;
+          default:
+            endpoint = `${import.meta.env.VITE_API_URL}/api/users/signup`;
+            payload = {
+              firstName,
+              lastName,
+              email,
+              password,
+              electionId: currentElectionId,
+              role: "student",
+              level: studentLevel
+            };
+        }
+
+        console.log('Signup payload:', payload); // Debug log
+
+        const response = await axios.post(endpoint, payload);
+
+        if (response.data.success) {
+          if (role === "admin") {
+            toast.custom((t) => (
+              <AnimatedToast message="Account created successfully! Please wait for superadmin approval." />
+            ), {
+              duration: 4000,
+              position: "top-center",
+              style: {
+                background: "transparent",
+                boxShadow: "none",
+                padding: 0,
+              },
+            });
+            navigate("/waiting-approval");
+          } else {
+            login(response.data.data);
+            // Redirect based on role
+            if (role === "student") {
+              navigate("/student/dashboard");
+            } else if (role === "admin") {
+              navigate("/admin/dashboard");
+            } else {
+              navigate("/");
+            }
+          }
+        } else {
+          console.error('Signup failed:', response.data);
+          toast.error(response.data.message || "Signup failed");
+        }
+      }
+    } catch (error) {
+      console.error('Signup error:', error.response?.data || error); // Debug log
+      toast.error(error.response?.data?.message || "An error occurred. Please try again.");
+    } finally {
       setLoading(false);
-    }, 1500);
+    }
   };
 
   const handleToggleForm = () => {
@@ -522,20 +705,22 @@ function LoginPage() {
                             Admin
                           </label>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="radio"
-                            id="superadmin"
-                            name="role"
-                            value="superadmin"
-                            checked={role === "superadmin"}
-                            onChange={() => setRole("superadmin")}
-                            className="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
-                          />
-                          <label htmlFor="superadmin" className="block text-sm">
-                            Super Admin
-                          </label>
-                        </div>
+                        {isLogin && (
+                          <div className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              id="superAdmin"
+                              name="role"
+                              value="superAdmin"
+                              checked={role === "superAdmin"}
+                              onChange={() => setRole("superAdmin")}
+                              className="h-4 w-4 border-gray-300 text-primary focus:ring-primary"
+                            />
+                            <label htmlFor="superAdmin" className="block text-sm">
+                              Super Admin
+                            </label>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -622,6 +807,7 @@ function LoginPage() {
                       className="w-full"
                       onClick={handleGoogleAuth}
                       disabled={loading}
+                      onError = {handleError}
                     >
                       <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                         <path

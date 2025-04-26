@@ -2,48 +2,56 @@ import { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-export function useAuth() {
-  return useContext(AuthContext);
-}
 
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('authToken'));
+  const [authToken, setAuthToken] = useState(null);
 
   // Load user from token on startup
   useEffect(() => {
-    if (token) {
-      // Decode token or fetch user data if needed
+    const storedUser = localStorage.getItem('currentUser');
+    console.log('storedUser:', storedUser);
+    const storedToken = localStorage.getItem('authToken');
+    
+    if (storedUser && storedToken && storedUser !== 'undefined') {
       try {
-        // For JWT example (you may need a proper JWT library)
-        const userData = JSON.parse(atob(token.split('.')[1]));
-        setCurrentUser(userData);
+        const parsedUser = JSON.parse(storedUser);
+        if (parsedUser) {
+          setCurrentUser(parsedUser);
+          setAuthToken(storedToken);
+        }
       } catch (error) {
-        console.error("Failed to parse token", error);
+        console.error("Failed to parse stored user", error);
+        localStorage.removeItem('currentUser');
         localStorage.removeItem('authToken');
-        setToken(null);
       }
+    } else {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('authToken');
     }
     setLoading(false);
-  }, [token]);
+  }, []);
 
   const login = (data) => {
+    if (!data.currentUser || !data.token) return;
     // Store token in localStorage
+    setAuthToken(data.token);
+    setCurrentUser(data.currentUser);
+    localStorage.setItem('currentUser', JSON.stringify(data.currentUser));
     localStorage.setItem('authToken', data.token);
-    setToken(data.token);
-    setCurrentUser(data.user);
   };
 
   const logout = () => {
     localStorage.removeItem('authToken');
-    setToken(null);
+    localStorage.removeItem('currentUser');
+    setAuthToken(null);
     setCurrentUser(null);
   };
 
   const value = {
     currentUser,
-    token,
+    authToken,
     login,
     logout,
     loading,
@@ -54,4 +62,7 @@ export function AuthProvider({ children }) {
       {children}
     </AuthContext.Provider>
   );
+}
+export function useAuth() {
+  return useContext(AuthContext);
 }
