@@ -13,6 +13,9 @@ function StudentDashboard() {
   const [positions, setPositions] = useState([])
   const [candidates, setCandidates] = useState([])
   const [electionData, setElectionData] = useState([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 10
+
   useEffect(() => {
     document.title = "Student Dashboard | Election System"
     const fetchData = async () => {
@@ -40,6 +43,17 @@ function StudentDashboard() {
         }
         fetchData()
   }, [])
+
+  // Calculate pagination
+  const totalPages = Math.ceil(students.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const currentStudents = students.slice(startIndex, endIndex)
+
+  // Pagination controls
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage)
+  }
 
   return (
     <div className="space-y-6">
@@ -208,48 +222,101 @@ function StudentDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Registered Students</CardTitle>
-          <CardDescription>List of students registered for the current election.</CardDescription>
+          <CardTitle className="text-lg">Student Voting Status</CardTitle>
+          <CardDescription className="text-sm">Overview of student participation in the current election</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
+          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="border-b">
-                  <th className="text-left p-2">Student</th>
-                  <th className="text-left p-2">Level</th>
-                  <th className="text-left p-2">Status</th>
-                  <th className="text-left p-2">Registered</th>
+                <tr className="bg-gray-50 dark:bg-gray-800">
+                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
+                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
+                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Voting Status</th>
+                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
                 </tr>
               </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student._id} className="border-b">
-                    <td className="p-2 font-medium">
-                      <div className="flex items-center gap-2">
-                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                {currentStudents.map((student) => (
+                  <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td className="p-3">
+                      <div className="flex items-center gap-3">
+                        <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
                           {student.firstName.charAt(0)}
                         </div>
-                        {student.firstName} {student.lastName}
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
+                        </div>
                       </div>
                     </td>
-                    <td className="p-2">{student.level}</td>
-                    <td className="p-2">
+                    <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
+                    <td className="p-3">
                       {student.voted ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:bg-green-900 dark:text-green-100">
+                        <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
                           Voted
                         </span>
                       ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:bg-gray-700 dark:text-gray-100">
+                        <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
+                          <span className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500 mr-1.5"></span>
                           Not Voted
                         </span>
                       )}
                     </td>
-                    <td className="p-2">{student.startDate}</td>
+                    <td className="p-3 text-gray-600 dark:text-gray-300">
+                      {student.createdAt ? (
+                        new Date(student.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'short',
+                          day: 'numeric'
+                        })
+                      ) : (
+                        <span className="text-gray-400 dark:text-gray-500">Not available</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
+          </div>
+
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-gray-600 dark:text-gray-400">
+              Showing {startIndex + 1} to {Math.min(endIndex, students.length)} of {students.length} students
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Previous
+              </button>
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`w-8 h-8 text-sm rounded-md ${
+                      currentPage === page
+                        ? 'bg-primary text-white dark:bg-primary-600'
+                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </CardContent>
       </Card>

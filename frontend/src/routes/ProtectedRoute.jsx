@@ -67,7 +67,7 @@ export function SuperAdminRoute() {
     return <Navigate to="/login" />;
   }
   
-  if (currentUser.role !== "superadmin") {
+  if (currentUser.role !== "superAdmin") {
     return <Navigate to="/" />;
   }
   

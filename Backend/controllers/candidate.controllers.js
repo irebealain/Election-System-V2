@@ -13,32 +13,38 @@ export const getCandidates = async (req, res) => {
   }
 }
 // Creating a new candidate
-export const createCandidates = async (req, res) => {
+export const createCandidate = async (req, res) => {
   const candidate = req.body
 
-  if (!candidate.firstName || !candidate.lastName || !candidate.profilePic || !candidate.mandate ||!candidate.positionId || !candidate.electionId){
-    return res.status(400).json({success: false, message: "Please provide all the fields."})
+  // Validate required fields
+  if (!candidate.firstName || !candidate.lastName || !candidate.positionId || !candidate.electionId) {
+    return res.status(400).json({ success: false, message: "Please provide all required fields." })
   }
+
   try {
-    const position = await Position.findById(candidate.positionId)
-    // Validating the position of the candidate
-    if (!position) {
-      return res.status(400).json({success: false, message: "Position not found."})
+    // Check if candidate already exists for this position
+    const existingCandidate = await Candidate.findOne({
+      firstName: candidate.firstName,
+      lastName: candidate.lastName,
+      positionId: candidate.positionId,
+      electionId: candidate.electionId
+    })
+
+    if (existingCandidate) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "A candidate with this name already exists for this position." 
+      })
     }
-    // Checking the election status
-    const election = await Election.findById(candidate.electionId)
-    if (!election) {
-      return res.status(404).json({ success: false, message: "Election not found." })
-    }
-    if (election.status === "completed") {
-      return res.status(400).json({ success: false, message: "You cannot register for a completed election." });
-    }
+
+    // Create the new candidate
     const newCandidate = new Candidate(candidate)
     await newCandidate.save()
-    res.status(201).json({success: true, data: newCandidate})
+    
+    res.status(201).json({ success: true, data: newCandidate })
   } catch (error) {
-    console.error("Error in created candidate:", error.message)
-    res.status(500).json({success: false, message: "Server Error"})
+    console.error("Error in creating candidate:", error.message)
+    res.status(500).json({ success: false, message: "Server Error" })
   }
 }
 // Updating a candidate

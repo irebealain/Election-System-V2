@@ -1,21 +1,28 @@
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { Link, useNavigate } from "react-router-dom"
-import { User, LogOut, Settings, ChevronDown, X, Menu } from "lucide-react"
+import { User, LogOut, Settings, ChevronDown, Menu } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import Button from "../common/Button"
 import ModeToggle from "../common/ModeToggle"
 import logo from "../../assets/logo.svg"
 import LinkBar from "./LinkBar"
+import { useClickOutside } from "../../hooks/useClickOutside"
 
 function Navbar() {
-  const { user, logout } = useAuth()
+  const { currentUser, logout } = useAuth()
   const navigate = useNavigate()
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
-  const handleLogout = () => {
-    logout()
-    navigate("/login")
+  const userMenuRef = useClickOutside(() => setUserMenuOpen(false))
+
+  const handleLogout = async () => {
+    try {
+      await logout()
+      navigate("/login")
+    } catch (error) {
+      console.error("Failed to log out", error)
+    }
   }
 
   return (
@@ -23,10 +30,8 @@ function Navbar() {
       <div className="flex h-16 items-center px-4 justify-between">
         <Link to="/student/dashboard" className="flex items-center mr-6">
           <span className="text-xl font-bold font-satoshi">
-            <img src= {logo} 
-            alt="" />
+            <img src={logo} alt="" />
           </span>
-          {/* <span className="ml-2 text-sm text-muted-foreground">Student</span> */}
         </Link>
 
         {/* Center links */}
@@ -35,22 +40,31 @@ function Navbar() {
         </div>
 
         <div className="flex items-center space-x-2 rounded-[40px] bg-background p-2">
-
           {/* Theme Toggle */}
           <ModeToggle />
 
           {/* User Menu */}
-          <div className="relative">
+          <div ref={userMenuRef} className="relative">
             <Button
               variant=""
               className="relative h-8 flex items-center gap-2 pl-2 pr-1"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
               <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                <User className="h-4 w-4" />
+                {currentUser?.profilePic ? (
+                  <img 
+                    src={currentUser.profilePic} 
+                    alt={`${currentUser.firstName} ${currentUser.lastName}`}
+                    className="h-full w-full rounded-full object-cover"
+                  />
+                ) : (
+                  <span className="text-sm font-medium">
+                    {currentUser?.firstName?.charAt(0)}
+                  </span>
+                )}
               </div>
               <div className="hidden md:flex flex-col items-start text-sm">
-                <span className="font-medium">{user?.name || "Student User"}</span>
+                <span className="font-medium">{currentUser?.firstName} {currentUser?.lastName}</span>
                 <span className="text-xs text-muted-foreground capitalize">Student</span>
               </div>
               <ChevronDown className="h-4 w-4 opacity-50" />
@@ -87,17 +101,27 @@ function Navbar() {
           </Button>
         </div>
       </div>
-    </header>
-  )
-}
 
-function NotificationItem({ title, description, time }) {
-  return (
-    <div className="flex flex-col gap-1 p-3 rounded-md cursor-pointer">
-      <div className="font-medium text-sm">{title}</div>
-      <div className="text-xs text-muted-foreground">{description}</div>
-      <div className="text-xs text-muted-foreground mt-1">{time}</div>
-    </div>
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            <Link
+              to="/profile"
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+            >
+              Profile
+            </Link>
+            <button
+              onClick={handleLogout}
+              className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:bg-gray-100"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+      )}
+    </header>
   )
 }
 

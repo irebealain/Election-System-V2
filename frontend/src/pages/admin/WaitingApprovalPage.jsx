@@ -2,6 +2,11 @@
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { motion } from "framer-motion";
+import { Clock, LogOut, CheckCircle } from "lucide-react";
+import Button from "../../components/common/Button";
+import logo from "../../assets/Logo.svg";
+import { Link } from "react-router-dom";
 
 function WaitingApprovalPage() {
   const { currentUser, logout } = useAuth();
@@ -24,20 +29,85 @@ function WaitingApprovalPage() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-lg shadow-lg p-8 text-center">
-        <h1 className="text-2xl font-bold mb-4">Account Pending Approval</h1>
-        <p className="mb-6">
-          Your admin account is waiting for approval. You'll be notified once 
-          your account has been approved by a super admin.
-        </p>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+    <div className="min-h-screen flex flex-col bg-background">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="container mx-auto px-4">
+          <div className="flex h-16 items-center justify-between">
+            <Link to="/" className="flex items-center">
+              <img src={logo} alt="Logo" className="h-8" />
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-md w-full bg-white rounded-[20px] shadow-lg p-8 text-center"
         >
-          Logout
-        </button>
-      </div>
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="flex justify-center mb-6"
+          >
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+              <Clock className="w-8 h-8 text-primary" />
+            </div>
+          </motion.div>
+
+          <motion.h1 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+            className="text-2xl font-bold mb-4 font-satoshi"
+          >
+            Account Pending Approval
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.4 }}
+            className="text-gray-600 mb-8"
+          >
+            Your admin account is waiting for approval. You'll be notified once 
+            your account has been approved by a super admin.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="space-y-4"
+          >
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
+              <Clock className="w-4 h-4 text-primary" />
+              <span>Waiting for review</span>
+            </div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6 }}
+            className="mt-8"
+          >
+            <Button
+              onClick={handleLogout}
+              variant="outline"
+              className="w-full flex items-center justify-center space-x-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Logout</span>
+            </Button>
+          </motion.div>
+        </motion.div>
+      </main>
     </div>
   );
 }

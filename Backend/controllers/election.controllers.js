@@ -4,59 +4,98 @@ import Election from "../models/election.model.js";
 // Getting all the elections
 export const getElections = async (req, res) => {
   try {
-    const election = await Election.find({})
-    res.status(200).json({success: true, data: election})
+    // Update statuses before fetching
+    await updateElectionStatuses()
+    
+    const elections = await Election.find()
+      .populate("createdBy", "firstName lastName")
+      .sort({ createdAt: -1 })
+
+    res.status(200).json({
+      success: true,
+      data: elections,
+    })
   } catch (error) {
-    res.status(500).json({success: false, message: "Server error"})
+    console.error("Error fetching elections:", error)
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch elections",
+      error: error.message,
+    })
   }
 }
+
+// Function to update election statuses
+const updateElectionStatuses = async () => {
+  try {
+    const now = new Date()
+    const elections = await Election.find({
+      $or: [
+        { status: "upcoming" },
+        { status: "ongoing" }
+      ]
+    })
+
+    for (const election of elections) {
+      if (election.endDate <= now) {
+        election.status = "completed"
+        await election.save()
+      } else if (election.startDate <= now && election.endDate > now) {
+        election.status = "ongoing"
+        await election.save()
+      }
+    }
+  } catch (error) {
+    console.error("Error updating election statuses:", error)
+  }
+}
+
 // Creating a new election
 export const createElections = async (req, res) => {
   const election = req.body
 
   // Validate required fields
-  if (!election.title || !election.startDate || !election.createdBy) {
+  if (!election.title || !election.startDate || !election.endDate || !election.createdBy) {
     return res.status(400).json({ success: false, message: "Please provide all required fields." })
   }
 
-  // Parse and validate the startDate
-  const parsedDate = new Date(election.startDate)
+  // Parse and validate the dates
+  const parsedStartDate = new Date(election.startDate)
+  const parsedEndDate = new Date(election.endDate)
   const today = new Date()
   today.setHours(0, 0, 0, 0) // Normalize today's date
 
-  if (isNaN(parsedDate.getTime())) {
+  if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
     return res.status(400).json({ success: false, message: "Invalid date format. Use YYYY-MM-DD." })
   }
 
-  // Prevent past dates
-  if (parsedDate < today) {
+  // Prevent past dates for start date
+  if (parsedStartDate < today) {
     return res.status(400).json({ success: false, message: "Start date cannot be in the past." })
   }
 
-  // Determining the election status
-  let status = "upcoming"
-  if (parsedDate.toDateString() === today.toDateString()) {
-    status = "ongoing"
+  // Ensure end date is after start date
+  if (parsedEndDate <= parsedStartDate) {
+    return res.status(400).json({ success: false, message: "End date must be after start date." })
   }
-  else if (status === "ongoing" && parsedDate < today) {
-    status = "completed"
-  }
+
   try {
     // Check for duplicates (by title and startDate)
     const existingElection = await Election.findOne({
       title: election.title,
-      startDate: parsedDate,
+      startDate: parsedStartDate,
     })
 
     if (existingElection) {
       return res.status(400).json({ success: false, message: "Election with this title and date already exists." })
     }
 
-    // Create the new election with status
+    // Create the new election
     const newElection = new Election({
-      ...election,
-      startDate: parsedDate,
-      status,
+      title: election.title,
+      startDate: parsedStartDate,
+      endDate: parsedEndDate,
+      createdBy: election.createdBy,
     })
 
     await newElection.save()
@@ -66,6 +105,7 @@ export const createElections = async (req, res) => {
     res.status(500).json({ success: false, message: "Server Error" })
   }
 }
+
 // Updating a election
 export const updateElection = async (req, res) => {
   const { id } = req.params
@@ -82,6 +122,7 @@ export const updateElection = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error." })
   }
 }
+
 // Deleting a election
 export const deleteElection = async (req, res) => {
   const {id} = req.params

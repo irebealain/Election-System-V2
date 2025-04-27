@@ -9,7 +9,7 @@ router.get('/', getPositions)
 router.post('/', createPositions)
 // Updating the position
 router.put('/:id', updatePosition)
-// Deleting position
+// Deleting the position
 router.delete('/:id', deletePosition)
 
 export default router

@@ -6,6 +6,7 @@ import Button from "../common/Button"
 import ModeToggle from "../common/ModeToggle"
 import LinkBar from "./LinkBar"
 import logo from "../../assets/logo.svg"
+import { useClickOutside } from "../../hooks/useClickOutside"
 
 function Navbar() {
   const { user, logout } = useAuth()
@@ -15,6 +16,10 @@ function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const searchRef = useClickOutside(() => setSearchOpen(false))
+  const userMenuRef = useClickOutside(() => setUserMenuOpen(false))
+  const notificationsRef = useClickOutside(() => setNotificationsOpen(false))
+
   const handleLogout = () => {
     logout()
     navigate("/login")
@@ -23,10 +28,9 @@ function Navbar() {
   return (
     <header className="sticky top-0 z-40 backdrop-blur-sm">
       <div className="flex h-16 items-center px-4 justify-between">
-        <Link to="/admin/dashboard" className="flex items-center mr-6 ">
+        <Link to="/admin/dashboard" className="flex items-center mr-6">
           <span className="text-xl font-bold font-satoshi">
-            <img src= {logo}
-            alt="" />
+            <img src={logo} alt="" />
           </span>
           {/* <span className="ml-2 text-sm text-muted-foreground">Admin</span> */}
         </Link>
@@ -37,13 +41,12 @@ function Navbar() {
         <div className="flex items-center space-x-2 rounded-[40px] bg-background py-1 px-1">
           {/* Search */}
           {searchOpen ? (
-            <div className="relative mr-2">
+            <div ref={searchRef} className="relative mr-2">
               <input
                 type="text"
                 placeholder="Search..."
                 className="w-[200px] md:w-[300px] h-10 border border-input bg-background px-3 py-2 text-sm rounded-[20px]"
                 autoFocus
-                onBlur={() => setSearchOpen(false)}
               />
               <Button
                 variant="ghost"
@@ -62,7 +65,7 @@ function Navbar() {
           )}
 
           {/* Notifications */}
-          <div className="relative">
+          <div ref={notificationsRef} className="relative">
             <Button
               variant="ghost"
               size="icon"
@@ -111,7 +114,7 @@ function Navbar() {
           <ModeToggle />
 
           {/* User Menu */}
-          <div className="relative">
+          <div ref={userMenuRef} className="relative">
             <Button
               variant=""
               className="relative h-8 flex items-center gap-2 pl-2 pr-1"

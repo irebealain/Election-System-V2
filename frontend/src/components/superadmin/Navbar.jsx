@@ -4,6 +4,9 @@ import { Bell, Search, User, LogOut, Settings, ChevronDown, X, Menu } from "luci
 import { useAuth } from "../../context/AuthContext"
 import Button from "../common/Button"
 import ModeToggle from "../common/ModeToggle"
+import LinkBar from "./LinkBar"
+import logo from "../../assets/logo.svg"
+import { useClickOutside } from "../../hooks/useClickOutside"
 
 function Navbar() {
   const { user, logout } = useAuth()
@@ -13,29 +16,38 @@ function Navbar() {
   const [notificationsOpen, setNotificationsOpen] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
+  const searchRef = useClickOutside(() => setSearchOpen(false))
+  const userMenuRef = useClickOutside(() => setUserMenuOpen(false))
+  const notificationsRef = useClickOutside(() => setNotificationsOpen(false))
+
   const handleLogout = () => {
     logout()
     navigate("/login")
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b bg-background">
-      <div className="flex h-16 items-center px-4">
+    <header className="sticky top-0 z-40 backdrop-blur-sm">
+      <div className="flex h-16 items-center px-4 justify-between">
         <Link to="/superadmin/dashboard" className="flex items-center mr-6">
-          <span className="text-xl font-bold font-satoshi">ElectSys</span>
-          <span className="ml-2 text-sm text-muted-foreground">Super Admin</span>
+          <span className="text-xl font-bold font-satoshi">
+            <img src={logo} alt="" />
+          </span>
         </Link>
 
-        <div className="ml-auto flex items-center space-x-2">
+        {/* Center links */}
+        <div className="bg-background rounded-[40px]">
+          <LinkBar />
+        </div>
+
+        <div className="flex items-center space-x-2 rounded-[40px] bg-background p-2">
           {/* Search */}
           {searchOpen ? (
-            <div className="relative mr-2">
+            <div ref={searchRef} className="relative mr-2">
               <input
                 type="text"
                 placeholder="Search..."
-                className="w-[200px] md:w-[300px] h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                className="w-[200px] md:w-[300px] h-10 border border-input bg-background px-3 py-2 text-sm rounded-[20px]"
                 autoFocus
-                onBlur={() => setSearchOpen(false)}
               />
               <Button
                 variant="ghost"
@@ -54,7 +66,7 @@ function Navbar() {
           )}
 
           {/* Notifications */}
-          <div className="relative">
+          <div ref={notificationsRef} className="relative">
             <Button
               variant="ghost"
               size="icon"
@@ -69,7 +81,7 @@ function Navbar() {
             </Button>
 
             {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 mt-2 w-80 rounded-[20px] border bg-background shadow-lg">
                 <div className="p-3 border-b">
                   <h3 className="font-medium">Notifications</h3>
                 </div>
@@ -103,9 +115,9 @@ function Navbar() {
           <ModeToggle />
 
           {/* User Menu */}
-          <div className="relative">
+          <div ref={userMenuRef} className="relative">
             <Button
-              variant="ghost"
+              variant=""
               className="relative h-8 flex items-center gap-2 pl-2 pr-1"
               onClick={() => setUserMenuOpen(!userMenuOpen)}
             >
@@ -120,21 +132,21 @@ function Navbar() {
             </Button>
 
             {userMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 rounded-md border bg-background shadow-lg">
+              <div className="absolute right-0 mt-2 w-48 rounded-[20px] border bg-background shadow-lg">
                 <div className="p-3 border-b">
                   <h3 className="font-medium">My Account</h3>
                 </div>
                 <div className="p-2">
-                  <Button variant="ghost" className="w-full justify-start text-sm">
+                  <Button variant="ghost" className="w-full !justify-start text-sm">
                     <User className="mr-2 h-4 w-4" />
                     <span>Profile</span>
                   </Button>
-                  <Button variant="ghost" className="w-full justify-start text-sm">
+                  <Button variant="ghost" className="w-full !justify-start text-sm">
                     <Settings className="mr-2 h-4 w-4" />
                     <span>Settings</span>
                   </Button>
                   <div className="my-1 h-px bg-border"></div>
-                  <Button variant="ghost" className="w-full justify-start text-sm" onClick={handleLogout}>
+                  <Button variant="ghost" className="w-full !justify-start text-sm" onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </Button>

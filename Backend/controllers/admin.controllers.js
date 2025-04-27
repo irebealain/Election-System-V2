@@ -50,16 +50,34 @@ export const adminSignup = async (req, res) => {
       email: admin.email, 
       password: hashedPassword,
       electionId: admin.electionId,
-      createdBy: null,
-      approved: false  // Initially, the admin is not approved
+      createdBy: admin.createdBy,
+      isApproved: false  // Initially, the admin is not approved
     })
     await newAdmin.save()
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newAdmin._id, role: newAdmin.role },
+      JWT_SECRET,
+      { expiresIn: "4d" }
+    );
+
     res.status(201).json({
       success: true, 
       message: "Admin created successfully. Awaiting approval from super admin.",
       data: {
-        newAdmin
-      }})
+        token,
+        user: {
+          id: newAdmin._id,
+          firstName: newAdmin.firstName,
+          lastName: newAdmin.lastName,
+          email: newAdmin.email,
+          role: newAdmin.role,
+          isApproved: newAdmin.isApproved,
+          electionId: newAdmin.electionId
+        }
+      }
+    })
   } catch (error) {
     console.error("Error in created Admin:", error.message)
     res.status(500).json({success: false, message: "Server Error"})
@@ -89,7 +107,15 @@ export const adminLogin = async (req, res) => {
       message: "Admin logged in successfully.",
       data: {
         token,
-        admin
+        user: {
+          id: admin._id,
+          firstName: admin.firstName,
+          lastName: admin.lastName,
+          email: admin.email,
+          role: admin.role,
+          isApproved: admin.isApproved,
+          electionId: admin.electionId
+        }
       }
     })
   } catch (error) {
@@ -241,19 +267,63 @@ export const googleAdminLogin = async (req, res) => {
     const name = payload.name;
     const picture = payload.picture || "";
 
+    // Check if the Admin exists
     const user = await Admin.findOne({email});
     if (!user) {
-      return googleAdminSignup(req, res);
+      // If user doesn't exist, create a new Admin
+      const [firstName, ...rest] = name.split(" ");
+      const lastName = rest.join(" ") || "";
+
+      const newAdmin = new Admin({
+        firstName,
+        lastName,
+        email,
+        profilePic: picture,
+        googleId: payload.sub,
+        electionId: currentElection._id,
+        isApproved: false // Default to false
+      });
+
+      await newAdmin.save();
+
+      const appToken = jwt.sign(
+        { id: newAdmin._id, role: newAdmin.role },
+        JWT_SECRET,
+        { expiresIn: "4d" }
+      );
+
+      return res.status(201).json({
+        success: true,
+        message: "Admin registered successfully. Waiting for superadmin approval.",
+        token: appToken,
+        user: {
+          id: newAdmin._id,
+          firstName: newAdmin.firstName,
+          lastName: newAdmin.lastName,
+          email: newAdmin.email,
+          profilePic: newAdmin.profilePic,
+          electionId: newAdmin.electionId,
+          isApproved: newAdmin.isApproved,
+          role: newAdmin.role
+        }
+      });
     }
 
+    // If user exists but not approved
     if (!user.isApproved) {
       return res.status(403).json({
         success: false,
         message: "Admin account is pending approval by the SuperAdmin.",
       });
     }
-    
-    const appToken = jwt.sign({id: user._id, role: user.role}, JWT_SECRET, {expiresIn: '4d'});
+
+    // If user exists and is approved
+    const appToken = jwt.sign(
+      { id: user._id, role: user.role },
+      JWT_SECRET,
+      { expiresIn: "4d" }
+    );
+
     return res.status(200).json({
       success: true,
       message: "Logged in successfully",
@@ -264,11 +334,9 @@ export const googleAdminLogin = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         profilePic: user.profilePic,
-        electionId: currentElection._id,
-        createdBy: user.createdBy,
         isApproved: user.isApproved,
-        role: user.role,
-      },
+        role: user.role
+      }
     });
   } catch (error) {
     console.error("Error during Google login:", error.message);

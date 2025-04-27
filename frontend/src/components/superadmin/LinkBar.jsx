@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Home, Vote, Users, BarChart3, UserCog, Settings } from "lucide-react"
 import IconNav from "../common/IconNav"
 
-function Sidebar() {
+function LinkBar() {
   const [collapsed, setCollapsed] = useState(false)
 
   const navItems = [
@@ -39,20 +39,12 @@ function Sidebar() {
   ]
 
   return (
-    <div className={`border-r bg-background transition-all duration-300 ${collapsed ? "w-16" : "w-64"}`}>
-      <div className="p-4">
-        <button
-          className="w-full flex items-center justify-center h-8 rounded-md hover:bg-accent"
-          onClick={() => setCollapsed(!collapsed)}
-        >
-          {collapsed ? "→" : "←"}
-        </button>
-      </div>
-      <div className="px-3 py-2">
+    <div className="">
+      <div className="">
         <IconNav items={navItems} />
       </div>
     </div>
   )
 }
 
-export default Sidebar
+export default LinkBar 

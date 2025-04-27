@@ -70,19 +70,29 @@ export const userSignup = async (req, res) => {
       level: user.level,
     });
     await newUser.save();
+
     // Generate JWT token
     const token = jwt.sign(
       { id: newUser._id, role: newUser.role },
       JWT_SECRET,
       { expiresIn: "4d" }
     );
+
     res.status(201).json({
       success: true,
       message: "User created successfully.",
       data: {
         token,
-        newUser,
-      },
+        user: {
+          id: newUser._id,
+          firstName: newUser.firstName,
+          lastName: newUser.lastName,
+          email: newUser.email,
+          level: newUser.level,
+          role: newUser.role,
+          electionId: newUser.electionId
+        }
+      }
     });
   } catch (error) {
     console.error("Error in created User:", error.message);
@@ -121,8 +131,16 @@ export const userLogin = async (req, res) => {
       message: "User logged in successfully.",
       data: {
         token,
-        user,
-      },
+        user: {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          level: user.level,
+          role: user.role,
+          electionId: user.electionId
+        }
+      }
     });
   } catch (error) {
     console.error("Error in login User:", error.message);

@@ -1,121 +1,158 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
-import { Info, ThumbsUp, ChevronRight, AlertTriangle } from "lucide-react"
+import { Info, ThumbsUp, ChevronRight, AlertTriangle, CalendarX, Clock, Award } from "lucide-react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
-
-// Sample data for candidates
-const candidates = [
-  {
-    id: 1,
-    name: "John Smith",
-    position: "President",
-    image: "/placeholder.svg",
-    mandate: "Improve student facilities and organize more events",
-    bio: "John is a third-year student majoring in Political Science. He has served as class representative for two years.",
-  },
-  {
-    id: 2,
-    name: "Sarah Johnson",
-    position: "President",
-    image: "/placeholder.svg",
-    mandate: "Focus on academic excellence and student welfare",
-    bio: "Sarah is a fourth-year student majoring in Economics. She has been an active member of the student council.",
-  },
-  {
-    id: 3,
-    name: "Michael Brown",
-    position: "Vice President",
-    image: "/placeholder.svg",
-    mandate: "Enhance communication between students and administration",
-    bio: "Michael is a second-year student majoring in Communications. He has experience in organizing campus events.",
-  },
-  {
-    id: 4,
-    name: "Emily Davis",
-    position: "Vice President",
-    image: "/placeholder.svg",
-    mandate: "Create more opportunities for student involvement",
-    bio: "Emily is a third-year student majoring in Psychology. She has been involved in various student clubs.",
-  },
-  {
-    id: 5,
-    name: "David Wilson",
-    position: "Secretary",
-    image: "/placeholder.svg",
-    mandate: "Improve record-keeping and transparency",
-    bio: "David is a second-year student majoring in Business Administration. He has experience in administrative roles.",
-  },
-  {
-    id: 6,
-    name: "Jessica Lee",
-    position: "Treasurer",
-    image: "/placeholder.svg",
-    mandate: "Ensure responsible budget allocation and financial transparency",
-    bio: "Jessica is a third-year student majoring in Finance. She has experience in managing club budgets.",
-  },
-  {
-    id: 7,
-    name: "Robert Taylor",
-    position: "Treasurer",
-    image: "/placeholder.svg",
-    mandate: "Implement innovative fundraising strategies and transparent financial reporting",
-    bio: "Robert is a fourth-year student majoring in Accounting. He has served as treasurer for multiple student organizations.",
-  },
-]
-
-// Group candidates by position
-const groupedCandidates = candidates.reduce((acc, candidate) => {
-  if (!acc[candidate.position]) {
-    acc[candidate.position] = []
-  }
-  acc[candidate.position].push(candidate)
-  return acc
-}, {})
+import { useAuth } from "../../context/AuthContext"
+import axios from "../../lib/axios"
 
 function Elections() {
+  const { currentUser } = useAuth()
+  const [election, setElection] = useState(null)
+  const [candidates, setCandidates] = useState([])
+  const [positions, setPositions] = useState([])
   const [votes, setVotes] = useState({})
   const [selectedCandidate, setSelectedCandidate] = useState(null)
   const [dialogOpen, setDialogOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [validationError, setValidationError] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [hasVoted, setHasVoted] = useState(false)
 
   useEffect(() => {
     document.title = "Elections | Student Dashboard"
+    fetchElectionData()
   }, [])
 
-  const handleVote = (candidateId, position) => {
-    // Reset validation error when user votes
-    setValidationError(false)
+  useEffect(() => {
+    if (election) {
+      const checkVotingStatus = async () => {
+        try {
+          const votesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/votes`)
+          const userVotes = votesResponse.data.data.filter(
+            v => v.studentId === (currentUser._id || currentUser.id) && v.electionId === election._id
+          )
+          setHasVoted(userVotes.length > 0)
+        } catch (error) {
+          console.error("Error checking voting status:", error)
+        }
+      }
+      checkVotingStatus()
+    }
+  }, [election, currentUser])
 
-    // Check if user has already voted for this position
-    if (votes[position] && votes[position] !== candidateId) {
-      // If changing vote, update it
-      setVotes({
-        ...votes,
-        [position]: candidateId,
-      })
-      toast.success(`Vote updated for ${position}`)
-    } else if (!votes[position]) {
-      // If not voted for this position yet, add the vote
-      setVotes({
-        ...votes,
-        [position]: candidateId,
-      })
-      toast.success(`Vote recorded for ${position}`)
-    } else {
-      // If clicking on the same candidate, remove the vote
-      const newVotes = { ...votes }
-      delete newVotes[position]
-      setVotes(newVotes)
-      toast.success(`Vote removed for ${position}`)
+  const fetchElectionData = async () => {
+    try {
+      setLoading(true)
+      // Fetch current election
+      const electionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`)
+      const currentElection = electionResponse.data.data.find(e => e.status === 'ongoing')
+      if (!currentElection) {
+        toast.error("No active election found")
+        setElection(null)
+        setPositions([])
+        setCandidates([])
+        return
+      }
+      setElection(currentElection)
+
+      // Fetch positions for the current election only
+      const positionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/positions`)
+      const electionPositions = positionsResponse.data.data.filter(p => p.electionId === currentElection._id)
+
+      // Fetch candidates for the current election only
+      const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
+      const electionCandidates = candidatesResponse.data.data.filter(
+        c => c.electionId === currentElection._id
+      )
+
+      // Filter positions to only include those with candidates
+      const positionsWithCandidates = electionPositions.filter(position => 
+        electionCandidates.some(candidate => candidate.positionId === position._id)
+      )
+
+      setPositions(positionsWithCandidates)
+      setCandidates(electionCandidates)
+
+      // Check if user has already voted in this election
+      try {
+        const votesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/votes`)
+        const userVotes = votesResponse.data.data.filter(
+          v => v.studentId === (currentUser._id || currentUser.id) && v.electionId === currentElection._id
+        )
+        
+        if (userVotes.length > 0) {
+          setHasVoted(true)
+          // Initialize votes state with user's previous votes
+          const initialVotes = {}
+          userVotes.forEach(vote => {
+            const candidate = electionCandidates.find(c => c._id === vote.candidateId)
+            if (candidate) {
+              const position = positionsWithCandidates.find(p => p._id === candidate.positionId)
+              if (position) {
+                initialVotes[position.name] = candidate._id
+              }
+            }
+          })
+          setVotes(initialVotes)
+        }
+      } catch (error) {
+        console.error("Error checking user votes:", error)
+        toast.error("Failed to check voting status")
+      }
+    } catch (error) {
+      console.error("Error fetching election data:", error)
+      toast.error("Failed to load election data")
+    } finally {
+      setLoading(false)
     }
   }
 
-  const handleSubmitVotes = () => {
-    const positionCount = Object.keys(groupedCandidates).length
+  const handleVote = (candidateId, positionId) => {
+    if (hasVoted) {
+      toast.error("You have already voted in this election")
+      return
+    }
+
+    // Reset validation error when user votes
+    setValidationError(false)
+
+    const position = positions.find(p => p._id === positionId)
+    if (!position) return
+
+    // Check if user has already voted for this position
+    if (votes[position.name] && votes[position.name] !== candidateId) {
+      // If changing vote, update it
+      setVotes({
+        ...votes,
+        [position.name]: candidateId,
+      })
+      toast.success(`Vote updated for ${position.name}`)
+    } else if (!votes[position.name]) {
+      // If not voted for this position yet, add the vote
+      setVotes({
+        ...votes,
+        [position.name]: candidateId,
+      })
+      toast.success(`Vote recorded for ${position.name}`)
+    } else {
+      // If clicking on the same candidate, remove the vote
+      const newVotes = { ...votes }
+      delete newVotes[position.name]
+      setVotes(newVotes)
+      toast.success(`Vote removed for ${position.name}`)
+    }
+  }
+
+  const handleSubmitVotes = async () => {
+    if (hasVoted) {
+      toast.error("You have already voted in this election")
+      return
+    }
+
+    const positionCount = positions.length
     const votedCount = Object.keys(votes).length
 
     // Check if all positions have votes
@@ -125,14 +162,67 @@ function Elections() {
       return
     }
 
+    // Validate that all votes are for candidates in the current election
+    const invalidVotes = Object.entries(votes).some(([positionName, candidateId]) => {
+      const candidate = candidates.find(c => c._id === candidateId)
+      return !candidate || candidate.electionId !== election._id
+    })
+
+    if (invalidVotes) {
+      toast.error("Invalid votes detected. Please vote only for candidates in the current election.")
+      return
+    }
+
     setSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setSubmitting(false)
+    try {
+      // Submit votes for each position
+      const votePromises = Object.entries(votes).map(async ([positionName, candidateId]) => {
+        const position = positions.find(p => p.name === positionName)
+        const candidate = candidates.find(c => c._id === candidateId)
+        
+        if (!position || !candidate) {
+          throw new Error("Invalid position or candidate")
+        }
+
+        // Double check that the candidate belongs to the current election
+        if (candidate.electionId !== election._id) {
+          throw new Error("Candidate does not belong to the current election")
+        }
+
+        // Prepare vote data with all required fields
+        const voteData = {
+          studentId: currentUser._id || currentUser.id,
+          candidateId: candidate._id,
+          positionId: position._id,
+          electionId: election._id
+        }
+
+        // Submit the vote
+        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/votes`, voteData)
+        
+        if (!response.data.success) {
+          throw new Error(response.data.message || "Failed to submit vote")
+        }
+
+        return response.data
+      })
+
+      // Wait for all votes to be submitted
+      await Promise.all(votePromises)
+      
+      // Update UI state immediately after successful submission
+      setHasVoted(true)
       setSubmitted(true)
+      
+      // Show success message
       toast.success("Your votes have been submitted successfully!")
-    }, 1500)
+    } catch (error) {
+      console.error("Error submitting votes:", error)
+      toast.error(error.response?.data?.message || "Failed to submit votes. Please try again.")
+    } finally {
+      setSubmitting(false)
+    }
   }
 
   const openCandidateDetails = (candidate) => {
@@ -140,11 +230,135 @@ function Elections() {
     setDialogOpen(true)
   }
 
-  const positionCount = Object.keys(groupedCandidates).length
-  const votedCount = Object.keys(votes).length
-
   const getUnvotedPositions = () => {
-    return Object.keys(groupedCandidates).filter((position) => !votes[position])
+    return positions
+      .filter(position => !votes[position.name])
+      .map(position => position.name)
+  }
+
+  // Group candidates by position
+  const groupedCandidates = candidates.reduce((acc, candidate) => {
+    const position = positions.find(p => p._id === candidate.positionId)
+    if (!position) return acc
+
+    if (!acc[position.name]) {
+      acc[position.name] = []
+    }
+    acc[position.name].push(candidate)
+    return acc
+  }, {})
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    )
+  }
+
+  if (!election) {
+    return (
+      <motion.div
+        className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="relative mb-8">
+          <motion.div
+            className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, type: "spring" }}
+          >
+            <CalendarX className="w-12 h-12 text-primary" />
+          </motion.div>
+          <motion.div
+            className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
+          >
+            <Clock className="w-4 h-4 text-muted-foreground" />
+          </motion.div>
+        </div>
+        
+        <h2 className="text-2xl font-bold mb-2 font-satoshi">No Active Election</h2>
+        <p className="text-muted-foreground max-w-md mb-6">
+          There is currently no ongoing election. Please check back later or wait for the next election period to begin.
+        </p>
+        
+        <motion.div
+          className="flex items-center space-x-2 text-sm text-muted-foreground"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Clock className="w-4 w-4" />
+          <span>Next election coming soon</span>
+        </motion.div>
+      </motion.div>
+    )
+  }
+
+  if (hasVoted) {
+    return (
+      <motion.div
+        className="flex flex-col items-center justify-center min-h-[60vh] text-center px-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="relative mb-8">
+          <motion.div
+            className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center"
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5, type: "spring" }}
+          >
+            <ThumbsUp className="w-12 h-12 text-green-600 dark:text-green-400" />
+          </motion.div>
+          <motion.div
+            className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
+          >
+            <Award className="w-4 h-4 text-muted-foreground" />
+          </motion.div>
+        </div>
+        
+        <h2 className="text-2xl font-bold mb-2 font-satoshi">Thank You for Voting!</h2>
+        <p className="text-muted-foreground max-w-md mb-6">
+          You have already cast your votes in this election. The results will be announced after the election period ends.
+        </p>
+        
+        <motion.div
+          className="flex items-center space-x-2 text-sm text-muted-foreground"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
+          <Clock className="w-4 w-4" />
+          <span>Election ends: {new Date(election.endDate).toLocaleDateString()}</span>
+        </motion.div>
+
+        <motion.div
+          className="mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+        >
+          <Button
+            variant="outline"
+            onClick={() => window.location.href = "/student/dashboard"}
+            className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
+          >
+            Return to Dashboard
+          </Button>
+        </motion.div>
+      </motion.div>
+    )
   }
 
   return (
@@ -156,7 +370,13 @@ function Elections() {
     >
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Elections</h1>
-        <p className="text-muted-foreground">Current election: Spring 2023</p>
+        <p className="text-muted-foreground">Current election: {election.title}</p>
+        {hasVoted && (
+          <div className="mt-2 flex items-center text-green-600 dark:text-green-400">
+            <ThumbsUp className="h-5 w-5 mr-2" />
+            <span>You have already voted in this election</span>
+          </div>
+        )}
       </div>
 
       {submitted ? (
@@ -197,33 +417,48 @@ function Elections() {
             <CardHeader>
               <CardTitle>Voting Progress</CardTitle>
               <CardDescription>
-                You have voted for {votedCount} out of {positionCount} positions
+                {hasVoted ? (
+                  <div className="flex items-center text-green-600 dark:text-green-400">
+                    <ThumbsUp className="h-5 w-5 mr-2" />
+                    <span>You have already voted in this election</span>
+                  </div>
+                ) : (
+                  `You have voted for ${Object.keys(votes).length} out of ${positions.length} positions`
+                )}
               </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="w-full bg-secondary rounded-full h-2.5">
                 <div
-                  className="bg-primary h-2.5 rounded-full transition-all duration-500"
-                  style={{ width: `${(votedCount / positionCount) * 100}%` }}
+                  className={`h-2.5 rounded-full transition-all duration-500 ${
+                    hasVoted ? "bg-green-500" : 
+                    Object.keys(votes).length === positions.length ? "bg-green-500" : "bg-primary"
+                  }`}
+                  style={{ width: `${(Object.keys(votes).length / positions.length) * 100}%` }}
                 ></div>
               </div>
               <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {Object.keys(groupedCandidates).map((position) => (
+                {positions.map((position) => (
                   <div
-                    key={position}
+                    key={position._id}
                     className={`p-3 rounded-[20px] border ${
-                      votes[position] ? "border-primary bg-primary/10" : "border-muted"
+                      hasVoted || votes[position.name]
+                        ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
+                        : "border-muted"
                     }`}
                   >
-                    <p className="font-medium">{position}</p>
+                    <p className="font-medium">{position.name}</p>
                     <p className="text-sm text-muted-foreground">
-                      {votes[position] ? candidates.find((c) => c.id === votes[position])?.name : "Not voted yet"}
+                      {votes[position.name]
+                        ? candidates.find((c) => c._id === votes[position.name])?.firstName + " " +
+                          candidates.find((c) => c._id === votes[position.name])?.lastName
+                        : "Not voted yet"}
                     </p>
                   </div>
                 ))}
               </div>
 
-              {validationError && (
+              {validationError && !hasVoted && (
                 <motion.div
                   className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-600 dark:text-red-400 flex items-start"
                   initial={{ opacity: 0, y: -10 }}
@@ -237,14 +472,29 @@ function Elections() {
                   </div>
                 </motion.div>
               )}
+
+              {Object.keys(votes).length === positions.length && !hasVoted && (
+                <motion.div
+                  className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md text-green-600 dark:text-green-400 flex items-start"
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <ThumbsUp className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-medium">All positions voted!</p>
+                    <p className="text-sm mt-1">You can now submit your votes</p>
+                  </div>
+                </motion.div>
+              )}
             </CardContent>
           </Card>
 
           <div className="grid gap-6">
-            {Object.entries(groupedCandidates).map(([position, positionCandidates]) => (
-              <div key={position} className="space-y-4">
+            {Object.entries(groupedCandidates).map(([positionName, positionCandidates]) => (
+              <div key={positionName} className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold font-satoshi">{position}</h2>
+                  <h2 className="text-2xl font-bold font-satoshi">{positionName}</h2>
                   <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-sm font-medium">
                     {positionCandidates.length} Candidates
                   </div>
@@ -252,27 +502,37 @@ function Elections() {
 
                 <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                   {positionCandidates.map((candidate) => (
-                    <motion.div key={candidate.id} whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                      <Card className="overflow-hidden h-full">
+                    <motion.div key={candidate._id} whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
+                      <Card className={`overflow-hidden h-full ${hasVoted ? 'opacity-75' : ''}`}>
                         <CardHeader className="p-0">
                           <div className="relative h-48 w-full">
                             <img
-                              src={candidate.image || "/placeholder.svg"}
-                              alt={candidate.name}
+                              src={candidate.profilePic || "/placeholder.svg"}
+                              alt={`${candidate.firstName} ${candidate.lastName}`}
                               className="object-cover w-full h-full"
                             />
-                            {votes[position] === candidate.id && (
+                            {hasVoted && (
+                              <div className="absolute top-2 right-2">
+                                <div className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-0.5 text-xs font-medium text-white">
+                                  <ThumbsUp className="h-4 w-4 mr-1" />
+                                  Voted
+                                </div>
+                              </div>
+                            )}
+                            {!hasVoted && votes[positionName] === candidate._id && (
                               <div className="absolute top-2 right-2">
                                 <div className="inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
                                   <ThumbsUp className="h-4 w-4 mr-1" />
-                                  Voted
+                                  Selected
                                 </div>
                               </div>
                             )}
                           </div>
                         </CardHeader>
                         <CardContent className="p-4 flex-grow">
-                          <CardTitle className="text-xl mb-2">{candidate.name}</CardTitle>
+                          <CardTitle className="text-xl mb-2">
+                            {candidate.firstName} {candidate.lastName}
+                          </CardTitle>
                           <CardDescription className="line-clamp-3">{candidate.mandate}</CardDescription>
                         </CardContent>
                         <CardFooter className="flex justify-between p-4 pt-0">
@@ -282,11 +542,12 @@ function Elections() {
                           </Button>
 
                           <Button
-                            onClick={() => handleVote(candidate.id, candidate.position)}
-                            variant={votes[position] === candidate.id ? "destructive" : "default"}
-                            className={votes[position] === candidate.id ? "" : "bg-primary hover:bg-primary/90"}
+                            onClick={() => handleVote(candidate._id, candidate.positionId)}
+                            variant={votes[positionName] === candidate._id ? "destructive" : "default"}
+                            className={votes[positionName] === candidate._id ? "" : "bg-primary hover:bg-primary/90"}
+                            disabled={hasVoted}
                           >
-                            {votes[position] === candidate.id ? "Remove Vote" : "Vote"}
+                            {hasVoted ? "Already Voted" : votes[positionName] === candidate._id ? "Remove Vote" : "Vote"}
                           </Button>
                         </CardFooter>
                       </Card>
@@ -302,9 +563,14 @@ function Elections() {
               size="lg"
               className="bg-primary hover:bg-primary/90 !rounded-[20px]"
               onClick={handleSubmitVotes}
-              disabled={votedCount === 0 || submitting}
+              disabled={Object.keys(votes).length === 0 || submitting || hasVoted}
             >
-              {submitting ? (
+              {hasVoted ? (
+                <span className="flex items-center">
+                  <ThumbsUp className="mr-2 h-4 w-4" />
+                  Already Voted
+                </span>
+              ) : submitting ? (
                 <span className="flex items-center">
                   <svg
                     className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -348,26 +614,30 @@ function Elections() {
                 transition={{ duration: 0.3 }}
               >
                 <div className="p-6">
-                  <h3 className="text-xl font-bold mb-1">{selectedCandidate.name}</h3>
-                  <p className="text-muted-foreground mb-4">Candidate for {selectedCandidate.position}</p>
+                  <h3 className="text-xl font-bold mb-1">
+                    {selectedCandidate.firstName} {selectedCandidate.lastName}
+                  </h3>
+                  <p className="text-muted-foreground mb-4">
+                    Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                  </p>
 
                   <div className="grid gap-4 py-4">
                     <div className="flex items-center gap-4">
                       <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold">
-                        {selectedCandidate.name.charAt(0)}
+                        {selectedCandidate.firstName.charAt(0)}
                       </div>
                       <div>
-                        <h4 className="font-medium">{selectedCandidate.name}</h4>
-                        <p className="text-sm text-muted-foreground">{selectedCandidate.position}</p>
+                        <h4 className="font-medium">
+                          {selectedCandidate.firstName} {selectedCandidate.lastName}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                        </p>
                       </div>
                     </div>
                     <div>
                       <h4 className="font-medium mb-2">Mandate:</h4>
                       <p className="text-sm">{selectedCandidate.mandate}</p>
-                    </div>
-                    <div>
-                      <h4 className="font-medium mb-2">Bio:</h4>
-                      <p className="text-sm">{selectedCandidate.bio}</p>
                     </div>
                   </div>
 
@@ -377,17 +647,24 @@ function Elections() {
                     </Button>
                     <Button
                       onClick={() => {
-                        handleVote(selectedCandidate.id, selectedCandidate.position)
+                        handleVote(selectedCandidate._id, selectedCandidate.positionId)
                         setDialogOpen(false)
                       }}
-                      variant={votes[selectedCandidate.position] === selectedCandidate.id ? "destructive" : "default"}
+                      variant={
+                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                          ? "destructive"
+                          : "default"
+                      }
                       className={
-                        votes[selectedCandidate.position] === selectedCandidate.id
+                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
                           ? ""
                           : "bg-primary hover:bg-primary/90"
                       }
+                      disabled={hasVoted}
                     >
-                      {votes[selectedCandidate.position] === selectedCandidate.id ? "Remove Vote" : "Vote"}
+                      {votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                        ? "Remove Vote"
+                        : "Vote"}
                     </Button>
                   </div>
                 </div>
@@ -401,3 +678,4 @@ function Elections() {
 }
 
 export default Elections
+

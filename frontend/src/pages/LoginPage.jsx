@@ -195,36 +195,73 @@ function LoginPage() {
     }
   };
   const handleSuccessfulLogin = (user) => {
-    toast.success("Logged in successfully with Google!");
-    
+    // Show success toast first
+    toast.custom((t) => (
+      <motion.div
+        initial={{ opacity: 0, y: 50, scale: 0.3 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+        className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+      >
+        <Check className="h-5 w-5" />
+        <span>Welcome back, {user.firstName}! 🎉</span>
+      </motion.div>
+    ), {
+      duration: 3000,
+    });
+
     // Check user role and approval status
     if (user.role === "admin") {
       if (user.isApproved === true) {
+        // Show admin approved toast
+        toast.custom((t) => (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <Check className="h-5 w-5" />
+            <span>Admin access granted!</span>
+          </motion.div>
+        ), {
+          duration: 3000,
+        });
         navigate("/admin/dashboard");
       } else {
-        // Admin not approved
-        toast.info("Your admin account is pending approval.");
+        // Show pending approval toast
+        toast.custom((t) => (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-blue-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <span>ℹ️</span>
+            <span>Your admin account is pending approval.</span>
+          </motion.div>
+        ), {
+          duration: 4000,
+        });
         navigate("/waiting-approval");
       }
     } else if (user.role === "student") {
       navigate("/student/dashboard");
     } else if (user.role === "superAdmin") {
+      console.log(user.role, "superadmin role");
       navigate("/superadmin/dashboard");
     } else {
-      // Default redirect
       navigate("/");
     }
   };
   // Google login function
   const googleLogin = useGoogleLogin({
     onSuccess: async (tokenResponse) => {
-      // console.log(tokenResponse);
       try {
         setLoading(true);
         // Check if we have an ID token directly
         if (!tokenResponse.id_token) {
           // If we don't have an ID token directly, we need to get it
-          // We can use the code to exchange for tokens including id_token
           const tokenResult = await axios.post(
             'https://oauth2.googleapis.com/token',
             {
@@ -256,36 +293,54 @@ function LoginPage() {
               endpoint = `${import.meta.env.VITE_API_URL}/api/users/auth/login`;
           }
           
-          // Send the ID token to your backend instead of access token
+          // Send the ID token to your backend
           const response = await axios.post(endpoint, {
-            token: idToken, // Send ID token instead of access token
+            token: idToken,
             ...(role === "student" && { level: studentLevel }),
           });
+          
           console.log("Login response:", response.data);
           // Store user data and token in AuthContext
-          const {user, token} = response.data;
-          login({token, currentUser: user});
-          toast.success("Logged in successfully with Google!");
-          handleSuccessfulLogin(response.data.user);
-          
+          const { user, token } = response.data;
+          login({ token, user });
+          handleSuccessfulLogin(user);
         }  
       } catch (error) {        
         console.log(`Login failed: ${error.response?.data?.message || error.message}`,error.response?.data);
-        // if(error.response?.data?.requireSignUp){
-        //   // navigate("/signup");
-        // }
-
-        toast.error(`Login failed: ${error.response?.data?.message || error.message}`);
+        toast.custom((t) => (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <AlertCircle className="h-5 w-5" />
+            <span>{error.response?.data?.message || "Google login failed"}</span>
+          </motion.div>
+        ), {
+          duration: 3000,
+        });
       } finally {
         setLoading(false);
       }
     },
     onError: (error) => {
       console.error("Google login error:", error);
-      toast.error("Google login failed");
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Google login failed. Please try again.</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setLoading(false);
     },
-    // Using the auth-code flow
     flow: "auth-code",
     scope: "openid email profile",
   });
@@ -300,6 +355,7 @@ function LoginPage() {
     };
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     // Validate all fields
     const isEmailValid = validateEmail(email);
@@ -309,31 +365,59 @@ function LoginPage() {
     const isStudentLevelValid = role === "student" ? validateStudentLevel(studentLevel) : true;
 
     if (!isLogin && (!isEmailValid || !isPasswordValid || !isNameValid || !isConfirmPasswordValid || !isStudentLevelValid)) {
-      toast.error("Please fix the errors in the form");
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Please fix the errors in the form</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
+      setLoading(false);
       return;
     }
 
     if (isLogin && (!isEmailValid || !isPasswordValid)) {
-      toast.error("Please fix the errors in the form");
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Please fix the errors in the form</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
+      setLoading(false);
       return;
     }
 
     if (!isLogin && !currentElectionId) {
       toast.error("No active election found. Please try again later.");
+      setLoading(false);
       return;
     }
 
     if (!isLogin && role === "admin" && !superAdminId) {
       toast.error("System error: No superadmin found. Please try again later.");
+      setLoading(false);
       return;
     }
-
-    setLoading(true);
 
     try {
       if (isLogin) {
         // Handle login
         let endpoint;
+        let payload = { email, password };
+
         switch (role) {
           case "student":
             endpoint = `${import.meta.env.VITE_API_URL}/api/users/login`;
@@ -341,33 +425,61 @@ function LoginPage() {
           case "admin":
             endpoint = `${import.meta.env.VITE_API_URL}/api/admins/login`;
             break;
+          case "superAdmin":
+            endpoint = `${import.meta.env.VITE_API_URL}/api/superadmins/login`;
+            break;
           default:
             endpoint = `${import.meta.env.VITE_API_URL}/api/users/login`;
         }
 
-        const response = await axios.post(endpoint, {
-          email,
-          password
-        });
+        const response = await axios.post(endpoint, payload);
 
         if (response.data.success) {
-          login(response.data.data);
-          handleSuccessfulLogin(response.data.data);
+          // Store the JWT token and user data
+          const { token, user } = response.data.data;
+          await login({ token, currentUser: user });
+          
+          // Show success toast for regular login
+          toast.custom((t) => (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+              className="bg-green-500 text-white px-6 py-6 rounded-lg shadow-lg flex items-center space-x-2"
+            >
+              <Check className="h-5 w-5" />
+              <span>Welcome back, {user.firstName}! 🎉</span>
+            </motion.div>
+          ), {
+            duration: 3000,
+          });
+          
+          // Let handleSuccessfulLogin handle all redirections
+          handleSuccessfulLogin(user);
         } else {
-          toast.error(response.data.message || "Login failed");
+          toast.custom((t) => (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+              className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            >
+              <AlertCircle className="h-5 w-5" />
+              <span>{response.data.message || "Login failed"}</span>
+            </motion.div>
+          ), {
+            duration: 3000,
+          });
         }
       } else {
         // Handle signup
-        // Split full name into first and last name
         const nameParts = name.trim().split(' ');
         let firstName, lastName;
         
         if (nameParts.length === 1) {
-          // If only one name is provided, use it as first name and set last name as empty
           firstName = nameParts[0];
           lastName = "";
         } else {
-          // Take the first part as first name and join the rest as last name
           firstName = nameParts[0];
           lastName = nameParts.slice(1).join(' ');
         }
@@ -384,7 +496,6 @@ function LoginPage() {
               email,
               password,
               electionId: currentElectionId,
-              role: "student",
               level: studentLevel
             };
             break;
@@ -396,7 +507,7 @@ function LoginPage() {
               email,
               password,
               electionId: currentElectionId,
-              role: "admin"
+              createdBy: superAdminId
             };
             break;
           default:
@@ -407,48 +518,67 @@ function LoginPage() {
               email,
               password,
               electionId: currentElectionId,
-              role: "student",
               level: studentLevel
             };
         }
 
-        console.log('Signup payload:', payload); // Debug log
-
         const response = await axios.post(endpoint, payload);
 
         if (response.data.success) {
-          if (role === "admin") {
-            toast.custom((t) => (
-              <AnimatedToast message="Account created successfully! Please wait for superadmin approval." />
-            ), {
-              duration: 4000,
-              position: "top-center",
-              style: {
-                background: "transparent",
-                boxShadow: "none",
-                padding: 0,
-              },
-            });
-            navigate("/waiting-approval");
-          } else {
-            login(response.data.data);
-            // Redirect based on role
-            if (role === "student") {
-              navigate("/student/dashboard");
-            } else if (role === "admin") {
-              navigate("/admin/dashboard");
-            } else {
-              navigate("/");
-            }
-          }
+          // For both admin and student signup
+          const { token, user } = response.data.data;
+          
+          // Store the token and user data
+          await login({ token, currentUser: user });
+          
+          // Show success toast for signup
+          toast.custom((t) => (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+              className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            >
+              <Check className="h-5 w-5" />
+              <span>Account created successfully! Welcome, {user.firstName}! 🎉</span>
+            </motion.div>
+          ), {
+            duration: 3000,
+          });
+          
+          // Use handleSuccessfulLogin for redirection
+          handleSuccessfulLogin(user);
         } else {
-          console.error('Signup failed:', response.data);
-          toast.error(response.data.message || "Signup failed");
+          toast.custom((t) => (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.3 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+              className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            >
+              <AlertCircle className="h-5 w-5" />
+              <span>{response.data.message || "Signup failed"}</span>
+            </motion.div>
+          ), {
+            duration: 3000,
+          });
         }
       }
     } catch (error) {
-      console.error('Signup error:', error.response?.data || error); // Debug log
-      toast.error(error.response?.data?.message || "An error occurred. Please try again.");
+      console.error('Auth error:', error.response?.data || error);
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>{error.response?.data?.message || "An error occurred. Please try again."}</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
     } finally {
       setLoading(false);
     }

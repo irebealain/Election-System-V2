@@ -16,18 +16,28 @@ export const protect = async (req, res, next) => {
 
     try {
       const decoded = jwt.verify(token, JWT_SECRET);
-      // check User
+      
+      // Check SuperAdmin first
+      let superAdmin = await SuperAdmin.findById(decoded.id);
+      if (superAdmin) {
+        req.user = {...superAdmin._doc, role: "superAdmin" };
+        return next();
+      }
+
+      // Check User
       let user = await User.findById(decoded.id).select("-password");
-      if (user){
+      if (user) {
         req.user = {...user._doc, role: "user" };
         return next();
       }
-      // check Admin
+
+      // Check Admin
       let admin = await Admin.findById(decoded.id).select("-password");
       if (admin) {
         req.user = {...admin._doc, role: "admin" };
         return next();
       }
+
       return res.status(401).json({ success: false, message: "User not found" });
     } catch (err) {
       return res.status(401).json({ success: false, message: "JWT verification failed" });

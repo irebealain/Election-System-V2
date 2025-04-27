@@ -3,13 +3,13 @@ import { createElections, deleteElection, getElections, updateElection } from ".
 
 const router = express.Router();
 
-//Displaying all the election
+//Displaying all the elections
 router.get('/', getElections)
 // Creating a new election
 router.post('/', createElections)
-// Updating the Election
+// Updating the election
 router.put('/:id', updateElection)
-// Deleting election
+// Deleting the election
 router.delete('/:id', deleteElection)
 
 export default router

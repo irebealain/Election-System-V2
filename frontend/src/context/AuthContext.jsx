@@ -2,7 +2,6 @@ import { createContext, useState, useContext, useEffect } from 'react';
 
 const AuthContext = createContext();
 
-
 export function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -34,12 +33,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = (data) => {
-    if (!data.currentUser || !data.token) return;
+    console.log('Login data received:', data);
+    if ((!data.user && !data.currentUser) || !data.token) {
+      console.log('Login failed: Missing user or token');
+      return;
+    }
     // Store token in localStorage
     setAuthToken(data.token);
-    setCurrentUser(data.currentUser);
-    localStorage.setItem('currentUser', JSON.stringify(data.currentUser));
+    setCurrentUser(data.user || data.currentUser);
+    localStorage.setItem('currentUser', JSON.stringify(data.user || data.currentUser));
     localStorage.setItem('authToken', data.token);
+    console.log('Login successful: Token and user stored');
   };
 
   const logout = () => {
@@ -63,6 +67,7 @@ export function AuthProvider({ children }) {
     </AuthContext.Provider>
   );
 }
+
 export function useAuth() {
   return useContext(AuthContext);
 }
