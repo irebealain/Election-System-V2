@@ -28,6 +28,7 @@ import AdminSettings from "./pages/admin/AdminSettings"
 // SuperAdmin Pages
 import SuperAdminDashboard from "./pages/superadmin/Dashboard"
 import SuperAdminElections from "./pages/superadmin/Elections"
+import AdminPage from "./pages/superadmin/AdminPage"
 
 function App() {
   // const { user } = useAuth()
@@ -64,6 +65,7 @@ function App() {
         <Route path="/superadmin" element={<SuperAdminLayout />}>
           <Route path="dashboard" element={<SuperAdminDashboard />} />
           <Route path="elections" element={<SuperAdminElections />} />
+          <Route path="admins" element={<AdminPage />} />
         </Route>
       </Route>
 
