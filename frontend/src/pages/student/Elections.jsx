@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
-import { Info, ThumbsUp, ChevronRight, AlertTriangle, CalendarX, Clock, Award } from "lucide-react"
+import { Info, ThumbsUp, ChevronRight, AlertTriangle, CalendarX, Clock, Award, CheckCircle2, XCircle } from "lucide-react"
 import toast from "react-hot-toast"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../../context/AuthContext"
 import axios from "../../lib/axios"
+import { cn } from "../../lib/utils"
 
 function Elections() {
   const { currentUser } = useAuth()
@@ -20,6 +21,7 @@ function Elections() {
   const [validationError, setValidationError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [hasVoted, setHasVoted] = useState(false)
+  const [votingProgress, setVotingProgress] = useState(0)
 
   useEffect(() => {
     document.title = "Elections | Student Dashboard"
@@ -49,6 +51,7 @@ function Elections() {
       // Fetch current election
       const electionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`)
       const currentElection = electionResponse.data.data.find(e => e.status === 'ongoing')
+      
       if (!currentElection) {
         toast.error("No active election found")
         setElection(null)
@@ -58,20 +61,32 @@ function Elections() {
       }
       setElection(currentElection)
 
-      // Fetch positions for the current election only
+      // Fetch positions for the current election
       const positionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/positions`)
       const electionPositions = positionsResponse.data.data.filter(p => p.electionId === currentElection._id)
 
-      // Fetch candidates for the current election only
+      // Fetch candidates for the current election
       const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
       const electionCandidates = candidatesResponse.data.data.filter(
         c => c.electionId === currentElection._id
       )
 
       // Filter positions to only include those with candidates
-      const positionsWithCandidates = electionPositions.filter(position => 
-        electionCandidates.some(candidate => candidate.positionId === position._id)
-      )
+      const positionsWithCandidates = electionPositions.filter(position => {
+        const hasCandidates = electionCandidates.some(candidate => candidate.positionId === position._id)
+        if (!hasCandidates) {
+          console.log(`Position "${position.name}" has no candidates and will be hidden`)
+        }
+        return hasCandidates
+      })
+
+      if (positionsWithCandidates.length === 0) {
+        toast.error("No positions with candidates found in the current election")
+        setElection(null)
+        setPositions([])
+        setCandidates([])
+        return
+      }
 
       setPositions(positionsWithCandidates)
       setCandidates(electionCandidates)
@@ -144,6 +159,11 @@ function Elections() {
       setVotes(newVotes)
       toast.success(`Vote removed for ${position.name}`)
     }
+
+    // Update voting progress
+    const votedPositions = Object.keys(votes).length
+    const totalPositions = positions.length
+    setVotingProgress((votedPositions / totalPositions) * 100)
   }
 
   const handleSubmitVotes = async () => {
@@ -250,8 +270,11 @@ function Elections() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground">Loading election data...</p>
+        </div>
       </div>
     )
   }
@@ -285,7 +308,9 @@ function Elections() {
         
         <h2 className="text-2xl font-bold mb-2 font-satoshi">No Active Election</h2>
         <p className="text-muted-foreground max-w-md mb-6">
-          There is currently no ongoing election. Please check back later or wait for the next election period to begin.
+          {positions.length === 0 
+            ? "There are no positions with candidates in the current election."
+            : "There is currently no ongoing election. Please check back later or wait for the next election period to begin."}
         </p>
         
         <motion.div
@@ -316,7 +341,7 @@ function Elections() {
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
           >
-            <ThumbsUp className="w-12 h-12 text-green-600 dark:text-green-400" />
+            <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
           </motion.div>
           <motion.div
             className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
@@ -363,106 +388,78 @@ function Elections() {
 
   return (
     <motion.div
-      className="space-y-6"
+      className="space-y-8"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div>
+      <div className="flex flex-col space-y-2">
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Elections</h1>
         <p className="text-muted-foreground">Current election: {election.title}</p>
-        {hasVoted && (
-          <div className="mt-2 flex items-center text-green-600 dark:text-green-400">
-            <ThumbsUp className="h-5 w-5 mr-2" />
-            <span>You have already voted in this election</span>
-          </div>
-        )}
+        <div className="flex items-center text-sm text-muted-foreground">
+          <Clock className="w-4 h-4 mr-2" />
+          <span>Ends: {new Date(election.endDate).toLocaleDateString()}</span>
+        </div>
       </div>
 
-      {submitted ? (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Card>
-            <CardHeader>
-              <CardTitle>Thank You for Voting!</CardTitle>
-              <CardDescription>Your votes have been recorded successfully.</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="p-6 text-center">
-                <motion.div
-                  className="text-6xl mb-4"
-                  initial={{ scale: 0.5, rotate: -10 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  transition={{ duration: 0.5, type: "spring" }}
-                >
-                  🎉
-                </motion.div>
-                <p className="text-lg mb-4">Your participation helps shape the future of our student's well being.</p>
-                <p className="text-muted-foreground">The results will be announced after the election period ends.</p>
+      <Card className="border-primary/20">
+        <CardHeader>
+          <CardTitle>Voting Progress</CardTitle>
+          <CardDescription>
+            {hasVoted ? (
+              <div className="flex items-center text-green-600 dark:text-green-400">
+                <CheckCircle2 className="h-5 w-5 mr-2" />
+                <span>You have already voted in this election</span>
               </div>
-            </CardContent>
-            <CardFooter className="flex justify-center">
-              <Button variant="outline" onClick={() => (window.location.href = "/student/dashboard")}>
-                Return to Dashboard
-              </Button>
-            </CardFooter>
-          </Card>
-        </motion.div>
-      ) : (
-        <>
-          <Card className="mb-6">
-            <CardHeader>
-              <CardTitle>Voting Progress</CardTitle>
-              <CardDescription>
-                {hasVoted ? (
-                  <div className="flex items-center text-green-600 dark:text-green-400">
-                    <ThumbsUp className="h-5 w-5 mr-2" />
-                    <span>You have already voted in this election</span>
-                  </div>
-                ) : (
-                  `You have voted for ${Object.keys(votes).length} out of ${positions.length} positions`
+            ) : (
+              `You have voted for ${Object.keys(votes).length} out of ${positions.length} positions`
+            )}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-6">
+            <div className="w-full bg-secondary rounded-full h-2.5">
+              <div
+                className={cn(
+                  "h-2.5 rounded-full transition-all duration-500",
+                  hasVoted ? "bg-green-500" : 
+                  Object.keys(votes).length === positions.length ? "bg-green-500" : "bg-primary"
                 )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="w-full bg-secondary rounded-full h-2.5">
-                <div
-                  className={`h-2.5 rounded-full transition-all duration-500 ${
-                    hasVoted ? "bg-green-500" : 
-                    Object.keys(votes).length === positions.length ? "bg-green-500" : "bg-primary"
-                  }`}
-                  style={{ width: `${(Object.keys(votes).length / positions.length) * 100}%` }}
-                ></div>
-              </div>
-              <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                {positions.map((position) => (
-                  <div
-                    key={position._id}
-                    className={`p-3 rounded-[20px] border ${
-                      hasVoted || votes[position.name]
-                        ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
-                        : "border-muted"
-                    }`}
-                  >
-                    <p className="font-medium">{position.name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {votes[position.name]
-                        ? candidates.find((c) => c._id === votes[position.name])?.firstName + " " +
-                          candidates.find((c) => c._id === votes[position.name])?.lastName
-                        : "Not voted yet"}
-                    </p>
-                  </div>
-                ))}
-              </div>
+                style={{ width: `${(Object.keys(votes).length / positions.length) * 100}%` }}
+              ></div>
+            </div>
 
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {positions.map((position) => (
+                <motion.div
+                  key={position._id}
+                  className={cn(
+                    "p-4 rounded-lg border transition-colors duration-200",
+                    hasVoted || votes[position.name]
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
+                      : "border-muted hover:border-primary/50"
+                  )}
+                  whileHover={{ scale: 1.02 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <p className="font-medium mb-1">{position.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {votes[position.name]
+                      ? candidates.find((c) => c._id === votes[position.name])?.firstName + " " +
+                        candidates.find((c) => c._id === votes[position.name])?.lastName
+                      : "Not voted yet"}
+                  </p>
+                </motion.div>
+              ))}
+            </div>
+
+            <AnimatePresence>
               {validationError && !hasVoted && (
                 <motion.div
-                  className="mt-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-md text-red-600 dark:text-red-400 flex items-start"
+                  className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 flex items-start"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3 }}
                 >
                   <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
@@ -475,204 +472,231 @@ function Elections() {
 
               {Object.keys(votes).length === positions.length && !hasVoted && (
                 <motion.div
-                  className="mt-4 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-md text-green-600 dark:text-green-400 flex items-start"
+                  className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 flex items-start"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 10 }}
                   transition={{ duration: 0.3 }}
                 >
-                  <ThumbsUp className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
+                  <CheckCircle2 className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium">All positions voted!</p>
                     <p className="text-sm mt-1">You can now submit your votes</p>
                   </div>
                 </motion.div>
               )}
-            </CardContent>
-          </Card>
+            </AnimatePresence>
+          </div>
+        </CardContent>
+      </Card>
 
-          <div className="grid gap-6">
-            {Object.entries(groupedCandidates).map(([positionName, positionCandidates]) => (
-              <div key={positionName} className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-2xl font-bold font-satoshi">{positionName}</h2>
-                  <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-sm font-medium">
-                    {positionCandidates.length} Candidates
-                  </div>
-                </div>
-
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {positionCandidates.map((candidate) => (
-                    <motion.div key={candidate._id} whileHover={{ y: -5 }} transition={{ duration: 0.2 }}>
-                      <Card className={`overflow-hidden h-full ${hasVoted ? 'opacity-75' : ''}`}>
-                        <CardHeader className="p-0">
-                          <div className="relative h-48 w-full">
-                            <img
-                              src={candidate.profilePic || "/placeholder.svg"}
-                              alt={`${candidate.firstName} ${candidate.lastName}`}
-                              className="object-cover w-full h-full"
-                            />
-                            {hasVoted && (
-                              <div className="absolute top-2 right-2">
-                                <div className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-0.5 text-xs font-medium text-white">
-                                  <ThumbsUp className="h-4 w-4 mr-1" />
-                                  Voted
-                                </div>
-                              </div>
-                            )}
-                            {!hasVoted && votes[positionName] === candidate._id && (
-                              <div className="absolute top-2 right-2">
-                                <div className="inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-                                  <ThumbsUp className="h-4 w-4 mr-1" />
-                                  Selected
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-4 flex-grow">
-                          <CardTitle className="text-xl mb-2">
-                            {candidate.firstName} {candidate.lastName}
-                          </CardTitle>
-                          <CardDescription className="line-clamp-3">{candidate.mandate}</CardDescription>
-                        </CardContent>
-                        <CardFooter className="flex justify-between p-4 pt-0">
-                          <Button variant="outline" size="sm" onClick={() => openCandidateDetails(candidate)}>
-                            <Info className="h-4 w-4 mr-1" />
-                            Details
-                          </Button>
-
-                          <Button
-                            onClick={() => handleVote(candidate._id, candidate.positionId)}
-                            variant={votes[positionName] === candidate._id ? "destructive" : "default"}
-                            className={votes[positionName] === candidate._id ? "" : "bg-primary hover:bg-primary/90"}
-                            disabled={hasVoted}
-                          >
-                            {hasVoted ? "Already Voted" : votes[positionName] === candidate._id ? "Remove Vote" : "Vote"}
-                          </Button>
-                        </CardFooter>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
+      <div className="space-y-8">
+        {Object.entries(groupedCandidates).map(([positionName, positionCandidates]) => (
+          <div key={positionName} className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-bold font-satoshi">{positionName}</h2>
+              <div className="inline-flex items-center rounded-full bg-muted px-2.5 py-0.5 text-sm font-medium">
+                {positionCandidates.length} Candidates
               </div>
-            ))}
-          </div>
+            </div>
 
-          <div className="flex justify-end mt-8">
-            <Button
-              size="lg"
-              className="bg-primary hover:bg-primary/90 !rounded-[20px]"
-              onClick={handleSubmitVotes}
-              disabled={Object.keys(votes).length === 0 || submitting || hasVoted}
-            >
-              {hasVoted ? (
-                <span className="flex items-center">
-                  <ThumbsUp className="mr-2 h-4 w-4" />
-                  Already Voted
-                </span>
-              ) : submitting ? (
-                <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Submitting...
-                </span>
-              ) : (
-                <>
-                  Submit All Votes
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </div>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {positionCandidates.map((candidate) => (
+                <motion.div 
+                  key={candidate._id} 
+                  whileHover={{ y: -5 }} 
+                  transition={{ duration: 0.2 }}
+                >
+                  <Card className={cn(
+                    "overflow-hidden h-full transition-all duration-200",
+                    hasVoted ? 'opacity-75' : '',
+                    votes[positionName] === candidate._id ? 'border-primary' : ''
+                  )}>
+                    <CardHeader className="p-0">
+                      <div className="relative h-48 w-full">
+                        <img
+                          src={candidate.profilePic || "/placeholder.svg"}
+                          alt={`${candidate.firstName} ${candidate.lastName}`}
+                          className="object-cover w-full h-full"
+                        />
+                        {hasVoted && (
+                          <div className="absolute top-2 right-2">
+                            <div className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-0.5 text-xs font-medium text-white">
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Voted
+                            </div>
+                          </div>
+                        )}
+                        {!hasVoted && votes[positionName] === candidate._id && (
+                          <div className="absolute top-2 right-2">
+                            <div className="inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
+                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                              Selected
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </CardHeader>
+                    <CardContent className="p-4 flex-grow">
+                      <CardTitle className="text-xl mb-2">
+                        {candidate.firstName} {candidate.lastName}
+                      </CardTitle>
+                      <CardDescription className="line-clamp-3">{candidate.mandate}</CardDescription>
+                    </CardContent>
+                    <CardFooter className="flex justify-between p-4 pt-0">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => openCandidateDetails(candidate)}
+                        className="hover:bg-primary/10"
+                      >
+                        <Info className="h-4 w-4 mr-1" />
+                        Details
+                      </Button>
 
-          {/* Candidate Details Dialog */}
-          {dialogOpen && selectedCandidate && (
-            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-              <motion.div
-                className="bg-background rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
-                initial={{ opacity: 0, y: 50 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 50 }}
-                transition={{ duration: 0.3 }}
+                      <Button
+                        onClick={() => handleVote(candidate._id, candidate.positionId)}
+                        variant={votes[positionName] === candidate._id ? "destructive" : "default"}
+                        className={cn(
+                          "transition-colors duration-200",
+                          votes[positionName] === candidate._id ? "" : "bg-primary hover:bg-primary/90"
+                        )}
+                        disabled={hasVoted}
+                      >
+                        {hasVoted ? "Already Voted" : votes[positionName] === candidate._id ? "Remove Vote" : "Vote"}
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="flex justify-end">
+        <Button
+          size="lg"
+          className={cn(
+            "bg-primary hover:bg-primary/90 transition-colors duration-200",
+            "!rounded-[20px] shadow-lg hover:shadow-primary/20"
+          )}
+          onClick={handleSubmitVotes}
+          disabled={Object.keys(votes).length === 0 || submitting || hasVoted}
+        >
+          {hasVoted ? (
+            <span className="flex items-center">
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              Already Voted
+            </span>
+          ) : submitting ? (
+            <span className="flex items-center">
+              <svg
+                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
               >
-                <div className="p-6">
-                  <h3 className="text-xl font-bold mb-1">
-                    {selectedCandidate.firstName} {selectedCandidate.lastName}
-                  </h3>
-                  <p className="text-muted-foreground mb-4">
-                    Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.name}
-                  </p>
+                <circle
+                  className="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                ></circle>
+                <path
+                  className="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                ></path>
+              </svg>
+              Submitting...
+            </span>
+          ) : (
+            <>
+              Submit All Votes
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </>
+          )}
+        </Button>
+      </div>
 
-                  <div className="grid gap-4 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold">
-                        {selectedCandidate.firstName.charAt(0)}
-                      </div>
-                      <div>
-                        <h4 className="font-medium">
-                          {selectedCandidate.firstName} {selectedCandidate.lastName}
-                        </h4>
-                        <p className="text-sm text-muted-foreground">
-                          {positions.find(p => p._id === selectedCandidate.positionId)?.name}
-                        </p>
-                      </div>
+      {/* Candidate Details Dialog */}
+      <AnimatePresence>
+        {dialogOpen && selectedCandidate && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <motion.div
+              className="bg-background rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ duration: 0.3 }}
+            >
+              <div className="p-6">
+                <h3 className="text-xl font-bold mb-1">
+                  {selectedCandidate.firstName} {selectedCandidate.lastName}
+                </h3>
+                <p className="text-muted-foreground mb-4">
+                  Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                </p>
+
+                <div className="grid gap-4 py-4">
+                  <div className="flex items-center gap-4">
+                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold">
+                      {selectedCandidate.firstName.charAt(0)}
                     </div>
                     <div>
-                      <h4 className="font-medium mb-2">Mandate:</h4>
-                      <p className="text-sm">{selectedCandidate.mandate}</p>
+                      <h4 className="font-medium">
+                        {selectedCandidate.firstName} {selectedCandidate.lastName}
+                      </h4>
+                      <p className="text-sm text-muted-foreground">
+                        {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                      </p>
                     </div>
                   </div>
-
-                  <div className="flex justify-between mt-6">
-                    <Button variant="outline" onClick={() => setDialogOpen(false)}>
-                      Close
-                    </Button>
-                    <Button
-                      onClick={() => {
-                        handleVote(selectedCandidate._id, selectedCandidate.positionId)
-                        setDialogOpen(false)
-                      }}
-                      variant={
-                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
-                          ? "destructive"
-                          : "default"
-                      }
-                      className={
-                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
-                          ? ""
-                          : "bg-primary hover:bg-primary/90"
-                      }
-                      disabled={hasVoted}
-                    >
-                      {votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
-                        ? "Remove Vote"
-                        : "Vote"}
-                    </Button>
+                  <div>
+                    <h4 className="font-medium mb-2">Mandate:</h4>
+                    <p className="text-sm">{selectedCandidate.mandate}</p>
                   </div>
                 </div>
-              </motion.div>
-            </div>
-          )}
-        </>
-      )}
+
+                <div className="flex justify-between mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setDialogOpen(false)}
+                    className="hover:bg-primary/10"
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      handleVote(selectedCandidate._id, selectedCandidate.positionId)
+                      setDialogOpen(false)
+                    }}
+                    variant={
+                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                        ? "destructive"
+                        : "default"
+                    }
+                    className={cn(
+                      "transition-colors duration-200",
+                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                        ? ""
+                        : "bg-primary hover:bg-primary/90"
+                    )}
+                    disabled={hasVoted}
+                  >
+                    {votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                      ? "Remove Vote"
+                      : "Vote"}
+                  </Button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }

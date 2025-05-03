@@ -30,6 +30,11 @@ const adminSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending'
+  },
   role: {
     type: String,
     default: "admin",
@@ -43,6 +48,10 @@ const adminSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "SuperAdmins",
     null: true
+  },
+  lastLogin: {
+    type: Date,
+    default: null
   }
 }, {timestamps: true})
 

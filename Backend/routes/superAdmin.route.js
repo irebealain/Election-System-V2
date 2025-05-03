@@ -6,6 +6,7 @@ import {
   updateSuperAdmin,
   deleteSuperAdmin,
   approveAdmin,
+  rejectAdmin,
 } from "../controllers/superAdmin.controllers.js";
 import { protect, isSuperAdmin } from "../middlewares/auth.js";
 
@@ -16,6 +17,9 @@ router.post("/login", loginSuperAdmin); // Login via Google
 router.get("/", getSuperAdmins);
 router.put("/:id", protect, isSuperAdmin, updateSuperAdmin);
 router.delete("/:id", protect, isSuperAdmin, deleteSuperAdmin);
-router.put("/approve/:adminId", protect, isSuperAdmin, approveAdmin); // Admin approval
+
+// Admin approval routes
+router.put("/approve/:adminId", protect, isSuperAdmin, approveAdmin);
+router.put("/reject/:adminId", protect, isSuperAdmin, rejectAdmin);
 
 export default router;

@@ -1,11 +1,11 @@
-import axios from 'axios';
+import instance from '../lib/axios';
 
 export const getAllAdmins = async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/admins')
-    return response.data.data
+    const response = await instance.get('/api/admins');
+    return response.data.data;
   } catch (error) {
     console.error('Error fetching admins:', error);
-    throw error
+    throw error;
   }
-}
+};

@@ -27,7 +27,7 @@ function LinkBar() {
       icon: UserCog,
     },
     {
-      href: "/superadmin/statistics",
+      href: "/superadmin/election-stats",
       label: "Statistics",
       icon: BarChart3,
     },

@@ -1,18 +1,22 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from "recharts"
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from "recharts"
 import { getAllCandidates } from "../../services/candidateService"
 import { getAllPositions } from "../../services/positionService"
 import { getAllUsers } from "../../services/UserService"
 import { getAllElections } from "../../services/electionService"
-import { CartesianGrid } from 'recharts';
+import { getAllVotes } from "../../services/voteService"
+import { motion } from "framer-motion"
+import { Users, Vote, Award, Clock, BarChart2, PieChart as PieChartIcon } from "lucide-react"
 
 function StudentDashboard() {
   const [students, setStudents] = useState([])
   const [loading, setLoading] = useState(true)
   const [positions, setPositions] = useState([])
   const [candidates, setCandidates] = useState([])
-  const [electionData, setElectionData] = useState([])
+  const [elections, setElections] = useState([])
+  const [currentElection, setCurrentElection] = useState(null)
+  const [votes, setVotes] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
@@ -20,25 +24,26 @@ function StudentDashboard() {
     document.title = "Student Dashboard | Election System"
     const fetchData = async () => {
           try {
-    
-            const [usersData, positionsData, candidatesData, electionsData] = await Promise.all([
+        const [usersData, positionsData, candidatesData, electionsData, votesData] = await Promise.all([
               getAllUsers(), 
               getAllPositions(),
               getAllCandidates(),
-              getAllElections()
+          getAllElections(),
+          getAllVotes()
             ])
             setStudents(usersData || [])
             setCandidates(candidatesData || [])
             setPositions(positionsData || [])
-    
-            const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
-            
-            setElectionData([currentElection])
+        setElections(Array.isArray(electionsData) ? electionsData : [electionsData])
+        setVotes(votesData || [])
+        
+        // Find the current ongoing election
+        const ongoingElection = electionsData.find(election => election.status === 'ongoing')
+        setCurrentElection(ongoingElection)
           } catch (error) {
-            console.error("Error fetching data:", error);
-          }
-          finally {
-            setLoading(false);
+        console.error("Error fetching data:", error)
+      } finally {
+        setLoading(false)
           }
         }
         fetchData()
@@ -50,180 +55,333 @@ function StudentDashboard() {
   const endIndex = startIndex + itemsPerPage
   const currentStudents = students.slice(startIndex, endIndex)
 
-  // Pagination controls
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage)
-  }
+  // Filter positions and candidates for current election
+  const electionPositions = currentElection 
+    ? positions.filter(position => position.electionId === currentElection._id)
+    : []
+  const electionCandidates = currentElection
+    ? candidates.filter(candidate => candidate.electionId === currentElection._id)
+    : []
+
+  // Calculate statistics for current election
+  const totalVoters = currentElection 
+    ? students.filter(student => student.electionId === currentElection._id).length
+    : 0
+  const totalStudents = students.length
+  const votedCount = currentElection 
+    ? votes.filter(vote => vote.electionId === currentElection._id).length
+    : 0
+  const participationRate = totalStudents > 0 ? (votedCount / totalStudents) * 100 : 0
+  const notVotedCount = totalStudents - votedCount
+
+  // Group students by level for current election
+  const levelData = students.reduce((acc, student) => {
+    if (currentElection && student.electionId === currentElection._id) {
+      const level = student.level || 'Unknown'
+      acc[level] = (acc[level] || 0) + 1
+    }
+    return acc
+  }, {})
+
+  const levelChartData = Object.entries(levelData).map(([name, value]) => ({
+    name,
+    value,
+    percentage: (value / totalVoters) * 100
+  }))
+
+  // Prepare position data for current election
+  const positionChartData = electionPositions.map(position => ({
+    name: position.name,
+    candidates: electionCandidates.filter(candidate => candidate.positionId === position._id).length
+  }))
+
+  const COLORS = ['#10B981', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899']
+  const LEVEL_COLORS = ['#10B981', '#F59E0B', '#3B82F6', '#8B5CF6']
 
   return (
-    <div className="space-y-6">
-      <div>
+    <motion.div 
+      className="space-y-6 p-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Student Dashboard</h1>
-        <p className="text-muted-foreground">Welcome to your election system dashboard.</p>
+        <p className="text-muted-foreground">
+          {currentElection 
+            ? `Current Election: ${currentElection.title}`
+            : "No active election at the moment"}
+        </p>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card>
+      {/* Stats Overview */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Voters</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalStudents}</div>
+              <p className="text-xs text-muted-foreground">All registered students</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Voter Participation</CardTitle>
+              <Vote className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{votedCount}</div>
+              <p className="text-xs text-muted-foreground">{participationRate.toFixed(1)}% participation rate</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Positions</CardTitle>
+              <Award className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{electionPositions.length}</div>
+              <p className="text-xs text-muted-foreground">Available positions</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
+              <Award className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{electionCandidates.length}</div>
+              <p className="text-xs text-muted-foreground">Running candidates</p>
+            </CardContent>
+          </Card>
+        </motion.div>
+      </div>
+
+      {/* Charts Section */}
+      <div className="grid gap-4 grid-cols-3">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-sm">Voter Participation</CardTitle>
+              <CardDescription className="text-xs">Percentage of students who voted in the current election</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px]">
+              <div className="h-[150px]">
+                {totalVoters > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={[
-                      {
-                        name: "Voted",
-                        value: students.filter(student => student.voted).length,
-                      },
-                      {
-                        name: "Not Voted",
-                        value: students.filter(student => !student.voted).length,
-                      }
+                          { name: "Voted", value: votedCount },
+                          { name: "Not Voted", value: notVotedCount }
                     ]}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={4}
+                        innerRadius={40}
+                        outerRadius={60}
+                        paddingAngle={5}
                     dataKey="value"
-                    label={({ name, value, percent }) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
-                    <Cell fill="#46A977" />
-                    <Cell fill="#FF6B6B" />
+                        <Cell fill="#10B981" />
+                        <Cell fill="#F59E0B" />
                   </Pie>
                   <Tooltip 
-                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                     contentStyle={{ 
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '12px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '8px',
                       padding: '12px',
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      color: '#333333'
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(8px)'
                     }}
-                    wrapperStyle={{ outline: 'none' }}
-                    labelStyle={{ color: '#666666', marginBottom: '4px' }}
-                    itemStyle={{ padding: '4px 0'}}
+                        formatter={(value) => [`${value} students`, '']}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={36}
+                        formatter={(value) => <span className="text-xs">{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <PieChartIcon className="w-8 h-8 mb-2" />
+                    <p className="text-xs">No voting data available</p>
+            </div>
+                )}
             </div>
           </CardContent>
         </Card>
+        </motion.div>
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Positions & Candidates</CardTitle>
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-sm">Voters by Level</CardTitle>
+              <CardDescription className="text-xs">Level distribution</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart width={500} height={300} data={positions.filter(positions => positions.electionId === electionData._id)}>
-                  <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-                  <YAxis fontSize={12} tickLine={false} axisLine={false} />
-                  <Tooltip 
-                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                    contentStyle={{ 
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      color: '#333333'
-                    }}
-                    wrapperStyle={{ outline: 'none' }}
-                    labelStyle={{ color: '#666666', marginBottom: '4px' }}
-                    itemStyle={{ padding: '4px 0'}}
-                  />
-                  <Bar dataKey="candidates" fill="#46A977" radius={[4, 4, 0, 0]} barSize={30} />
-                  <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voters by Level</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[200px]">
+              <div className="h-[150px]">
+                {levelChartData.length > 0 ? (
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                    data={students.reduce((acc, student) => {
-                      const level = student.level;
-                      const existingLevel = acc.find((item) => item.name === level);
-                      if (existingLevel) {
-                        existingLevel.value += 1;
-                      } else {
-                        acc.push({ name: level, value: 1 });
-                      }
-                      return acc;
-                    }, [])}
+                        data={levelChartData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={60}
-                    outerRadius={80}
-
-                    paddingAngle={2}
+                        innerRadius={40}
+                        outerRadius={60}
+                        paddingAngle={5}
                     dataKey="value"
-                    label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                    fill="#46A977"
-                  >
-
-
-
-                    {students.reduce((acc, student) => {
-                      const colors = ['#10B981', '#F59E0B'];
-                      return colors.map((color, index) => (
+                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                      >
+                        {levelChartData.map((entry, index) => (
                         <Cell 
                           key={`cell-${index}`} 
-                          fill={color}
-                          stroke="none"
-                          style={{
-                            filter: 'drop-shadow(0px 4px 6px rgba(0, 0, 0, 0.2))',
-                          }}
+                            fill={LEVEL_COLORS[index % LEVEL_COLORS.length]}
                         />
-                      ));
-                    }, [])}
+                        ))}
                   </Pie>
                   <Tooltip 
-                    cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
                     contentStyle={{ 
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '12px',
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '8px',
                       padding: '12px',
-
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15)',
-                      fontSize: '12px',
-                      fontWeight: '500',
-
-                      color: '#333333',
-                      backdropFilter: 'blur(8px)',
-                    }}
-                    wrapperStyle={{ outline: 'none' }}
-
-                    labelStyle={{ color: '#666666', marginBottom: '2px', fontWeight: '600' }}
-                    itemStyle={{ padding: '4px 0', marginLeft: '10px'}}
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        formatter={(value) => [`${value} students`, '']}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={36}
+                        formatter={(value) => <span className="text-xs">{value}</span>}
                   />
                 </PieChart>
               </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <PieChartIcon className="w-8 h-8 mb-2" />
+                    <p className="text-xs">No level data available</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
+        >
+          <Card className="hover:shadow-lg transition-shadow">
+            <CardHeader>
+              <CardTitle className="text-sm">Positions and Candidates</CardTitle>
+              <CardDescription className="text-xs">Candidates per position</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[150px]">
+                {positionChartData.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={positionChartData}>
+                      <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                      <XAxis 
+                        dataKey="name" 
+                        tick={{ fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis 
+                        tick={{ fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip 
+                        contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '12px',
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(8px)'
+                        }}
+                        formatter={(value) => [`${value} candidates`, '']}
+                        cursor={{ fill: 'transparent' }}
+                      />
+                      <Legend 
+                        verticalAlign="bottom" 
+                        height={36}
+                        formatter={(value) => <span className="text-xs">{value}</span>}
+                      />
+                      <Bar 
+                        dataKey="candidates" 
+                        fill="#3B82F6" 
+                        radius={[4, 4, 0, 0]} 
+                        barSize={20}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <BarChart2 className="w-8 h-8 mb-2" />
+                    <p className="text-xs">No position data available</p>
+                  </div>
+                )}
             </div>
           </CardContent>
         </Card>
+        </motion.div>
       </div>
 
-      <Card>
+      {/* Student Table */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
+      >
+        <Card className="hover:shadow-lg transition-shadow">
         <CardHeader>
-          <CardTitle className="text-lg">Student Voting Status</CardTitle>
-          <CardDescription className="text-sm">Overview of student participation in the current election</CardDescription>
+            <CardTitle>Student Voting Status</CardTitle>
+            <CardDescription>Overview of student participation in the current election</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
@@ -238,7 +396,10 @@ function StudentDashboard() {
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {currentStudents.map((student) => (
-                  <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <tr 
+                      key={student._id} 
+                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                    >
                     <td className="p-3">
                       <div className="flex items-center gap-3">
                         <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
@@ -288,9 +449,9 @@ function StudentDashboard() {
             </div>
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handlePageChange(currentPage - 1)}
+                  onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
@@ -298,8 +459,8 @@ function StudentDashboard() {
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <button
                     key={page}
-                    onClick={() => handlePageChange(page)}
-                    className={`w-8 h-8 text-sm rounded-md ${
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 text-sm rounded-md transition-colors ${
                       currentPage === page
                         ? 'bg-primary text-white dark:bg-primary-600'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -310,9 +471,9 @@ function StudentDashboard() {
                 ))}
               </div>
               <button
-                onClick={() => handlePageChange(currentPage + 1)}
+                  onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>
@@ -320,7 +481,8 @@ function StudentDashboard() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }
 

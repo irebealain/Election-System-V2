@@ -100,6 +100,11 @@ export const adminLogin = async (req, res) => {
     if (!isMatch) {
       return res.status(400).json({success: false, message: "Invalid credentials."})
     }
+
+    // Update last login time
+    admin.lastLogin = new Date();
+    await admin.save();
+
     // Generate JWT token
     const token = jwt.sign({id: admin._id, role: admin.role}, JWT_SECRET, {expiresIn: '4d'})
     res.status(200).json({
@@ -114,7 +119,8 @@ export const adminLogin = async (req, res) => {
           email: admin.email,
           role: admin.role,
           isApproved: admin.isApproved,
-          electionId: admin.electionId
+          electionId: admin.electionId,
+          lastLogin: admin.lastLogin
         }
       }
     })
@@ -233,6 +239,17 @@ export const googleAdminSignup = async (req, res) => {
       }
       
     });
+    const superAdmins = await SuperAdmin.find({});
+    for (const superAdmin of superAdmins) {
+      const notification = new Notification ({
+        recepient: superAdmin._id,
+        type: "admin_signup",
+        message: `${user.firstName} ${user.lastName} has registered as an admin. Please review their registration and approve or reject it.`,
+        read: false,
+        relatedId: user._id
+      });
+      await notification.save();
+    }
   } catch (error) {
     console.log("Error during Google signup:", error.message);
     return res.status(500).json({
@@ -304,20 +321,21 @@ export const googleAdminLogin = async (req, res) => {
           profilePic: newAdmin.profilePic,
           electionId: newAdmin.electionId,
           isApproved: newAdmin.isApproved,
-          role: newAdmin.role
+          role: newAdmin.role,
+          lastLogin: newAdmin.lastLogin
         }
       });
     }
-
-    // If user exists but not approved
-    if (!user.isApproved) {
-      return res.status(403).json({
+    if (!user.isApproved){
+      return res.status(400).json({
         success: false,
-        message: "Admin account is pending approval by the SuperAdmin.",
+        message: "Admin is not approved. Please wait for approval from superadmin."
       });
     }
+    // Update last login time for existing admin
+    user.lastLogin = new Date();
+    await user.save();
 
-    // If user exists and is approved
     const appToken = jwt.sign(
       { id: user._id, role: user.role },
       JWT_SECRET,
@@ -326,7 +344,7 @@ export const googleAdminLogin = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      message: "Logged in successfully",
+      message: "Admin logged in successfully.",
       token: appToken,
       user: {
         id: user._id,
@@ -334,15 +352,14 @@ export const googleAdminLogin = async (req, res) => {
         lastName: user.lastName,
         email: user.email,
         profilePic: user.profilePic,
+        electionId: user.electionId,
         isApproved: user.isApproved,
-        role: user.role
+        role: user.role,
+        lastLogin: user.lastLogin
       }
     });
   } catch (error) {
-    console.error("Error during Google login:", error.message);
-    return res.status(500).json({
-      success: false,
-      message: "Error during login, please try again",
-    });
+    console.error("Error in Google login:", error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

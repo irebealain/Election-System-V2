@@ -7,6 +7,7 @@ import ModeToggle from "../common/ModeToggle"
 import LinkBar from "./LinkBar"
 import logo from "../../assets/logo.svg"
 import { useClickOutside } from "../../hooks/useClickOutside"
+import NotificationBell from "../common/NotificationBell"
 
 function Navbar() {
   const { user, logout } = useAuth()
@@ -66,50 +67,7 @@ function Navbar() {
           )}
 
           {/* Notifications */}
-          <div ref={notificationsRef} className="relative">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="relative"
-              onClick={() => setNotificationsOpen(!notificationsOpen)}
-            >
-              <Bell className="h-5 w-5" />
-              <span className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center rounded-full bg-[#F79F21] text-white text-xs">
-                5
-              </span>
-              <span className="sr-only">Notifications</span>
-            </Button>
-
-            {notificationsOpen && (
-              <div className="absolute right-0 mt-2 w-80 rounded-[20px] border bg-background shadow-lg">
-                <div className="p-3 border-b">
-                  <h3 className="font-medium">Notifications</h3>
-                </div>
-                <div className="max-h-[300px] overflow-y-auto">
-                  <NotificationItem
-                    title="New Admin Request"
-                    description="A new admin account is pending approval."
-                    time="2 minutes ago"
-                  />
-                  <NotificationItem
-                    title="System Update"
-                    description="The system has been updated to version 2.0."
-                    time="1 hour ago"
-                  />
-                  <NotificationItem
-                    title="Election Created"
-                    description="A new election has been created for Spring 2023."
-                    time="1 day ago"
-                  />
-                </div>
-                <div className="p-2 border-t">
-                  <Button variant="ghost" className="w-full justify-start text-sm">
-                    View all notifications
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
+          <NotificationBell />
 
           {/* Theme Toggle */}
           <ModeToggle />

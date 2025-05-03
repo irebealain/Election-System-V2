@@ -5,32 +5,27 @@ import { TabsContent, TabsList, TabsTrigger } from "../../components/common/Tabs
 import Tabs from "../../components/common/Tabs"
 import Button from "../../components/common/Button"
 import { Switch } from "../../components/common/Switch"
-import { Camera, Save, Trash, LogOut, User, Bell, Shield, Key, Mail } from "lucide-react"
+import { Camera, Save, Trash, LogOut, User, Shield, Key, Mail, Lock } from "lucide-react"
 import toast from "react-hot-toast"
 import { motion } from "framer-motion"
+import { updateUserProfile, updateUserPassword, updateUserPrivacy, uploadProfileImage } from "../../services/UserService"
 
 function Settings() {
-  const { user, logout } = useAuth()
+  const { currentUser, login } = useAuth()
   const [activeTab, setActiveTab] = useState("profile")
   const [isLoading, setIsLoading] = useState(false)
-  const [profileImage, setProfileImage] = useState("/placeholder.svg")
+  const [profileImage, setProfileImage] = useState(currentUser?.picture || "/placeholder.svg")
   const [formData, setFormData] = useState({
-    name: user?.name || "",
-    email: user?.email || "",
-    bio: "Student at Example University, majoring in Computer Science.",
+    firstName: currentUser?.firstName || "",
+    lastName: currentUser?.lastName || "",
+    email: currentUser?.email || "",
+    bio: currentUser?.bio || "Student at Example University, majoring in Computer Science.",
     oldPassword: "",
     newPassword: "",
     confirmPassword: "",
-    notifications: {
-      email: true,
-      elections: true,
-      results: true,
-      reminders: true,
-      marketing: false,
-    },
     privacy: {
-      showProfile: true,
-      showVotingActivity: false,
+      showProfile: currentUser?.privacy?.showProfile ?? true,
+      showVotingActivity: currentUser?.privacy?.showVotingActivity ?? false,
     },
   })
 
@@ -43,16 +38,6 @@ function Settings() {
     setFormData({ ...formData, [name]: value })
   }
 
-  // const handleNotificationToggle = (key) => {
-  //   setFormData({
-  //     ...formData,
-  //     notifications: {
-  //       ...formData.notifications,
-  //       [key]: !formData.notifications[key],
-  //     },
-  //   })
-  // }
-
   const handlePrivacyToggle = (key) => {
     setFormData({
       ...formData,
@@ -63,18 +48,34 @@ function Settings() {
     })
   }
 
-  const handleProfileUpdate = (e) => {
+  const handleProfileUpdate = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const profileData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        bio: formData.bio,
+      }
+
+      const response = await updateUserProfile(currentUser.id, profileData)
+      
+      login({
+        token: localStorage.getItem('authToken'),
+        user: { ...currentUser, ...response.data }
+      })
+
       toast.success("Profile updated successfully!")
+    } catch (error) {
+      console.error('Error updating profile:', error)
+      toast.error(error.response?.data?.message || "Failed to update profile")
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
-  const handlePasswordUpdate = (e) => {
+  const handlePasswordUpdate = async (e) => {
     e.preventDefault()
 
     if (formData.newPassword !== formData.confirmPassword) {
@@ -84,51 +85,71 @@ function Settings() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      toast.success("Password updated successfully!")
-      setIsLoading(false)
+    try {
+      await updateUserPassword(currentUser.id, {
+        oldPassword: formData.oldPassword,
+        newPassword: formData.newPassword,
+      })
 
-      // Reset password fields
+      toast.success("Password updated successfully!")
+
       setFormData({
         ...formData,
         oldPassword: "",
         newPassword: "",
         confirmPassword: "",
       })
-    }, 1000)
+    } catch (error) {
+      console.error('Error updating password:', error)
+      toast.error(error.response?.data?.message || "Failed to update password")
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  // const handleNotificationUpdate = (e) => {
-  //   e.preventDefault()
-  //   setIsLoading(true)
-
-  //   // Simulate API call
-  //   setTimeout(() => {
-  //     toast.success("Notification preferences updated!")
-  //     setIsLoading(false)
-  //   }, 1000)
-  // }
-
-  const handlePrivacyUpdate = (e) => {
+  const handlePrivacyUpdate = async (e) => {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const response = await updateUserPrivacy(currentUser.id, formData.privacy)
+      
+      login({
+        token: localStorage.getItem('authToken'),
+        user: { ...currentUser, privacy: response.data.privacy }
+      })
+
       toast.success("Privacy settings updated!")
+    } catch (error) {
+      console.error('Error updating privacy settings:', error)
+      toast.error(error.response?.data?.message || "Failed to update privacy settings")
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
-  const handleImageUpload = () => {
-    // Simulate file upload
+  const handleImageUpload = async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
     setIsLoading(true)
 
-    setTimeout(() => {
+    try {
+      const response = await uploadProfileImage(currentUser.id, file)
+      
+      setProfileImage(response.data.profileImage)
+      login({
+        token: localStorage.getItem('authToken'),
+        user: { ...currentUser, picture: response.data.profileImage }
+      })
+
       toast.success("Profile image updated!")
+    } catch (error) {
+      console.error('Error uploading profile image:', error)
+      toast.error(error.response?.data?.message || "Failed to upload profile image")
+    } finally {
       setIsLoading(false)
-    }, 1000)
+    }
   }
 
   const handleTabChange = (value) => {
@@ -136,14 +157,19 @@ function Settings() {
   }
 
   return (
-    <motion.div className="space-y-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }}>
-      <div>
+    <motion.div 
+      className="max-w-4xl mx-auto px-4 py-8 space-y-8"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Settings</h1>
         <p className="text-muted-foreground">Manage your account settings and preferences.</p>
       </div>
 
-      <Tabs defaultValue={activeTab} onValueChange={handleTabChange}>
-        <TabsList className="mb-4">
+      <Tabs defaultValue={activeTab} onValueChange={handleTabChange} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile" className="flex items-center gap-2">
             <User size={16} />
             <span>Profile</span>
@@ -158,47 +184,71 @@ function Settings() {
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile" className="space-y-4">
-          <Card className="settings-card">
-            <CardHeader>
+        <TabsContent value="profile" className="space-y-6">
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-muted/50">
               <CardTitle>Profile Information</CardTitle>
               <CardDescription>Update your profile information and bio.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <form onSubmit={handleProfileUpdate} className="space-y-6">
                 <div className="flex flex-col items-center sm:flex-row sm:items-start gap-6">
-                  <div className="relative">
-                    <div className="h-24 w-24 rounded-full overflow-hidden">
+                  <motion.div 
+                    className="relative group"
+                    whileHover={{ scale: 1.02 }}
+                    transition={{ duration: 0.2 }}
+                  >
+                    <div className="h-32 w-32 rounded-full overflow-hidden ring-4 ring-background shadow-lg">
                       <img
-                        src={profileImage || "/placeholder.svg"}
+                        src={profileImage}
                         alt="Profile"
                         className="h-full w-full object-cover"
                       />
                     </div>
-                    <Button
-                      size="sm"
-                      variant="default"
-                      className="absolute bottom-0 right-0 h-8 w-8 rounded-full p-0 bg-primary hover:bg-primary/90"
-                      onClick={handleImageUpload}
-                      disabled={isLoading}
-                    >
-                      <Camera className="h-4 w-4" />
-                      <span className="sr-only">Upload image</span>
-                    </Button>
-                  </div>
+                    <label className="absolute bottom-0 right-0">
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleImageUpload}
+                        disabled={isLoading}
+                      />
+                      <Button
+                        size="sm"
+                        variant="default"
+                        className="h-10 w-10 rounded-full p-0 bg-primary hover:bg-primary/90 shadow-lg"
+                        disabled={isLoading}
+                      >
+                        <Camera className="h-5 w-5" />
+                        <span className="sr-only">Upload image</span>
+                      </Button>
+                    </label>
+                  </motion.div>
 
                   <div className="space-y-4 flex-1">
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
                       <div className="space-y-2">
-                        <label htmlFor="name" className="block text-sm font-medium">
-                          Full Name
+                        <label htmlFor="firstName" className="block text-sm font-medium">
+                          First Name
                         </label>
                         <input
-                          id="name"
-                          name="name"
-                          value={formData.name}
+                          id="firstName"
+                          name="firstName"
+                          value={formData.firstName}
                           onChange={handleInputChange}
-                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="lastName" className="block text-sm font-medium">
+                          Last Name
+                        </label>
+                        <input
+                          id="lastName"
+                          name="lastName"
+                          value={formData.lastName}
+                          onChange={handleInputChange}
+                          className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                         />
                       </div>
                       <div className="space-y-2">
@@ -211,7 +261,7 @@ function Settings() {
                             name="email"
                             value={formData.email}
                             onChange={handleInputChange}
-                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                            className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                             disabled
                           />
                           <Mail className="h-5 w-5 text-muted-foreground" />
@@ -228,14 +278,18 @@ function Settings() {
                         name="bio"
                         value={formData.bio}
                         onChange={handleInputChange}
-                        className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                        className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
                       />
                     </div>
                   </div>
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90 transition-colors"
+                    disabled={isLoading}
+                  >
                     {isLoading ? (
                       <span className="flex items-center">
                         <svg
@@ -273,95 +327,86 @@ function Settings() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="account" className="space-y-4">
-          <Card className="settings-card">
-            <CardHeader>
+        <TabsContent value="account" className="space-y-6">
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-muted/50">
               <CardTitle>Password</CardTitle>
               <CardDescription>Update your password to keep your account secure.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="pt-6">
               <form onSubmit={handlePasswordUpdate} className="space-y-4">
                 <div className="space-y-2">
                   <label htmlFor="oldPassword" className="block text-sm font-medium">
                     Current password
                   </label>
-                  <input
-                    id="oldPassword"
-                    name="oldPassword"
-                    type="password"
-                    value={formData.oldPassword}
-                    onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                  <div className="relative">
+                    <input
+                      id="oldPassword"
+                      name="oldPassword"
+                      type="password"
+                      value={formData.oldPassword}
+                      onChange={handleInputChange}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                    />
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="newPassword" className="block text-sm font-medium">
                     New password
                   </label>
-                  <input
-                    id="newPassword"
-                    name="newPassword"
-                    type="password"
-                    value={formData.newPassword}
-                    onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                  <div className="relative">
+                    <input
+                      id="newPassword"
+                      name="newPassword"
+                      type="password"
+                      value={formData.newPassword}
+                      onChange={handleInputChange}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                    />
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
                 <div className="space-y-2">
                   <label htmlFor="confirmPassword" className="block text-sm font-medium">
                     Confirm password
                   </label>
-                  <input
-                    id="confirmPassword"
-                    name="confirmPassword"
-                    type="password"
-                    value={formData.confirmPassword}
-                    onChange={handleInputChange}
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
-                  />
+                  <div className="relative">
+                    <input
+                      id="confirmPassword"
+                      name="confirmPassword"
+                      type="password"
+                      value={formData.confirmPassword}
+                      onChange={handleInputChange}
+                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary transition-colors"
+                    />
+                    <Lock className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  </div>
                 </div>
                 <div className="flex justify-end">
-                  <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90 transition-colors"
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Updating..." : "Update password"}
                   </Button>
                 </div>
               </form>
             </CardContent>
           </Card>
-
-          <Card className="settings-card">
-            <CardHeader>
-              <CardTitle className="text-red-500">Danger Zone</CardTitle>
-              <CardDescription>Irreversible and destructive actions.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h4 className="font-medium">Log out from all devices</h4>
-                  <p className="text-sm text-muted-foreground">
-                    This will log you out from all devices except this one.
-                  </p>
-                </div>
-                <Button variant="outline">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Log out
-                </Button>
-              </div>
-
-            </CardContent>
-          </Card>
         </TabsContent>
 
-        <TabsContent value="privacy" className="space-y-4">
-          <Card className="settings-card">
-            <CardHeader>
+        <TabsContent value="privacy" className="space-y-6">
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-muted/50">
               <CardTitle>Privacy Settings</CardTitle>
               <CardDescription>Control who can see your information.</CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handlePrivacyUpdate} className="space-y-4">
+            <CardContent className="pt-6">
+              <form onSubmit={handlePrivacyUpdate} className="space-y-6">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-input hover:bg-muted/50 transition-colors">
                     <div className="space-y-0.5">
                       <label htmlFor="showProfile" className="text-sm font-medium">
                         Show profile to other students
@@ -375,7 +420,7 @@ function Settings() {
                     />
                   </div>
 
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between p-4 rounded-lg border border-input hover:bg-muted/50 transition-colors">
                     <div className="space-y-0.5">
                       <label htmlFor="showVotingActivity" className="text-sm font-medium">
                         Share voting activity
@@ -393,7 +438,11 @@ function Settings() {
                 </div>
 
                 <div className="flex justify-end">
-                  <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isLoading}>
+                  <Button 
+                    type="submit" 
+                    className="bg-primary hover:bg-primary/90 transition-colors"
+                    disabled={isLoading}
+                  >
                     {isLoading ? "Saving..." : "Save privacy settings"}
                   </Button>
                 </div>

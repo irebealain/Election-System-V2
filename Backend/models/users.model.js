@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,  // Reference to Election model
     ref: "Election",
     required: true
+  },  
+  studentId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "StudentId",
+    unique: true,
+    trim: true
   },
   level: {
     type: String,

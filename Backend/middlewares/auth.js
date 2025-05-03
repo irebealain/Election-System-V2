@@ -5,68 +5,80 @@ import Admin from "../models/admin.model.js";
 import SuperAdmin from "../models/superAdmin.model.js";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_SECRET = process.env.JWT_SECRET || "secretkey"; // Add fallback secret
 
 // 🔐 Auth middleware
 export const protect = async (req, res, next) => {
-  let token;
-
-  if (req.headers.authorization?.startsWith("Bearer")) {
-    token = req.headers.authorization.split(" ")[1];
-
-    try {
-      const decoded = jwt.verify(token, JWT_SECRET);
+  try {
+    // Check for Bearer token
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
       
-      // Check SuperAdmin first
-      let superAdmin = await SuperAdmin.findById(decoded.id);
-      if (superAdmin) {
+      try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        
+        // Check SuperAdmin first
+        let superAdmin = await SuperAdmin.findById(decoded.id);
+        if (superAdmin) {
+          req.user = {...superAdmin._doc, role: "superAdmin" };
+          return next();
+        }
+
+        // Check User
+        let user = await User.findById(decoded.id).select("-password");
+        if (user) {
+          req.user = {...user._doc, role: "user" };
+          return next();
+        }
+
+        // Check Admin
+        let admin = await Admin.findById(decoded.id).select("-password");
+        if (admin) {
+          req.user = {...admin._doc, role: "admin" };
+          return next();
+        }
+
+        return res.status(401).json({ success: false, message: "User not found" });
+      } catch (err) {
+        return res.status(401).json({ success: false, message: "Invalid token" });
+      }
+    }
+
+    // Check for Google token
+    const googleToken = req.body?.token;
+    if (googleToken) {
+      try {
+        const ticket = await client.verifyIdToken({
+          idToken: googleToken,
+          audience: process.env.GOOGLE_CLIENT_ID
+        });
+
+        const payload = ticket.getPayload();
+        const superAdmin = await SuperAdmin.findOne({ email: payload.email });
+
+        if (!superAdmin) {
+          return res.status(401).json({ success: false, message: "SuperAdmin not found" });
+        }
+
         req.user = {...superAdmin._doc, role: "superAdmin" };
         return next();
+      } catch (err) { 
+        return res.status(401).json({ success: false, message: "Invalid Google token" });
       }
-
-      // Check User
-      let user = await User.findById(decoded.id).select("-password");
-      if (user) {
-        req.user = {...user._doc, role: "user" };
-        return next();
-      }
-
-      // Check Admin
-      let admin = await Admin.findById(decoded.id).select("-password");
-      if (admin) {
-        req.user = {...admin._doc, role: "admin" };
-        return next();
-      }
-
-      return res.status(401).json({ success: false, message: "User not found" });
-    } catch (err) {
-      return res.status(401).json({ success: false, message: "JWT verification failed" });
     }
+
+    return res.status(401).json({ 
+      success: false, 
+      message: "No authorization token provided. Please provide a Bearer token or Google token." 
+    });
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(500).json({ 
+      success: false, 
+      message: "Internal server error during authentication" 
+    });
   }
-
-  // Google token fallback (for SuperAdmins only)
-  if (req.body.token) {
-    try {
-      const ticket = await client.verifyIdToken({
-        idToken: req.body.token,
-        audience: process.env.GOOGLE_CLIENT_ID
-      });
-
-      const payload = ticket.getPayload();
-      const superAdmin = await SuperAdmin.findOne({ email: payload.email });
-
-      if (!superAdmin) {
-        return res.status(401).json({ success: false, message: "SuperAdmin not found" });
-      }
-
-      req.user = {...superAdmin._doc, role: "superAdmin" };
-      return next();
-    } catch (err) { 
-      return res.status(401).json({ success: false, message: "Google token invalid" });
-    }
-  }
-
-  return res.status(401).json({ success: false, message: "No authorization token provided" });
 };
 
 // Only SuperAdmin Access

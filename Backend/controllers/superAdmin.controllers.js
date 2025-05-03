@@ -3,6 +3,7 @@ import SuperAdmin from "../models/superAdmin.model.js";
 import Admin from "../models/admin.model.js";
 import { OAuth2Client } from "google-auth-library";
 import jwt from "jsonwebtoken";
+import Notification from "../models/notifications.model.js";
 
 const JWT_SECRET = process.env.JWT_SECRET || "secretkey";
 
@@ -193,24 +194,82 @@ export const loginSuperAdmin = async (req, res) => {
 };
 // Approve an admin
 export const approveAdmin = async (req, res) => {
-  const { adminId } = req.params; // Get the admin ID from the request parameters
+  const { adminId } = req.params;
 
   try {
     // Find the admin by ID and update their status to approved
     const updatedAdmin = await Admin.findByIdAndUpdate(
       adminId,
-      { isApproved: true, createdBy:  req.user.firstName && req.user.lastName},
+      { 
+        isApproved: true,
+        status: 'approved',
+        createdBy: req.user._id
+      },
       { new: true }
-    )
+    );
+
     if (!updatedAdmin) {
       return res
         .status(404)
         .json({ success: false, message: "Admin not found" });
     }
 
+    // Create a notification for the admin
+    const notification = new Notification({
+      recipient: adminId,
+      recipientModel: 'Admins',
+      type: 'admin_approved',
+      message: 'Your admin account has been approved. You can now access the admin dashboard.',
+      read: false,
+      relatedId: adminId,
+      relatedModel: 'Admins'
+    });
+    await notification.save();
+
     res.status(200).json({ success: true, data: updatedAdmin });
   } catch (error) {
     console.error("Error approving admin:", error.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// Reject an admin
+export const rejectAdmin = async (req, res) => {
+  const { adminId } = req.params;
+
+  try {
+    // Find the admin by ID and update their status to rejected
+    const updatedAdmin = await Admin.findByIdAndUpdate(
+      adminId,
+      { 
+        isApproved: false,
+        status: 'rejected',
+        createdBy: req.user._id
+      },
+      { new: true }
+    );
+
+    if (!updatedAdmin) {
+      return res
+        .status(404)
+        .json({ success: false, message: "Admin not found" });
+    }
+
+    // Create a notification for the admin
+    const notification = new Notification({
+      recipient: adminId,
+      recipientModel: 'Admins',
+      type: 'admin_rejected',
+      message: 'Your admin account request has been rejected. Please contact the super admin for more information.',
+      read: false,
+      relatedId: adminId,
+      relatedModel: 'Admins'
+    });
+    await notification.save();
+
+    res.status(200).json({ success: true, data: updatedAdmin });
+  } catch (error) {
+    console.error("Error rejecting admin:", error.message);
     res.status(500).json({ success: false, message: "Server error" });
   }
 };

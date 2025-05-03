@@ -1,12 +1,11 @@
-import axios from 'axios'
+import instance from '../lib/axios';
 
-const API_URL = 'http://localhost:3000/api/candidates'
 export const getAllCandidates = async () => {
   try {
-    const response = await axios.get(API_URL)
-    return response.data.data
+    const response = await instance.get('/api/candidates');
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching candidates:', error)
-    throw error
+    console.error('Error fetching candidates:', error);
+    throw error;
   }
-}
+};

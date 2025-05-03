@@ -24,17 +24,20 @@ import Notifications from "./pages/admin/Notifications"
 import StudentDashboard from "./pages/student/Dashboard"
 import StudentElections from "./pages/student/Elections"
 import AdminSettings from "./pages/admin/AdminSettings"
+import Students from "./pages/superadmin/Students"
 
 // SuperAdmin Pages
 import SuperAdminDashboard from "./pages/superadmin/Dashboard"
 import SuperAdminElections from "./pages/superadmin/Elections"
 import AdminPage from "./pages/superadmin/AdminPage"
+import { NotificationProvider } from "./context/NotificationContext"
+import ElectionStats from "./pages/superadmin/Statistics"
 
 function App() {
-  // const { user } = useAuth()
 
   return (
-    <Routes>
+    <NotificationProvider>
+      <Routes>
       {/* Public Routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<LoginPage />} />
@@ -66,12 +69,16 @@ function App() {
           <Route path="dashboard" element={<SuperAdminDashboard />} />
           <Route path="elections" element={<SuperAdminElections />} />
           <Route path="admins" element={<AdminPage />} />
+          <Route path="students" element={<Students />} />
+          <Route path="election-stats" element={<ElectionStats />} />
         </Route>
       </Route>
 
       {/* 404 Page */}
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </NotificationProvider>
+    
   )
 }
 

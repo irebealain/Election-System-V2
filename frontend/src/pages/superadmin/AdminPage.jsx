@@ -1,14 +1,31 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
 import axios from "axios"
 import { toast } from "react-hot-toast"
+import { MoreVertical, Check, X, User, Trash2, Clock } from "lucide-react"
 
 function AdminPage() {
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
   const [currentPage, setCurrentPage] = useState(1)
+  const [activeDropdown, setActiveDropdown] = useState(null)
+  const dropdownRef = useRef(null)
   const itemsPerPage = 10
+
+  // Handle click outside dropdown
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setActiveDropdown(null)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [])
 
   // Fetch all admins
   useEffect(() => {
@@ -30,21 +47,93 @@ function AdminPage() {
   // Handle admin approval
   const handleApproval = async (adminId, action) => {
     try {
-      const response = await axios.patch(`/api/superadmin/admins/${adminId}/${action}`)
-      if (response.status === 200) {
-        // Update admins list after successful action
-        setAdmins(admins.map(admin => 
-          admin._id === adminId 
-            ? { ...admin, status: action === 'approve' ? 'Active' : 'Rejected' }
-            : admin
-        ))
-        toast.success(`Administrator ${action === 'approve' ? 'approved' : 'rejected'} successfully`)
+      if (action === 'approve') {
+        // Handle approval
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/superadmins/approve/${adminId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+        
+        if (response.data.success) {
+          setAdmins(admins.map(admin => 
+            admin._id === adminId 
+              ? { 
+                  ...admin, 
+                  isApproved: true,
+                  status: 'approved'
+                }
+              : admin
+          ));
+          setActiveDropdown(null);
+          toast.success('Administrator approved successfully');
+        }
+      } else if (action === 'reject') {
+        // Handle rejection
+        if (!window.confirm('Are you sure you want to reject this administrator?')) {
+          return;
+        }
+
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/superadmins/reject/${adminId}`,
+          {},
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem('token')}`
+            }
+          }
+        );
+        
+        if (response.data.success) {
+          setAdmins(admins.map(admin => 
+            admin._id === adminId 
+              ? { 
+                  ...admin, 
+                  isApproved: false,
+                  status: 'rejected'
+                }
+              : admin
+          ));
+          setActiveDropdown(null);
+          toast.success('Administrator rejected successfully');
+        }
       }
     } catch (error) {
-      toast.error(`Failed to ${action} administrator`)
-      console.error(`Error ${action}ing admin:`, error)
+      console.error(`Error ${action}ing admin:`, error);
+      toast.error(error.response?.data?.message || `Failed to ${action} administrator`);
     }
-  }
+  };
+
+  // Handle admin deletion
+  const handleDelete = async (adminId) => {
+    if (!window.confirm('Are you sure you want to delete this administrator?')) {
+      return;
+    }
+
+    try {
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/admins/${adminId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        }
+      );
+      
+      if (response.data.success) {
+        setAdmins(admins.filter(admin => admin._id !== adminId));
+        setActiveDropdown(null);
+        toast.success('Administrator deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting admin:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete administrator');
+    }
+  };
 
   // Calculate pagination
   const totalPages = Math.ceil(admins.length / itemsPerPage)
@@ -88,50 +177,115 @@ function AdminPage() {
                           {admin.firstName.charAt(0)}
                         </div>
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{admin.firstName}</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{admin.firstName} {admin.lastName}</p>
                           <p className="text-xs text-gray-500 dark:text-gray-400">{admin.email}</p>
                         </div>
                       </div>
                     </td>
                     <td className="p-3">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                        ${admin.isApproved 
+                        ${admin.status === 'approved' 
                           ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                          : admin.status === 'rejected'
+                          ? 'bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-400'
                           : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
                         }`}>
                         <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                          ${admin.isApproved 
+                          ${admin.status === 'approved'
                             ? 'bg-green-500 dark:bg-green-400'
+                            : admin.status === 'rejected'
+                            ? 'bg-red-500 dark:bg-red-400'
                             : 'bg-yellow-500 dark:bg-yellow-400'
                           }`}
                         />
-                        {admin.isApproved ? 'Active' : 'Pending'}
+                        {admin.status === 'approved' ? 'Active' : 
+                         admin.status === 'rejected' ? 'Rejected' : 
+                         'Pending'}
                       </span>
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">
-                      {admin.lastLogin || 'Never'}
-                    </td>
-                    <td className="p-3">
-                      {admin.status === "Pending" ? (
-                        <div className="flex space-x-2">
-                          <button
-                            onClick={() => handleApproval(admin.id, 'approve')}
-                            className="px-3 py-1 text-sm rounded-md bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => handleApproval(admin.id, 'reject')}
-                            className="px-3 py-1 text-sm rounded-md bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400"
-                          >
-                            Reject
-                          </button>
+                      {admin.lastLogin ? (
+                        <div className="flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {new Date(admin.lastLogin).toLocaleString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            hour: '2-digit',
+                            minute: '2-digit'
+                          })}
                         </div>
                       ) : (
-                        <button className="px-3 py-1 text-sm rounded-md bg-gray-100 text-gray-800 hover:bg-gray-200 dark:bg-gray-800 dark:text-gray-300">
-                          Manage
-                        </button>
+                        <span className="text-gray-400 dark:text-gray-500">Never</span>
                       )}
+                    </td>
+                    <td className="p-3">
+                      <div className="relative" ref={dropdownRef}>
+                        <button
+                          onClick={() => setActiveDropdown(activeDropdown === admin._id ? null : admin._id)}
+                          className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
+                        >
+                          <MoreVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                        </button>
+                        
+                        {activeDropdown === admin._id && (
+                          <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
+                            <div className="py-1">
+                              {admin.status === 'pending' ? (
+                                <>
+                                  <button
+                                    onClick={() => handleApproval(admin._id, 'approve')}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                  >
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleApproval(admin._id, 'reject')}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <X className="w-4 h-4 mr-2" />
+                                    Reject
+                                  </button>
+                                </>
+                              ) : admin.status === 'rejected' ? (
+                                <>
+                                  <button
+                                    onClick={() => handleApproval(admin._id, 'approve')}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
+                                  >
+                                    <Check className="w-4 h-4 mr-2" />
+                                    Approve
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(admin._id)}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </button>
+                                </>
+                              ) : (
+                                <>
+                                  <button
+                                    onClick={() => handleApproval(admin._id, 'reject')}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <X className="w-4 h-4 mr-2" />
+                                    Reject
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(admin._id)}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

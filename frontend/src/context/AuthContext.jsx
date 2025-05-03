@@ -1,4 +1,4 @@
-import { createContext, useState, useContext, useEffect } from 'react';
+import { createContext, useState, useContext, useEffect, useMemo, useCallback } from 'react';
 
 const AuthContext = createContext();
 
@@ -10,7 +10,6 @@ export function AuthProvider({ children }) {
   // Load user from token on startup
   useEffect(() => {
     const storedUser = localStorage.getItem('currentUser');
-    console.log('storedUser:', storedUser);
     const storedToken = localStorage.getItem('authToken');
     
     if (storedUser && storedToken && storedUser !== 'undefined') {
@@ -32,34 +31,31 @@ export function AuthProvider({ children }) {
     setLoading(false);
   }, []);
 
-  const login = (data) => {
-    console.log('Login data received:', data);
+  const login = useCallback((data) => {
     if ((!data.user && !data.currentUser) || !data.token) {
       console.log('Login failed: Missing user or token');
       return;
     }
-    // Store token in localStorage
     setAuthToken(data.token);
     setCurrentUser(data.user || data.currentUser);
     localStorage.setItem('currentUser', JSON.stringify(data.user || data.currentUser));
     localStorage.setItem('authToken', data.token);
-    console.log('Login successful: Token and user stored');
-  };
+  }, []);
 
-  const logout = () => {
+  const logout = useCallback(() => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('currentUser');
     setAuthToken(null);
     setCurrentUser(null);
-  };
+  }, []);
 
-  const value = {
+  const value = useMemo(() => ({
     currentUser,
     authToken,
     login,
     logout,
     loading,
-  };
+  }), [currentUser, authToken, login, logout, loading]);
 
   return (
     <AuthContext.Provider value={value}>
