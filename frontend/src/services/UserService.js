@@ -1,8 +1,7 @@
 import axios from 'axios';
 import instance from '../lib/axios';
 
-const API_URL = 'http://localhost:3000/api/users';
-
+const API_URL = `${import.meta.env.VITE_API_URL}/api/users`
 // Add token to all requests
 const getAuthHeader = () => {
   const token = localStorage.getItem('authToken');
@@ -129,6 +128,18 @@ export const uploadProfileImage = async (userId, imageFile) => {
     return response.data;
   } catch (error) {
     console.error('Error uploading profile image:', error);
+    throw error;
+  }
+};
+
+export const deleteAllStudents = async () => {
+  try {
+    const response = await axios.delete(`${API_URL}/all-students`, {
+      headers: getAuthHeader()
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Error deleting all students:', error);
     throw error;
   }
 };

@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import logo from "../assets/Logo.svg"
 import { useGoogleLogin } from "@react-oauth/google"
 import axios from "@/lib/axios";
+import loginIllustration from "../assets/login.svg"
 
 // Custom toast component with animation
 const AnimatedToast = ({ message }) => {
@@ -978,20 +979,25 @@ function LoginPage() {
               </Card>
 
               <div className="hidden md:block relative rounded-[20px] overflow-hidden">
-                <img
-                  src="/placeholder.svg"
-                  alt="Election System"
-                  className="object-cover w-full h-full rounded-[20px]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/80 to-[#F79F21]/50 flex items-center justify-center">
-                  <div className="text-white text-center p-8">
-                    <h2 className="text-3xl font-bold mb-4 font-satoshi">
-                      Modern Election System
-                    </h2>
-                    <p className="text-lg">
-                      Secure, transparent, and efficient elections for your
-                      institution.
-                    </p>
+                <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/80 to-[#F79F21]/90">
+                  <img
+                    src={loginIllustration}
+                    alt="Election System"
+                    className="w-full h-full object-cover mix-blend-overlay"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent">
+                  <div className="absolute bottom-0 left-0 right-0 p-8">
+                    <motion.div
+                      initial={{ y: 20, opacity: 0 }}
+                      animate={{ y: 0, opacity: 1 }}
+                      transition={{ duration: 0.8, delay: 0.4 }}
+                      className="text-white text-center"
+                    >
+                      <h2 className="text-3xl font-bold mb-4 font-satoshi">
+                        Agahozo-Shalom Youth Village Election System
+                      </h2>
+                    </motion.div>
                   </div>
                 </div>
               </div>

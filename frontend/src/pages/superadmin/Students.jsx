@@ -3,8 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import Button from "../../components/common/Button"
 import { Input } from "../../components/common/Input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/common/Select"
-import { Search, Filter, Download, Plus, MoreVertical, Edit, Trash2, Eye, Mail, ChevronLeft, ChevronRight } from "lucide-react"
-import { getAllUsers, deleteUser, updateUser, uploadIdCard, exportUsers, getUserById } from "../../services/UserService"
+import { Search, Filter, Download, Plus, MoreVertical, Edit, Trash2, Eye, ChevronLeft, ChevronRight, AlertTriangle, X } from "lucide-react"
+import { getAllUsers, deleteUser, updateUser, exportUsers, getUserById, deleteAllStudents } from "../../services/UserService"
 import { getAllVotes } from "../../services/voteService"
 import { getAllElections } from "../../services/electionService"
 import { toast } from "react-hot-toast"
@@ -15,6 +15,7 @@ import { Badge } from "../../components/common/Badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/common/DropdownMenu"
 import { MoreHorizontal, Upload } from "lucide-react"
 import { saveAs } from "file-saver"
+import { uploadStudentIdsExcel } from '../../services/studentIdService'
 
 function Students() {
   const [students, setStudents] = useState([])
@@ -23,17 +24,20 @@ function Students() {
   const [error, setError] = useState(null)
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedLevel, setSelectedLevel] = useState("all")
-  const [selectedStatus, setSelectedStatus] = useState("all")
-  const [selectedSort, setSelectedSort] = useState("newest")
   const [currentPage, setCurrentPage] = useState(1)
   const [itemsPerPage] = useState(10)
   const [votes, setVotes] = useState([])
   const [elections, setElections] = useState([])
   const [currentElection, setCurrentElection] = useState(null)
+  const [isDeleteAllDialogOpen, setIsDeleteAllDialogOpen] = useState(false)
+  const [selectedStudent, setSelectedStudent] = useState(null)
+  const [isDetailsDialogOpen, setIsDetailsDialogOpen] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedStudent, setEditedStudent] = useState(null)
   const navigate = useNavigate()
 
   useEffect(() => {
-    document.title = "Student Management | ElectSys"
+    document.title = "Student Management | Election System"
     fetchData()
   }, [])
 
@@ -72,8 +76,7 @@ function Students() {
       result = result.filter(student => 
         student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.level.toLowerCase().includes(searchQuery.toLowerCase())
+        student.email.toLowerCase().includes(searchQuery.toLowerCase())
       )
     }
 
@@ -82,42 +85,9 @@ function Students() {
       result = result.filter(student => student.level === selectedLevel)
     }
 
-    // Apply status filter
-    if (selectedStatus !== "all") {
-      result = result.filter(student => {
-        if (selectedStatus === "active") {
-          if (currentElection) {
-            return votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
-          }
-          return student.isActive
-        }
-        if (selectedStatus === "inactive") {
-          if (currentElection) {
-            return !votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
-          }
-          return !student.isActive
-        }
-        return true
-      })
-    }
-
-    // Apply sorting
-    result.sort((a, b) => {
-      if (selectedSort === "newest") {
-        return new Date(b.createdAt) - new Date(a.createdAt)
-      }
-      if (selectedSort === "oldest") {
-        return new Date(a.createdAt) - new Date(b.createdAt)
-      }
-      if (selectedSort === "name") {
-        return (a.firstName + a.lastName).localeCompare(b.firstName + b.lastName)
-      }
-      return 0
-    })
-
     setFilteredStudents(result)
     setCurrentPage(1) // Reset to first page when filters change
-  }, [students, searchQuery, selectedLevel, selectedStatus, selectedSort, votes, currentElection])
+  }, [students, searchQuery, selectedLevel])
 
   // Pagination logic
   const indexOfLastItem = currentPage * itemsPerPage
@@ -145,9 +115,24 @@ function Students() {
   }
 
   const handleEditStudent = (student) => {
-    // Implement edit student functionality
-    toast.success(`Editing student: ${student.firstName} ${student.lastName}`)
-  }
+    setSelectedStudent(student);
+    setEditedStudent({ ...student });
+    setIsEditing(true);
+    setIsDetailsDialogOpen(true);
+  };
+
+  const handleUpdateStudent = async () => {
+    try {
+      await updateUser(editedStudent._id, editedStudent);
+      setStudents(students.map(s => 
+        s._id === editedStudent._id ? editedStudent : s
+      ));
+      setIsEditing(false);
+      toast.success('Student information updated successfully');
+    } catch (error) {
+      toast.error('Failed to update student information');
+    }
+  };
 
   const handleDeleteStudent = async (student) => {
     if (window.confirm('Are you sure you want to delete this student?')) {
@@ -162,29 +147,79 @@ function Students() {
   }
 
   const handleViewDetails = (student) => {
-    // Implement view details functionality
-    toast.success(`Viewing details for: ${student.firstName} ${student.lastName}`)
-  }
+    setSelectedStudent(student);
+    setIsDetailsDialogOpen(true);
+  };
 
-  const handleSendEmail = (student) => {
-    // Implement send email functionality
-    toast.success(`Sending email to: ${student.email}`)
-  }
+  const handleExcelUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
-  const handleIdCardUpload = async (userId, file) => {
-    try {
-      const user = await getUserById(userId)
-      if (!user) {
-        toast.error('Student not found')
-        return
-      }
-
-      await uploadIdCard(userId, file)
-      toast.success('ID card uploaded successfully')
-    } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to upload ID card')
+    if (!currentElection) {
+      toast.error('Please select an election first');
+      return;
     }
-  }
+
+    // Validate file type
+    if (!file.name.match(/\.(xlsx|xls)$/)) {
+      toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('electionId', currentElection._id);
+
+      const result = await uploadStudentIdsExcel(file, currentElection._id);
+      
+      // Enhanced success toast
+      toast.success(
+        `Successfully uploaded ${result.count} student IDs to the election!`,
+        {
+          duration: 5000,
+          style: {
+            background: '#f0fdf4',
+            color: '#166534',
+            border: '1px solid #bbf7d0',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+          icon: '✅',
+        }
+      );
+      
+      // Refresh the student list
+      fetchData();
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to upload student IDs',
+        {
+          duration: 5000,
+          style: {
+            background: '#fef2f2',
+            color: '#991b1b',
+            border: '1px solid #fecaca',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+          icon: '❌',
+        }
+      );
+    }
+  };
+
+  const handleDeleteAllStudents = async () => {
+    try {
+      const result = await deleteAllStudents();
+      toast.success(result.message);
+      setIsDeleteAllDialogOpen(false);
+      fetchData(); // Refresh the list
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to delete all students');
+    }
+  };
 
   if (loading) {
     return (
@@ -221,30 +256,33 @@ function Students() {
           <p className="text-sm text-muted-foreground">Manage and monitor student accounts</p>
         </div>
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" onClick={handleExport}>
+          <Button variant="outline" size="sm" onClick={handleExport} className="text-xs">
             <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
-          <Button size="sm" onClick={() => document.getElementById('idCardUpload').click()}>
+          <Button size="sm" onClick={() => document.getElementById('excelUpload').click()} className="text-xs">
             <Upload className="h-4 w-4 mr-2" />
-            Upload ID Card
+            Upload Excel
             <input
-              id="idCardUpload"
+              id="excelUpload"
               type="file"
               className="hidden"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0]
-                if (file) {
-                  const userId = prompt('Enter student ID:')
-                  if (userId) handleIdCardUpload(userId, file)
-                }
-              }}
+              accept=".xlsx,.xls"
+              onChange={handleExcelUpload}
             />
           </Button>
-          <Button size="sm" onClick={handleAddStudent}>
+          <Button size="sm" onClick={handleAddStudent} className="text-xs">
             <Plus className="h-4 w-4 mr-2" />
             Add Student
+          </Button>
+          <Button 
+            variant="destructive" 
+            size="sm" 
+            onClick={() => setIsDeleteAllDialogOpen(true)}
+            className="text-xs"
+          >
+            <Trash2 className="h-4 w-4 mr-2" />
+            Delete All
           </Button>
         </div>
       </div>
@@ -257,7 +295,7 @@ function Students() {
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search students..."
-                  className="pl-8 w-full md:w-[300px]"
+                  className="pl-8 w-full md:w-[300px] text-xs"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -265,38 +303,14 @@ function Students() {
             </div>
             <div className="flex items-center space-x-2">
               <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger className="w-[140px] h-9">
+                <SelectTrigger className="w-[140px] h-8 text-xs">
                   <Filter className="h-3.5 w-3.5 mr-2" />
                   <SelectValue placeholder="Level" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Levels</SelectItem>
-                  <SelectItem value="100">Level 100</SelectItem>
-                  <SelectItem value="200">Level 200</SelectItem>
-                  <SelectItem value="300">Level 300</SelectItem>
-                  <SelectItem value="400">Level 400</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <Filter className="h-3.5 w-3.5 mr-2" />
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-              <Select value={selectedSort} onValueChange={setSelectedSort}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <Filter className="h-3.5 w-3.5 mr-2" />
-                  <SelectValue placeholder="Sort by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="newest">Newest First</SelectItem>
-                  <SelectItem value="oldest">Oldest First</SelectItem>
-                  <SelectItem value="name">Name (A-Z)</SelectItem>
+                  <SelectItem value="all" className="text-xs">All Levels</SelectItem>
+                  <SelectItem value="upper" className="text-xs">Upper Level</SelectItem>
+                  <SelectItem value="lower" className="text-xs">Lower Level</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -304,7 +318,7 @@ function Students() {
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-            <table className="w-full text-sm">
+            <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800">
                   <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
@@ -326,13 +340,13 @@ function Students() {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
+                            <p className="text-[10px] text-gray-500 dark:text-gray-400">{student.email}</p>
                           </div>
                         </div>
                       </td>
                       <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
                       <td className="p-3">
-                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
                           ${hasVoted 
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                             : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
@@ -353,31 +367,24 @@ function Students() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleViewDetails(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
                             title="View Details"
                           >
-                            <Eye className="h-4 w-4 text-gray-600 dark:text-gray-400" />
-                          </button>
-                          <button
-                            onClick={() => handleSendEmail(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
-                            title="Send Email"
-                          >
-                            <Mail className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                            <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                           </button>
                           <button
                             onClick={() => handleEditStudent(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
                             title="Edit"
                           >
-                            <Edit className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+                            <Edit className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                           </button>
                           <button
                             onClick={() => handleDeleteStudent(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
                             title="Delete"
                           >
-                            <Trash2 className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
                           </button>
                         </div>
                       </td>
@@ -391,7 +398,7 @@ function Students() {
           {/* Pagination */}
           {totalPages > 1 && (
             <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-[10px] text-gray-600 dark:text-gray-400">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
               </div>
               <div className="flex items-center space-x-2">
@@ -400,8 +407,9 @@ function Students() {
                   size="sm"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
+                  className="text-[10px] h-7"
                 >
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-3.5 w-3.5" />
                 </Button>
                 {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
                   <Button
@@ -409,7 +417,7 @@ function Students() {
                     variant={currentPage === page ? "default" : "outline"}
                     size="sm"
                     onClick={() => handlePageChange(page)}
-                    className="w-8 h-8 p-0"
+                    className="w-7 h-7 p-0 text-[10px]"
                   >
                     {page}
                   </Button>
@@ -419,14 +427,185 @@ function Students() {
                   size="sm"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === totalPages}
+                  className="text-[10px] h-7"
                 >
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-3.5 w-3.5" />
                 </Button>
               </div>
             </div>
           )}
         </CardContent>
       </Card>
+
+      {/* Delete All Confirmation Dialog */}
+      {isDeleteAllDialogOpen && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+              <h3 className="text-sm font-semibold">Delete All Students</h3>
+            </div>
+            <p className="text-xs text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete all students? This action cannot be undone and will permanently remove all student accounts from the system.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteAllDialogOpen(false)}
+                className="text-[10px] h-7"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAllStudents}
+                className="text-[10px] h-7"
+              >
+                Delete All Students
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Student Details Dialog */}
+      {isDetailsDialogOpen && selectedStudent && (
+        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 max-w-lg w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-700">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 text-lg font-medium">
+                  {selectedStudent.firstName.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                    {isEditing ? 'Edit Student' : 'Student Details'}
+                  </h3>
+                  <p className="text-[10px] text-gray-500 dark:text-gray-400">
+                    {selectedStudent.studentId}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  setIsDetailsDialogOpen(false);
+                  setIsEditing(false);
+                }}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              >
+                <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-4">
+              {/* Basic Info */}
+              <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div>
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Full Name</p>
+                  {isEditing ? (
+                    <div className="space-y-2">
+                      <Input
+                        value={editedStudent.firstName}
+                        onChange={(e) => setEditedStudent({ ...editedStudent, firstName: e.target.value })}
+                        placeholder="First Name"
+                        className="text-xs h-7 bg-white dark:bg-gray-700"
+                      />
+                      <Input
+                        value={editedStudent.lastName}
+                        onChange={(e) => setEditedStudent({ ...editedStudent, lastName: e.target.value })}
+                        placeholder="Last Name"
+                        className="text-xs h-7 bg-white dark:bg-gray-700"
+                      />
+                    </div>
+                  ) : (
+                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                      {selectedStudent.firstName} {selectedStudent.lastName}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Email</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">{selectedStudent.email}</p>
+                </div>
+              </div>
+
+              {/* Additional Info */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Level</p>
+                  {isEditing ? (
+                    <Select
+                      value={editedStudent.level}
+                      onValueChange={(value) => setEditedStudent({ ...editedStudent, level: value })}
+                    >
+                      <SelectTrigger className="h-7 text-xs bg-white dark:bg-gray-700">
+                        <SelectValue placeholder="Select Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="upper" className="text-xs">Upper Level</SelectItem>
+                        <SelectItem value="lower" className="text-xs">Lower Level</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{selectedStudent.level}</p>
+                  )}
+                </div>
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                  <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Registration Date</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-300">
+                    {format(new Date(selectedStudent.createdAt), 'MMM d, yyyy')}
+                  </p>
+                </div>
+              </div>
+
+              {/* Voting Status */}
+              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Voting Status</p>
+                <div className="flex items-center gap-2">
+                  <span className={`h-2 w-2 rounded-full ${
+                    currentElection && votes.some(v => v.studentId === selectedStudent._id && v.electionId === currentElection._id)
+                      ? 'bg-green-500'
+                      : 'bg-yellow-500'
+                  }`} />
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                    {currentElection && votes.some(v => v.studentId === selectedStudent._id && v.electionId === currentElection._id)
+                      ? 'Has Voted'
+                      : 'Not Voted'}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              {isEditing && (
+                <div className="flex justify-end gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditedStudent(null);
+                    }}
+                    className="text-[10px] h-7 px-3"
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={handleUpdateStudent}
+                    className="text-[10px] h-7 px-3"
+                  >
+                    Save Changes
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

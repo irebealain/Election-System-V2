@@ -114,7 +114,7 @@ function CountdownAnimation({ onComplete }) {
             transition={{ delay: 0.3 }}
             className="mt-6 text-xl font-medium text-gray-600 dark:text-gray-300"
           >
-            Revealing results in {count}...
+            Displaying results in {count} seconds...
           </motion.p>
         </motion.div>
       )}
@@ -138,6 +138,7 @@ function ElectionStats() {
 
   useEffect(() => {
     fetchData();
+    console.log("Position data:", positions);
   }, []);
 
   const fetchData = async () => {
@@ -407,7 +408,7 @@ function ElectionStats() {
 
       {/* Statistics Modal */}
       {isModalOpen && selectedElection && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="modal-backdrop p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
             <div className="p-4 flex items-center justify-between border-b">
               <div className="flex items-center gap-2">

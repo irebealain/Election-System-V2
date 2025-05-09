@@ -476,7 +476,7 @@ function StudentManagement() {
 
       {/* Add Student Dialog */}
       {isAddDialogOpen && (
-        <div className="fixed inset-0 z-999 bg-black/50 flex items-center justify-center p-4 -left-[2.5rem] w-screen h-screen -top-16">
+        <div className="modal-backdrop p-4">
           <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md mb-16 mt-12">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Add New Student</h2>
@@ -598,7 +598,7 @@ function StudentManagement() {
 
       {/* Edit Student Dialog */}
       {selectedStudent && isEditDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 -left-[2.5rem] w-screen h-screen -top-16">
+        <div className="modal-backdrop p-4">
           <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Edit Student</h2>
@@ -688,7 +688,7 @@ function StudentManagement() {
 
       {/* View Student Dialog */}
       {selectedStudent && isViewDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 -left-[2.5rem] w-screen h-screen -top-16">
+        <div className="modal-backdrop p-4">
           <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Student Details</h2>
@@ -762,7 +762,7 @@ function StudentManagement() {
 
       {/* Delete Confirmation Dialog */}
       {selectedStudent && isDeleteDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 -left-[2.5rem] w-screen h-screen -top-16">
+        <div className="modal-backdrop p-4">
           <div className="bg-background rounded-lg shadow-lg w-full max-w-md overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Delete Student</h2>
@@ -796,7 +796,7 @@ function StudentManagement() {
 
       {/* Filter Dialog */}
       {isFilterDialogOpen && (
-        <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4 -left-[2.5rem] w-screen h-screen -top-16">
+        <div className="modal-backdrop p-4">
           <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Filter Students</h2>

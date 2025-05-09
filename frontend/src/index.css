@@ -75,6 +75,11 @@
   }
 }
 
+/* Modal backdrop with blur effect */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50;
+}
+
 /* Theme transition */
 * {
   transition-property: color, background-color, border-color, text-decoration-color, fill, stroke;

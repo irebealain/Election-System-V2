@@ -363,3 +363,20 @@ export const registerUser = async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to register user' });
   }
 };
+
+// Delete all students
+export const deleteAllStudents = async (req, res) => {
+  try {
+    const result = await User.deleteMany({ role: 'student' });
+    res.status(200).json({ 
+      success: true, 
+      message: `${result.deletedCount} students deleted successfully.` 
+    });
+  } catch (error) {
+    console.error('Error deleting all students:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Failed to delete students.' 
+    });
+  }
+};
