@@ -141,8 +141,8 @@ export const deleteElection = async (req, res) => {
 // Delete all elections
 export const deleteAllElections = async (req, res) => {
   try {
-    // Check if user is superAdmin
-    if (req.user.role !== "superAdmin") {
+    // Check if user is superAdmin from request body
+    if (req.body.role !== "superAdmin") {
       return res.status(403).json({ 
         success: false, 
         message: "Only super admins can delete all elections" 

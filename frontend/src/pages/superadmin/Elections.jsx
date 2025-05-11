@@ -233,11 +233,8 @@ function Elections() {
 
     try {
       setIsDeletingAll(true)
-      const token = localStorage.getItem("token")
       const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/elections/delete-all`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
+        data: { role: currentUser.role }
       })
       
       if (response.data.success) {

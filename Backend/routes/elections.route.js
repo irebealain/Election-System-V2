@@ -8,9 +8,9 @@ router.get('/', getElections)
 router.post('/', createElections)
 // Updating the election
 router.put('/:id', updateElection)
-// Deleting the election
-router.delete('/:id', deleteElection)
 // Delete all elections (superAdmin only)
 router.delete('/delete-all', deleteAllElections)
+// Deleting the election
+router.delete('/:id', deleteElection)
 
 export default router
