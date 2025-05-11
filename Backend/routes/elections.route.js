@@ -1,6 +1,5 @@
 import express from "express";
-import { createElections, deleteElection, getElections, updateElection } from "../controllers/election.controllers.js";
-
+import { createElections, deleteElection, getElections, updateElection, deleteAllElections } from "../controllers/election.controllers.js";
 const router = express.Router();
 
 //Displaying all the elections
@@ -11,5 +10,7 @@ router.post('/', createElections)
 router.put('/:id', updateElection)
 // Deleting the election
 router.delete('/:id', deleteElection)
+// Delete all elections (superAdmin only)
+router.delete('/delete-all', deleteAllElections)
 
 export default router

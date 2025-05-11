@@ -1,5 +1,8 @@
 import mongoose from "mongoose";
 import Election from "../models/election.model.js";
+import Position from "../models/postion.model.js";
+import Candidate from "../models/candidate.model.js";
+import Vote from "../models/votes.model.js";
 
 // Getting all the elections
 export const getElections = async (req, res) => {
@@ -134,3 +137,39 @@ export const deleteElection = async (req, res) => {
   }
   
 }
+
+// Delete all elections
+export const deleteAllElections = async (req, res) => {
+  try {
+    // Check if user is superAdmin
+    if (req.user.role !== "superAdmin") {
+      return res.status(403).json({ 
+        success: false, 
+        message: "Only super admins can delete all elections" 
+      });
+    }
+
+    // Delete all elections
+    await Election.deleteMany({});
+    
+    // Delete all associated positions
+    await Position.deleteMany({});
+    
+    // Delete all associated candidates
+    await Candidate.deleteMany({});
+    
+    // Delete all associated votes
+    await Vote.deleteMany({});
+
+    res.status(200).json({ 
+      success: true, 
+      message: "All elections and associated data have been deleted successfully" 
+    });
+  } catch (error) {
+    console.error("Error deleting all elections:", error);
+    res.status(500).json({ 
+      success: false, 
+      message: "Failed to delete all elections" 
+    });
+  }
+};

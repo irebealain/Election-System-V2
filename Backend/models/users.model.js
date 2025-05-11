@@ -27,24 +27,24 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
   },
-  googleId: {
-    type: String,
-  },
-  profilePic: {
-    type: String,
-    default: ""
-  },
+  // googleId: {
+  //   type: String,
+  // },
+  // profilePic: {
+  //   type: String,
+  //   default: ""
+  // },
   electionId: {
     type: mongoose.Schema.Types.ObjectId,  // Reference to Election model
     ref: "Election",
     required: true
   },  
-  studentId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: "StudentId",
-    unique: true,
-    trim: true
-  },
+  // studentId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: "StudentId",
+  //   unique: true,
+  //   trim: true
+  // },
   level: {
     type: String,
     enum: ["lower", "upper"],  // Restricting values

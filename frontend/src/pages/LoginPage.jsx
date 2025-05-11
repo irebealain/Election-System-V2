@@ -52,6 +52,7 @@ function LoginPage() {
   const [studentLevel, setStudentLevel] = useState("upper"); // Default to "upper" level
   const [currentElectionId, setCurrentElectionId] = useState(null);
   const [superAdminId, setSuperAdminId] = useState(null);
+  const [studentId, setStudentId] = useState(""); // Add student ID state
   // const [formData, setFormData] = useState({ email: "", password: "", role: "" });
   // For animation purposes
   const [showForm, setShowForm] = useState(false);
@@ -177,6 +178,23 @@ function LoginPage() {
       return true;
     }
   };
+
+  const validateStudentId = (id) => {
+    if (!id) {
+      setErrors({ ...errors, studentId: "Student ID is required" });
+      setValidations({ ...validations, studentId: false });
+      return false;
+    } else if (id.length < 3) {
+      setErrors({ ...errors, studentId: "Student ID is too short" });
+      setValidations({ ...validations, studentId: false });
+      return false;
+    } else {
+      setErrors({ ...errors, studentId: null });
+      setValidations({ ...validations, studentId: true });
+      return true;
+    }
+  };
+
   const handleInputChange = (e) => {
     const { id, value } = e.target;
 
@@ -193,6 +211,9 @@ function LoginPage() {
     } else if (id === "confirmPassword") {
       setConfirmPassword(value);
       validateConfirmPassword(value);
+    } else if (id === "studentId") {
+      setStudentId(value);
+      validateStudentId(value);
     }
   };
   const handleSuccessfulLogin = (user) => {
@@ -246,6 +267,12 @@ function LoginPage() {
     onSuccess: async (tokenResponse) => {
       try {
         setLoading(true);
+        if (role === "student" && !studentId) {
+          toast.error("Please enter your student ID");
+          setLoading(false);
+          return;
+        }
+
         // Check if we have an ID token directly
         if (!tokenResponse.id_token) {
           // If we don't have an ID token directly, we need to get it
@@ -283,6 +310,7 @@ function LoginPage() {
           // Send the ID token to your backend
           const response = await axios.post(endpoint, {
             token: idToken,
+            ...(role === "student" && { studentId }),
             ...(role === "student" && { level: studentLevel }),
           });
           
@@ -351,8 +379,9 @@ function LoginPage() {
     const isNameValid = validateName(name);
     const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
     const isStudentLevelValid = role === "student" ? validateStudentLevel(studentLevel) : true;
+    const isStudentIdValid = role === "student" ? validateStudentId(studentId) : true;
 
-    if (!isLogin && (!isEmailValid || !isPasswordValid || !isNameValid || !isConfirmPasswordValid || !isStudentLevelValid)) {
+    if (!isLogin && (!isEmailValid || !isPasswordValid || !isNameValid || !isConfirmPasswordValid || !isStudentLevelValid || (role === "student" && !isStudentIdValid))) {
       toast.custom((t) => (
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
@@ -370,7 +399,7 @@ function LoginPage() {
       return;
     }
 
-    if (isLogin && (!isEmailValid || !isPasswordValid)) {
+    if (isLogin && (!isEmailValid || !isPasswordValid || (role === "student" && !isStudentIdValid))) {
       toast.custom((t) => (
         <motion.div
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
@@ -404,7 +433,12 @@ function LoginPage() {
       if (isLogin) {
         // Handle login
         let endpoint;
-        let payload = { email, password };
+        let payload = { 
+          email, 
+          password, 
+          electionId: currentElectionId,
+          ...(role === "student" && { studentId }) // Only include studentId for student role
+        };
 
         switch (role) {
           case "student":
@@ -484,7 +518,8 @@ function LoginPage() {
               email,
               password,
               electionId: currentElectionId,
-              level: studentLevel
+              level: studentLevel,
+              studentId
             };
             break;
           case "admin":
@@ -506,7 +541,8 @@ function LoginPage() {
               email,
               password,
               electionId: currentElectionId,
-              level: studentLevel
+              level: studentLevel,
+              studentId
             };
         }
 
@@ -869,6 +905,47 @@ function LoginPage() {
                           <p className="text-red-500 text-xs flex items-center mt-1">
                             <AlertCircle size={12} className="mr-1" />{" "}
                             {errors.studentLevel}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {/* Add Student ID field - Only show for student role */}
+                    {role === "student" && (
+                      <div className="space-y-2">
+                        <label
+                          htmlFor="studentId"
+                          className="block text-sm font-medium"
+                        >
+                          Student ID
+                        </label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-muted-foreground">
+                            <User size={18} />
+                          </div>
+                          <input
+                            id="studentId"
+                            value={studentId}
+                            onChange={handleInputChange}
+                            placeholder="Enter your student ID"
+                            className={`w-full h-10 rounded-[20px] border ${
+                              errors.studentId
+                                ? "border-red-500"
+                                : validations.studentId
+                                ? "border-green-500"
+                                : "border-input"
+                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                          />
+                          {validations.studentId && (
+                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
+                              <Check size={18} />
+                            </div>
+                          )}
+                        </div>
+                        {errors.studentId && (
+                          <p className="text-red-500 text-xs flex items-center mt-1">
+                            <AlertCircle size={12} className="mr-1" />{" "}
+                            {errors.studentId}
                           </p>
                         )}
                       </div>

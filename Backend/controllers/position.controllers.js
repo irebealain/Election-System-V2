@@ -15,7 +15,7 @@ export const getPositions = async (req, res) => {
 export const createPositions = async (req, res) => {
   const position = req.body
   // checking all the fields
-  if(!position.name || !position.electionId){
+  if(!position.title || !position.electionId){
     return res.status(400).json({success: false, message: "Please provide all required fields"})
   }
   try {

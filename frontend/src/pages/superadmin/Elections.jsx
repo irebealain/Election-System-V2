@@ -21,7 +21,7 @@ function Elections() {
     endDate: "",
   })
   const [newPosition, setNewPosition] = useState({
-    name: "",
+    title: "",
     electionId: ""
   })
   const [newCandidate, setNewCandidate] = useState({
@@ -32,6 +32,8 @@ function Elections() {
     positionId: "",
     electionId: ""
   })
+  const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false)
+  const [isDeletingAll, setIsDeletingAll] = useState(false)
 
   useEffect(() => {
     document.title = "Elections | Super Admin Dashboard"
@@ -146,7 +148,7 @@ function Elections() {
       })
       toast.success("Position added successfully")
       setNewPosition({
-        name: "",
+        title: "",
         electionId: ""
       })
       setIsAddPositionOpen(false)
@@ -223,6 +225,36 @@ function Elections() {
     }
   }
 
+  const handleDeleteAllElections = async () => {
+    if (!currentUser || currentUser.role !== "superAdmin") {
+      toast.error("Only super admins can delete all elections")
+      return
+    }
+
+    try {
+      setIsDeletingAll(true)
+      const token = localStorage.getItem("token")
+      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/elections/delete-all`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      
+      if (response.data.success) {
+        toast.success("All elections have been deleted successfully")
+        fetchElections() // Refresh the elections list
+      } else {
+        toast.error(response.data.message || "Failed to delete all elections")
+      }
+    } catch (error) {
+      console.error("Error deleting all elections:", error)
+      toast.error(error.response?.data?.message || "Failed to delete all elections")
+    } finally {
+      setIsDeletingAll(false)
+      setIsDeleteAllConfirmOpen(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -230,10 +262,23 @@ function Elections() {
           <h1 className="text-3xl font-bold tracking-tight font-satoshi">Election Management</h1>
           <p className="text-muted-foreground">Create and manage elections, positions, and candidates</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsManageElectionOpen(true)}>
-          <Plus className="mr-2 h-4 w-4" />
-          Create Election
-        </Button>
+        <div className="flex gap-4">
+          {currentUser?.role === "superAdmin" && (
+            <Button 
+              variant="destructive" 
+              className="bg-destructive hover:bg-destructive/90"
+              onClick={() => setIsDeleteAllConfirmOpen(true)}
+              disabled={elections.length === 0 || isDeletingAll}
+            >
+              <Trash className="mr-2 h-4 w-4" />
+              Delete All Elections
+            </Button>
+          )}
+          <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsManageElectionOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Create Election
+          </Button>
+        </div>
       </div>
 
       {/* Election Cards */}
@@ -463,16 +508,16 @@ function Elections() {
 
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label htmlFor="position-name" className="block text-sm font-medium">
-                    Position Name
+                  <label htmlFor="position-title" className="block text-sm font-medium">
+                    Position Title
                   </label>
                   <input
-                    id="position-name"
+                    id="position-title"
                     type="text"
                     placeholder="e.g., President"
                     className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={newPosition.name}
-                    onChange={(e) => setNewPosition({ ...newPosition, name: e.target.value })}
+                    value={newPosition.title}
+                    onChange={(e) => setNewPosition({ ...newPosition, title: e.target.value })}
                   />
                 </div>
               </div>
@@ -484,7 +529,7 @@ function Elections() {
                 <Button 
                   className="bg-primary hover:bg-primary/90"
                   onClick={handleAddPosition}
-                  disabled={!newPosition.name}
+                  disabled={!newPosition.title}
                 >
                   Add Position
                 </Button>
@@ -550,7 +595,7 @@ function Elections() {
                       .filter(p => p.electionId === selectedElection._id)
                       .map(position => (
                         <option key={position._id} value={position._id}>
-                          {position.name}
+                          {position.title}
                         </option>
                       ))}
                   </select>
@@ -594,6 +639,76 @@ function Elections() {
                 >
                   Add Candidate
                 </Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete All Elections Confirmation Dialog */}
+      {isDeleteAllConfirmOpen && (
+        <div className="modal-backdrop p-4">
+          <div className="bg-background rounded-lg shadow-lg max-w-md w-full">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-2xl font-bold text-destructive">Delete All Elections</h2>
+                <Button variant="ghost" size="sm" onClick={() => setIsDeleteAllConfirmOpen(false)}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-4">
+                <div className="bg-destructive/10 p-4 rounded-lg">
+                  <p className="text-destructive font-medium">Warning: This action cannot be undone!</p>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    This will permanently delete all elections, including their associated positions and candidates.
+                    Please make sure you have backed up any important data before proceeding.
+                  </p>
+                </div>
+
+                <div className="flex justify-between mt-6">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setIsDeleteAllConfirmOpen(false)}
+                    disabled={isDeletingAll}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    variant="destructive"
+                    className="bg-destructive hover:bg-destructive/90"
+                    onClick={handleDeleteAllElections}
+                    disabled={isDeletingAll}
+                  >
+                    {isDeletingAll ? (
+                      <span className="flex items-center">
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Deleting...
+                      </span>
+                    ) : (
+                      "Yes, Delete All Elections"
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>

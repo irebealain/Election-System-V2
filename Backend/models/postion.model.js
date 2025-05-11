@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const positionSchema = new mongoose.Schema({
-  name: {
+  title: {
     type: String,
     required: true
   },

@@ -111,10 +111,10 @@ export const userSignup = async (req, res) => {
 
 // Login to a user
 export const userLogin = async (req, res) => {
-  const { email, password, electionId } = req.body;
+  const { email, password, electionId, studentId } = req.body;
   
-  if (!email || !password || !electionId) {
-    return res.status(400).json({ success: false, message: "Please provide all required fields." });
+  if (!email || !password || !electionId || !studentId) {
+    return res.status(400).json({ success: false, message: "Please provide all required fields including student ID." });
   }
 
   try {
@@ -126,6 +126,20 @@ export const userLogin = async (req, res) => {
 
     if (election.status === "completed") {
       return res.status(400).json({ success: false, message: "This election has been completed." });
+    }
+
+    // Verify student ID
+    const validStudentId = await StudentId.findOne({
+      studentId: studentId,
+      electionId: electionId,
+      status: 'available'
+    });
+
+    if (!validStudentId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid student ID or already registered for this election." 
+      });
     }
 
     // Find user
@@ -194,13 +208,11 @@ export const deleteUser = async (req, res) => {
 
 // Sign up the user using Google Auth
 export const googleUserSignup = async (req, res) => {
-  const { token, level } = req.body;
-  if (!token || !level) {
+  const { token, level, studentId } = req.body;
+  if (!token || !level || !studentId) {
     return res.status(400).json({
       success: false,
-      message: "Token and level are required.",
-      token,
-      level,
+      message: "Token, level, and student ID are required.",
     });
   }
   try {
@@ -211,6 +223,21 @@ export const googleUserSignup = async (req, res) => {
         message: "No active election found. Please try again later."
       });
     }
+
+    // Verify student ID
+    const validStudentId = await StudentId.findOne({
+      studentId: studentId,
+      electionId: currentElection._id,
+      status: 'available'
+    });
+
+    if (!validStudentId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid student ID or already registered for this election." 
+      });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -235,8 +262,16 @@ export const googleUserSignup = async (req, res) => {
       role: "student",
       electionId: currentElection._id,
       picture: payload.picture || "",
+      studentId: studentId
     });
     await user.save();
+
+    // Mark student ID as used
+    await StudentId.findByIdAndUpdate(validStudentId._id, {
+      status: 'used',
+      usedBy: user._id
+    });
+
     const jwtToken = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "4d" });
     res.status(201).json({
       success: true,
@@ -251,6 +286,7 @@ export const googleUserSignup = async (req, res) => {
         electionId: currentElection._id,
         picture: user.picture,
         role: user.role,
+        studentId: user.studentId
       },
     });
   } catch (error) {
@@ -261,7 +297,13 @@ export const googleUserSignup = async (req, res) => {
 
 // Login the user using Google Auth
 export const googleUserLogin = async (req, res) => {
-  const { token } = req.body;
+  const { token, studentId } = req.body;
+  if (!token || !studentId) {
+    return res.status(400).json({
+      success: false,
+      message: "Token and student ID are required."
+    });
+  }
   try {
     const currentElection = await Election.findOne({ status: { $in: ['ongoing', 'upcoming'] } });
     if (!currentElection) {
@@ -270,6 +312,21 @@ export const googleUserLogin = async (req, res) => {
         message: "No active election found. Please try again later."
       });
     }
+
+    // Verify student ID
+    const validStudentId = await StudentId.findOne({
+      studentId: studentId,
+      electionId: currentElection._id,
+      status: 'available'
+    });
+
+    if (!validStudentId) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Invalid student ID or already registered for this election." 
+      });
+    }
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_ID,
@@ -295,6 +352,7 @@ export const googleUserLogin = async (req, res) => {
         electionId: currentElection._id,
         picture: picture,
         role: user.role,
+        studentId: user.studentId
       },
     });
   } catch (error) {
