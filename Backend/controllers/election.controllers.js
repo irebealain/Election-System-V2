@@ -3,7 +3,7 @@ import Election from "../models/election.model.js";
 import Position from "../models/postion.model.js";
 import Candidate from "../models/candidate.model.js";
 import Vote from "../models/votes.model.js";
-
+import StudentId from "../models/studentId.model.js";
 // Getting all the elections
 export const getElections = async (req, res) => {
   try {
@@ -43,6 +43,12 @@ const updateElectionStatuses = async () => {
       if (election.endDate <= now) {
         election.status = "completed"
         await election.save()
+        
+        // Mark all student IDs for this election as used
+        await StudentId.updateMany(
+          { electionId: election._id, status: 'available' },
+          { status: 'used' }
+        )
       } else if (election.startDate <= now && election.endDate > now) {
         election.status = "ongoing"
         await election.save()
@@ -130,12 +136,36 @@ export const updateElection = async (req, res) => {
 export const deleteElection = async (req, res) => {
   const {id} = req.params
   try {
-    await Election.findByIdAndDelete(id)
-    res.status(200).json({success: true, message: "Election deleted."})
+    // Delete the election
+    const deletedElection = await Election.findByIdAndDelete(id)
+    
+    if (!deletedElection) {
+      return res.status(404).json({success: false, message: "Election not found."})
+    }
+
+    // Delete all associated positions
+    await Position.deleteMany({ electionId: id });
+    
+    // Delete all associated candidates
+    await Candidate.deleteMany({ electionId: id });
+    
+    // Delete all associated votes
+    await Vote.deleteMany({ electionId: id });
+
+    // Delete all associated student IDs
+    await StudentId.deleteMany({ electionId: id });
+
+    res.status(200).json({
+      success: true, 
+      message: "Election and all associated data have been deleted successfully."
+    })
   } catch (error) {
-    res.status(404).json({success: false, message: "Election not found."})
+    console.error("Error deleting election:", error);
+    res.status(500).json({
+      success: false, 
+      message: "Failed to delete election and associated data."
+    })
   }
-  
 }
 
 // Delete all elections
@@ -161,6 +191,9 @@ export const deleteAllElections = async (req, res) => {
     // Delete all associated votes
     await Vote.deleteMany({});
 
+    // Delete all associated studentIds
+    await StudentId.deleteMany({});
+    
     res.status(200).json({ 
       success: true, 
       message: "All elections and associated data have been deleted successfully" 

@@ -77,7 +77,7 @@ export const userSignup = async (req, res) => {
 
     await newUser.save();
 
-    // Mark student ID as used
+    // Mark student ID as used and associate it with the user
     await StudentId.findByIdAndUpdate(validStudentId._id, {
       status: 'used',
       usedBy: newUser._id
@@ -111,47 +111,45 @@ export const userSignup = async (req, res) => {
 
 // Login to a user
 export const userLogin = async (req, res) => {
-  const { email, password, electionId, studentId } = req.body;
-  
-  if (!email || !password || !electionId || !studentId) {
-    return res.status(400).json({ success: false, message: "Please provide all required fields including student ID." });
-  }
+  const { email, password, studentId } = req.body;
 
   try {
-    // Check if election exists and is active
-    const election = await Election.findById(electionId);
-    if (!election) {
-      return res.status(404).json({ success: false, message: "Election not found." });
-    }
-
-    if (election.status === "completed") {
-      return res.status(400).json({ success: false, message: "This election has been completed." });
-    }
-
-    // Verify student ID
-    const validStudentId = await StudentId.findOne({
-      studentId: studentId,
-      electionId: electionId,
-      status: 'available'
-    });
-
-    if (!validStudentId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid student ID or already registered for this election." 
-      });
-    }
-
-    // Find user
-    const user = await User.findOne({ email, electionId });
+    // Find user by email
+    const user = await User.findOne({ email });
     if (!user) {
-      return res.status(404).json({ success: false, message: "User not found for this election." });
+      return res.status(404).json({ success: false, message: "User not found." });
     }
 
     // Verify password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ success: false, message: "Invalid credentials." });
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({ success: false, message: "Invalid password." });
+    }
+
+    // If student ID is provided, validate it
+    if (studentId) {
+      const validStudentId = await StudentId.findOne({
+        studentId: studentId,
+        electionId: user.electionId,
+        status: 'available'
+      });
+
+      if (!validStudentId) {
+        return res.status(400).json({ 
+          success: false, 
+          message: "Invalid student ID or already registered for this election." 
+        });
+      }
+
+      // Mark student ID as used and associate it with the user
+      await StudentId.findByIdAndUpdate(validStudentId._id, {
+        status: 'used',
+        usedBy: user._id
+      });
+
+      // Update user's student ID
+      user.studentId = studentId;
+      await user.save();
     }
 
     // Generate JWT token
@@ -159,7 +157,7 @@ export const userLogin = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: "User logged in successfully.",
+      message: "Login successful.",
       data: {
         token,
         user: {
@@ -175,7 +173,7 @@ export const userLogin = async (req, res) => {
       }
     });
   } catch (error) {
-    console.error("Error in login User:", error.message);
+    console.error("Error in user login:", error.message);
     res.status(500).json({ success: false, message: "Server Error" });
   }
 };
@@ -266,7 +264,7 @@ export const googleUserSignup = async (req, res) => {
     });
     await user.save();
 
-    // Mark student ID as used
+    // Mark student ID as used and associate it with the user
     await StudentId.findByIdAndUpdate(validStudentId._id, {
       status: 'used',
       usedBy: user._id
@@ -338,6 +336,17 @@ export const googleUserLogin = async (req, res) => {
     if (!user) {
       return googleUserSignup(req, res);
     }
+
+    // Mark student ID as used and associate it with the user
+    await StudentId.findByIdAndUpdate(validStudentId._id, {
+      status: 'used',
+      usedBy: user._id
+    });
+
+    // Update user's student ID
+    user.studentId = studentId;
+    await user.save();
+
     const appToken = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "4d" });
     res.status(200).json({
       success: true,

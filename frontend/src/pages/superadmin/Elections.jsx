@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/common/Card"
 import Button from "../../components/common/Button"
-import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock } from "lucide-react"
+import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "../../lib/axios"
 import { useAuth } from "../../context/AuthContext"
+import { uploadStudentIdsExcel } from '../../services/studentIdService'
 
 function Elections() {
   const { currentUser } = useAuth()
@@ -34,6 +35,7 @@ function Elections() {
   })
   const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false)
   const [isDeletingAll, setIsDeletingAll] = useState(false)
+  const [isUploading, setIsUploading] = useState(false)
 
   useEffect(() => {
     document.title = "Elections | Super Admin Dashboard"
@@ -112,6 +114,15 @@ function Elections() {
       })
 
       if (response.data.success) {
+        // Store the newly created election ID
+        const newElectionId = response.data.data._id;
+        
+        // If there's a file selected, upload it
+        const fileInput = document.getElementById('studentIdsUpload');
+        if (fileInput && fileInput.files.length > 0) {
+          await handleExcelUpload(fileInput.files[0], newElectionId);
+        }
+
         toast.success("Election created successfully")
         setNewElection({
           title: "",
@@ -128,6 +139,84 @@ function Elections() {
       toast.error(error.response?.data?.message || "Failed to create election")
     }
   }
+
+  const handleExcelUpload = async (file, electionId) => {
+    if (!file) return;
+
+    // Validate file type
+    if (!file.name.match(/\.(xlsx|xls)$/)) {
+      toast.error('Please upload an Excel file (.xlsx or .xls)');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      
+      // Create FormData object
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('electionId', electionId);
+
+      // Make API call to upload student IDs
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/superadmins/upload-student-ids`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        }
+      );
+
+      if (response.data.success) {
+        toast.success(
+          `Successfully uploaded ${response.data.count} student IDs to the election!`,
+          {
+            duration: 5000,
+            style: {
+              background: '#f0fdf4',
+              color: '#166534',
+              border: '1px solid #bbf7d0',
+              padding: '16px',
+              borderRadius: '8px',
+            },
+            icon: '✅',
+          }
+        );
+      } else {
+        throw new Error(response.data.message || 'Failed to upload student IDs');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(
+        error.response?.data?.message || 'Failed to upload student IDs',
+        {
+          duration: 5000,
+          style: {
+            background: '#fef2f2',
+            color: '#991b1b',
+            border: '1px solid #fecaca',
+            padding: '16px',
+            borderRadius: '8px',
+          },
+          icon: '❌',
+        }
+      );
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleFileSelect = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      // Just store the file, we'll upload it after election creation
+      setNewElection(prev => ({
+        ...prev,
+        studentIdFile: file
+      }));
+    }
+  };
 
   const handleAddPosition = async () => {
     try {
@@ -471,6 +560,39 @@ function Elections() {
                       min={newElection.startDate}
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    Upload Student IDs (Excel)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('studentIdsUpload').click()}
+                      disabled={isUploading}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Select Student IDs File'}
+                    </Button>
+                    <input
+                      id="studentIdsUpload"
+                      type="file"
+                      className="hidden"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileSelect}
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Upload an Excel file containing student IDs. The file should have student IDs in the first column.
+                    {newElection.studentIdFile && (
+                      <span className="block mt-1 text-green-600">
+                        File selected: {newElection.studentIdFile.name}
+                      </span>
+                    )}
+                  </p>
                 </div>
               </div>
 

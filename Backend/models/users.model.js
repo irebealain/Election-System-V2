@@ -39,12 +39,12 @@ const userSchema = new mongoose.Schema({
     ref: "Election",
     required: true
   },  
-  // studentId: {
-  //   type: mongoose.Schema.Types.ObjectId,
-  //   ref: "StudentId",
-  //   unique: true,
-  //   trim: true
-  // },
+  studentId: {
+    type: String,
+    required: true,
+    unique: true,
+    trim: true
+  },
   level: {
     type: String,
     enum: ["lower", "upper"],  // Restricting values

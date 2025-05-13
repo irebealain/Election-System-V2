@@ -13,9 +13,8 @@ import { useNavigate } from "react-router-dom"
 import { Avatar, AvatarFallback, AvatarImage } from "../../components/common/Avatar"
 import { Badge } from "../../components/common/Badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "../../components/common/DropdownMenu"
-import { MoreHorizontal, Upload } from "lucide-react"
+import { MoreHorizontal } from "lucide-react"
 import { saveAs } from "file-saver"
-import { uploadStudentIdsExcel } from '../../services/studentIdService'
 
 function Students() {
   const [students, setStudents] = useState([])
@@ -151,65 +150,6 @@ function Students() {
     setIsDetailsDialogOpen(true);
   };
 
-  const handleExcelUpload = async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
-
-    if (!currentElection) {
-      toast.error('Please select an election first');
-      return;
-    }
-
-    // Validate file type
-    if (!file.name.match(/\.(xlsx|xls)$/)) {
-      toast.error('Please upload an Excel file (.xlsx or .xls)');
-      return;
-    }
-
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('electionId', currentElection._id);
-
-      const result = await uploadStudentIdsExcel(file, currentElection._id);
-      
-      // Enhanced success toast
-      toast.success(
-        `Successfully uploaded ${result.count} student IDs to the election!`,
-        {
-          duration: 5000,
-          style: {
-            background: '#f0fdf4',
-            color: '#166534',
-            border: '1px solid #bbf7d0',
-            padding: '16px',
-            borderRadius: '8px',
-          },
-          icon: '✅',
-        }
-      );
-      
-      // Refresh the student list
-      fetchData();
-    } catch (error) {
-      console.error('Upload error:', error);
-      toast.error(
-        error.response?.data?.message || 'Failed to upload student IDs',
-        {
-          duration: 5000,
-          style: {
-            background: '#fef2f2',
-            color: '#991b1b',
-            border: '1px solid #fecaca',
-            padding: '16px',
-            borderRadius: '8px',
-          },
-          icon: '❌',
-        }
-      );
-    }
-  };
-
   const handleDeleteAllStudents = async () => {
     try {
       const result = await deleteAllStudents();
@@ -259,17 +199,6 @@ function Students() {
           <Button variant="outline" size="sm" onClick={handleExport} className="text-xs">
             <Download className="h-4 w-4 mr-2" />
             Export
-          </Button>
-          <Button size="sm" onClick={() => document.getElementById('excelUpload').click()} className="text-xs">
-            <Upload className="h-4 w-4 mr-2" />
-            Upload Excel
-            <input
-              id="excelUpload"
-              type="file"
-              className="hidden"
-              accept=".xlsx,.xls"
-              onChange={handleExcelUpload}
-            />
           </Button>
           <Button size="sm" onClick={handleAddStudent} className="text-xs">
             <Plus className="h-4 w-4 mr-2" />
