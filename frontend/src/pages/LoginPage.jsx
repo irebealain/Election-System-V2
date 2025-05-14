@@ -564,7 +564,8 @@ function LoginPage() {
               className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
             >
               <Check className="h-5 w-5" />
-              <span>Account created successfully! Welcome, {user.firstName}! 🎉</span>
+              {isLogin ? "Welcome back, " : "Account created successfully! Welcome, "} {user.firstName}! 🎉
+              {/* <span>Account created successfully! Welcome, {user.firstName}! 🎉</span> */}
             </motion.div>
           ), {
             duration: 3000,

@@ -138,26 +138,26 @@ function Elections() {
     if (!position) return
 
     // Check if user has already voted for this position
-    if (votes[position.name] && votes[position.name] !== candidateId) {
+    if (votes[position.title] && votes[position.title] !== candidateId) {
       // If changing vote, update it
       setVotes({
         ...votes,
-        [position.name]: candidateId,
+        [position.title]: candidateId,
       })
-      toast.success(`Vote updated for ${position.name}`)
-    } else if (!votes[position.name]) {
+      toast.success(`Vote updated for ${position.title}`)
+    } else if (!votes[position.title]) {
       // If not voted for this position yet, add the vote
       setVotes({
         ...votes,
-        [position.name]: candidateId,
+        [position.title]: candidateId,
       })
-      toast.success(`Vote recorded for ${position.name}`)
+      toast.success(`Vote recorded for ${position.title}`)
     } else {
       // If clicking on the same candidate, remove the vote
       const newVotes = { ...votes }
-      delete newVotes[position.name]
+      delete newVotes[position.title]
       setVotes(newVotes)
-      toast.success(`Vote removed for ${position.name}`)
+      toast.success(`Vote removed for ${position.title}`)
     }
 
     // Update voting progress
@@ -198,7 +198,7 @@ function Elections() {
     try {
       // Submit votes for each position
       const votePromises = Object.entries(votes).map(async ([positionName, candidateId]) => {
-        const position = positions.find(p => p.name === positionName)
+        const position = positions.find(p => p.title === positionName)
         const candidate = candidates.find(c => c._id === candidateId)
         
         if (!position || !candidate) {
@@ -252,8 +252,8 @@ function Elections() {
 
   const getUnvotedPositions = () => {
     return positions
-      .filter(position => !votes[position.name])
-      .map(position => position.name)
+      .filter(position => !votes[position.title])
+      .map(position => position.title)
   }
 
   // Group candidates by position
@@ -261,10 +261,10 @@ function Elections() {
     const position = positions.find(p => p._id === candidate.positionId)
     if (!position) return acc
 
-    if (!acc[position.name]) {
-      acc[position.name] = []
+    if (!acc[position.title]) {
+      acc[position.title] = []
     }
-    acc[position.name].push(candidate)
+    acc[position.title].push(candidate)
     return acc
   }, {})
 
@@ -435,18 +435,18 @@ function Elections() {
                   key={position._id}
                   className={cn(
                     "p-4 rounded-lg border transition-colors duration-200",
-                    hasVoted || votes[position.name]
+                    hasVoted || votes[position.title]
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
                       : "border-muted hover:border-primary/50"
                   )}
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="font-medium mb-1">{position.name}</p>
+                  <p className="font-medium mb-1">{position.title}</p>
                   <p className="text-sm text-muted-foreground">
-                    {votes[position.name]
-                      ? candidates.find((c) => c._id === votes[position.name])?.firstName + " " +
-                        candidates.find((c) => c._id === votes[position.name])?.lastName
+                    {votes[position.title]
+                      ? candidates.find((c) => c._id === votes[position.title])?.firstName + " " +
+                        candidates.find((c) => c._id === votes[position.title])?.lastName
                       : "Not voted yet"}
                   </p>
                 </motion.div>
@@ -638,7 +638,7 @@ function Elections() {
                   {selectedCandidate.firstName} {selectedCandidate.lastName}
                 </h3>
                 <p className="text-muted-foreground mb-4">
-                  Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                  Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.title}
                 </p>
 
                 <div className="grid gap-4 py-4">
@@ -651,7 +651,7 @@ function Elections() {
                         {selectedCandidate.firstName} {selectedCandidate.lastName}
                       </h4>
                       <p className="text-sm text-muted-foreground">
-                        {positions.find(p => p._id === selectedCandidate.positionId)?.name}
+                        {positions.find(p => p._id === selectedCandidate.positionId)?.title}
                       </p>
                     </div>
                   </div>
@@ -675,19 +675,19 @@ function Elections() {
                       setDialogOpen(false)
                     }}
                     variant={
-                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
                         ? "destructive"
                         : "default"
                     }
                     className={cn(
                       "transition-colors duration-200",
-                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
                         ? ""
                         : "bg-primary hover:bg-primary/90"
                     )}
                     disabled={hasVoted}
                   >
-                    {votes[positions.find(p => p._id === selectedCandidate.positionId)?.name] === selectedCandidate._id
+                    {votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
                       ? "Remove Vote"
                       : "Vote"}
                   </Button>

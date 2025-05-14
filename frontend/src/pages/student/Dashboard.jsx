@@ -213,7 +213,7 @@ function StudentDashboard() {
                         outerRadius={60}
                         paddingAngle={5}
                     dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
                         <Cell fill="#10B981" />
                         <Cell fill="#F59E0B" />
@@ -270,7 +270,7 @@ function StudentDashboard() {
                         outerRadius={60}
                         paddingAngle={5}
                     dataKey="value"
-                        label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {levelChartData.map((entry, index) => (
                         <Cell 
@@ -351,6 +351,7 @@ function StudentDashboard() {
                         verticalAlign="bottom" 
                         height={36}
                         formatter={(value) => <span className="text-xs">{value}</span>}
+                        wrapperStyle={{ opacity: 0.8 }}
                       />
                       <Bar 
                         dataKey="candidates" 
