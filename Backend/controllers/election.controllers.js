@@ -233,3 +233,66 @@ export const deleteAllElections = async (req, res) => {
     });
   }
 };
+
+// Get election results
+export const getElectionResults = async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // Find the election
+    const election = await Election.findById(id);
+    if (!election) {
+      return res.status(404).json({ success: false, message: "Election not found." });
+    }
+
+    // Get all positions for this election
+    const positions = await Position.find({ electionId: id });
+    
+    // Get all candidates for this election
+    const candidates = await Candidate.find({ electionId: id });
+    
+    // Get all votes for this election
+    const votes = await Vote.find({ electionId: id });
+
+    // Calculate results for each position
+    const results = positions.map(position => {
+      const positionCandidates = candidates.filter(c => c.positionId === position._id);
+      const positionVotes = votes.filter(v => v.positionId === position._id);
+      const totalVotes = positionVotes.length;
+
+      const candidateResults = positionCandidates.map(candidate => {
+        const voteCount = positionVotes.filter(v => v.candidateId === candidate._id).length;
+        return {
+          candidateId: candidate._id,
+          name: `${candidate.firstName} ${candidate.lastName}`,
+          votes: voteCount,
+          percentage: totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0
+        };
+      }).sort((a, b) => b.votes - a.votes);
+
+      return {
+        positionId: position._id,
+        positionTitle: position.title,
+        totalVotes,
+        candidates: candidateResults
+      };
+    });
+
+    res.status(200).json({
+      success: true,
+      data: {
+        election: {
+          id: election._id,
+          title: election.title,
+          startDate: election.startDate,
+          endDate: election.endDate,
+          status: election.status
+        },
+        results
+      }
+    });
+  } catch (error) {
+    console.error("Error getting election results:", error);
+    res.status(500).json({ success: false, message: "Failed to get election results" });
+  }
+};

@@ -428,7 +428,7 @@ function StudentDashboard() {
                         {currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
                           ? 'Voted'
                           : 'Not Voted'}
-                      </span>
+                        </span>
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">
                       {student.createdAt ? (

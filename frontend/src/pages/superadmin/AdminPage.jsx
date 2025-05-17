@@ -37,25 +37,25 @@ function AdminPage() {
         return
       }
 
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/superadmins/approve/${adminId}`,
-        {},
-        {
-          headers: {
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/superadmins/approve/${adminId}`,
+          {},
+          {
+            headers: {
             'Authorization': `Bearer ${token}`
           }
         }
       )
-
-      if (response.data.success) {
-        setAdmins(admins.map(admin => 
-          admin._id === adminId 
+        
+        if (response.data.success) {
+          setAdmins(admins.map(admin => 
+            admin._id === adminId 
             ? { ...admin, status: 'approved' }
-            : admin
+              : admin
         ))
         toast.success('Admin approved successfully')
         setSelectedAdmin(null)
-      }
+        }
     } catch (error) {
       console.error('Error approving admin:', error)
       toast.error(error.response?.data?.message || 'Failed to approve admin')
@@ -70,23 +70,23 @@ function AdminPage() {
       if (!token) {
         toast.error('Please login again')
         return
-      }
+        }
 
-      const response = await axios.put(
-        `${import.meta.env.VITE_API_URL}/api/superadmins/reject/${adminId}`,
-        {},
-        {
-          headers: {
+        const response = await axios.put(
+          `${import.meta.env.VITE_API_URL}/api/superadmins/reject/${adminId}`,
+          {},
+          {
+            headers: {
             'Authorization': `Bearer ${token}`
           }
         }
       )
-
-      if (response.data.success) {
-        setAdmins(admins.map(admin => 
-          admin._id === adminId 
+        
+        if (response.data.success) {
+          setAdmins(admins.map(admin => 
+            admin._id === adminId 
             ? { ...admin, status: 'rejected' }
-            : admin
+              : admin
         ))
         toast.success('Admin rejected successfully')
         setSelectedAdmin(null)
@@ -114,7 +114,7 @@ function AdminPage() {
           }
         }
       )
-
+      
       if (response.data.success) {
         setAdmins(admins.filter(admin => admin._id !== adminId))
         toast.success('Admin deleted successfully')
@@ -162,9 +162,9 @@ function AdminPage() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight font-satoshi">Administrators Management</h1>
-          <p className="text-muted-foreground">Manage and approve administrator access requests.</p>
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight font-satoshi">Administrators Management</h1>
+        <p className="text-muted-foreground">Manage and approve administrator access requests.</p>
         </div>
         <Button 
           variant="destructive" 
@@ -272,13 +272,13 @@ function AdminPage() {
                                   </button>
                                 </>
                               )}
-                              <button
-                                onClick={() => handleDelete(admin._id)}
-                                className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete
-                              </button>
+                                  <button
+                                    onClick={() => handleDelete(admin._id)}
+                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                  >
+                                    <Trash2 className="w-4 h-4 mr-2" />
+                                    Delete
+                                  </button>
                             </div>
                           </div>
                         )}
@@ -315,8 +315,8 @@ function AdminPage() {
               </Button>
             </div>
           </div>
-        </div>
-      )}
+            </div>
+          )}
     </div>
   )
 }

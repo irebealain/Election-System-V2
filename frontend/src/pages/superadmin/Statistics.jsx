@@ -9,10 +9,12 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import { Download, Trophy, Calendar, Users, CheckCircle2, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
 import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+import PDFGenerator from '../../components/PDFGenerator';
 
 // Position icons mapping
 const positionIcons = {
@@ -135,6 +137,8 @@ function ElectionStats() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
   const canvasRef = useRef(null);
+  const pdfGeneratorRef = useRef(null);
+  const [isPdfGeneratorReady, setIsPdfGeneratorReady] = useState(false);
 
   useEffect(() => {
     fetchData();
@@ -206,37 +210,43 @@ function ElectionStats() {
 
   const handleDownloadResults = async (election) => {
     try {
-      const results = await getElectionResults(election._id);
+      console.log('Starting download process for election:', election);
       
-      // Format data for Excel
-      const excelData = positions.map(position => {
-        const positionCandidates = candidates.filter(c => c.positionId === position._id);
-        const positionVotes = votes.filter(v => v.positionId === position._id);
-        
-        return {
-          Position: position.title,
-          Candidates: positionCandidates.map(candidate => {
-            const voteCount = positionVotes.filter(v => v.candidateId === candidate._id).length;
-            return {
-              Name: `${candidate.firstName} ${candidate.lastName}`,
-              Votes: voteCount,
-              Percentage: `${((voteCount / positionVotes.length) * 100).toFixed(2)}%`
-            };
-          })
-        };
-      });
+      if (!pdfGeneratorRef.current) {
+        console.error('PDF Generator ref is not available');
+        toast.error('Please wait while the PDF generator initializes...');
+        return;
+      }
 
-      // Create workbook and worksheet
-      const wb = XLSX.utils.book_new();
-      const ws = XLSX.utils.json_to_sheet(excelData);
-      XLSX.utils.book_append_sheet(wb, ws, 'Results');
-
-      // Save file
-      const excelBuffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-      const blob = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      saveAs(blob, `election_results_${election.name}_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+      // Set the selected election first
+      setSelectedElection(election);
       
-      toast.success('Results downloaded successfully');
+      // Wait for the PDFGenerator to be ready
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const waitForGenerator = async () => {
+        if (pdfGeneratorRef.current.isReady) {
+          console.log('PDF Generator is ready, proceeding with generation');
+          const results = await getElectionResults(election._id);
+          const success = await pdfGeneratorRef.current.generatePDF();
+          
+          if (success) {
+            toast.success('Results downloaded successfully');
+          } else {
+            toast.error('Failed to generate PDF');
+          }
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          console.log(`Waiting for PDF Generator to be ready (attempt ${attempts}/${maxAttempts})`);
+          setTimeout(waitForGenerator, 500);
+        } else {
+          console.error('PDF Generator failed to initialize after multiple attempts');
+          toast.error('Failed to initialize PDF generator. Please try again.');
+        }
+      };
+
+      waitForGenerator();
     } catch (error) {
       console.error('Error downloading results:', error);
       toast.error('Failed to download results');
@@ -571,6 +581,14 @@ function ElectionStats() {
           </div>
         </div>
       )}
+
+      {/* Add PDF Generator */}
+      <PDFGenerator
+        ref={pdfGeneratorRef}
+        election={selectedElection}
+        positions={positions}
+        getPositionResults={getPositionResults}
+      />
     </div>
   );
 }
