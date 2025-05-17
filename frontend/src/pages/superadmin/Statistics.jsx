@@ -232,7 +232,7 @@ function ElectionStats() {
           const success = await pdfGeneratorRef.current.generatePDF();
           
           if (success) {
-            toast.success('Results downloaded successfully');
+      toast.success('Results downloaded successfully');
           } else {
             toast.error('Failed to generate PDF');
           }

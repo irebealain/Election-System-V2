@@ -526,11 +526,12 @@ function Elections() {
                     votes[positionName] === candidate._id ? 'border-primary' : ''
                   )}>
                     <CardHeader className="p-0">
-                      <div className="relative h-48 w-full">
+                      <div className="relative h-48 w-full overflow-hidden">
                         <img
                           src={candidate.profilePic || "/placeholder.svg"}
                           alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="object-cover w-full h-full"
+                          className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
+                          loading="lazy"
                         />
                         {hasVoted && (
                           <div className="absolute top-2 right-2">

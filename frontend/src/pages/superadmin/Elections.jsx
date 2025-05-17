@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/common/Card"
 import Button from "../../components/common/Button"
-import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload } from "lucide-react"
+import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload, User } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "../../lib/axios"
 import { useAuth } from "../../context/AuthContext"
 import { uploadStudentIdsExcel } from '../../services/studentIdService'
+import { uploadImage } from "../../services/uploadService"
 
 function Elections() {
   const { currentUser } = useAuth()
@@ -36,6 +37,7 @@ function Elections() {
   const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false)
   const [isDeletingAll, setIsDeletingAll] = useState(false)
   const [isUploading, setIsUploading] = useState(false)
+  const [uploadedImage, setUploadedImage] = useState(null)
 
   useEffect(() => {
     document.title = "Elections | Super Admin Dashboard"
@@ -340,6 +342,42 @@ function Elections() {
       setIsDeleteAllConfirmOpen(false)
     }
   }
+
+  const handleImageUpload = async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
+      toast.error('Please upload a valid image file (JPEG, JPG, or PNG)');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('Image size should be less than 5MB');
+      return;
+    }
+
+    try {
+      setIsUploading(true);
+      const response = await uploadImage(file);
+      
+      if (response.success) {
+        setUploadedImage(response.data.url);
+        setNewCandidate(prev => ({
+          ...prev,
+          profilePic: response.data.url
+        }));
+        toast.success('Image uploaded successfully');
+      }
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast.error(error.message || 'Failed to upload image');
+    } finally {
+      setIsUploading(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -733,17 +771,52 @@ function Elections() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="candidate-profile" className="block text-sm font-medium">
-                    Profile Picture URL
+                  <label className="block text-sm font-medium">
+                    Profile Picture
                   </label>
-                  <input
-                    id="candidate-profile"
-                    type="text"
-                    placeholder="https://example.com/profile.jpg"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    value={newCandidate.profilePic}
-                    onChange={(e) => setNewCandidate({ ...newCandidate, profilePic: e.target.value })}
-                  />
+                  <div className="flex items-center gap-4">
+                    <div className="relative">
+                      <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                        {uploadedImage ? (
+                          <img
+                            src={uploadedImage}
+                            alt="Profile preview"
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <User className="w-12 h-12 text-gray-400" />
+                        )}
+                      </div>
+                      {isUploading && (
+                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => document.getElementById('profile-upload').click()}
+                        disabled={isUploading}
+                        className="w-full"
+                      >
+                        <Upload className="h-4 w-4 mr-2" />
+                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                      </Button>
+                      <input
+                        id="profile-upload"
+                        type="file"
+                        accept="image/jpeg,image/jpg,image/png"
+                        className="hidden"
+                        onChange={handleImageUpload}
+                      />
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Upload a profile picture (max 5MB, JPEG/PNG)
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
 
