@@ -23,7 +23,7 @@ function NotificationBell() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`
           }
         }
       );
@@ -56,7 +56,7 @@ function NotificationBell() {
         {},
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            Authorization: `Bearer ${localStorage.getItem('authToken')}`
           }
         }
       );
@@ -78,6 +78,16 @@ function NotificationBell() {
       console.error("Error rejecting admin:", error);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('authToken');
+      if (!token) return;
+      // ... existing code ...
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
     }
   };
   

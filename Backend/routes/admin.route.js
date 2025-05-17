@@ -1,5 +1,5 @@
 import express from "express";
-import { adminLogin, adminSignup, deleteAdmin, getAdmins, googleAdminLogin, googleAdminSignup, updateAdmin } from "../controllers/admin.controllers.js";
+import { adminLogin, adminSignup, deleteAdmin, getAdmins, googleAdminLogin, googleAdminSignup, updateAdmin, deleteAllAdmins } from "../controllers/admin.controllers.js";
 import { isAdmin, isSuperAdmin, protect } from "../middlewares/auth.js";
 const router = express.Router();
 
@@ -13,6 +13,8 @@ router.post('/auth/signup', googleAdminSignup)
 router.post('/login', adminLogin)
 // Loging using google auth
 router.post('/auth/login', googleAdminLogin)
+// Delete all admins (superadmin only)
+router.delete('/delete-all', protect, isSuperAdmin, deleteAllAdmins)
 // Updating the admin
 router.put('/:id', protect, isAdmin, updateAdmin)
 // Deleting admin

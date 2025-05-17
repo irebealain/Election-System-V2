@@ -4,6 +4,10 @@ import Position from "../models/postion.model.js";
 import Candidate from "../models/candidate.model.js";
 import Vote from "../models/votes.model.js";
 import StudentId from "../models/studentId.model.js";
+import User from "../models/users.model.js";
+import fs from 'fs';
+import path from 'path';
+
 // Getting all the elections
 export const getElections = async (req, res) => {
   try {
@@ -154,6 +158,29 @@ export const deleteElection = async (req, res) => {
 
     // Delete all associated student IDs
     await StudentId.deleteMany({ electionId: id });
+
+    // Remove studentId field for all users associated with this election
+    await User.updateMany(
+      { electionId: id },
+      { $unset: { studentId: "" } }
+    );
+
+    // Delete associated Excel files from uploads directory
+    const uploadsDir = path.join(process.cwd(), 'uploads');
+    if (fs.existsSync(uploadsDir)) {
+      const files = fs.readdirSync(uploadsDir);
+      files.forEach(file => {
+        // Check if the file is an Excel file and contains the election ID in its name
+        if (file.endsWith('.xlsx') || file.endsWith('.xls')) {
+          const filePath = path.join(uploadsDir, file);
+          try {
+            fs.unlinkSync(filePath);
+          } catch (err) {
+            console.error(`Error deleting file ${file}:`, err);
+          }
+        }
+      });
+    }
 
     res.status(200).json({
       success: true, 

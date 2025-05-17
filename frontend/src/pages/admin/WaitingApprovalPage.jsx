@@ -29,9 +29,9 @@ function WaitingApprovalPage() {
   };
   
   return (
-    <div className="min-h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background dark:bg-gray-900">
       {/* Header */}
-      <header className="bg-white shadow-sm">
+      <header className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             <Link to="/" className="flex items-center">
@@ -47,7 +47,7 @@ function WaitingApprovalPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-md w-full bg-white rounded-[20px] shadow-lg p-8 text-center"
+          className="max-w-md w-full bg-white dark:bg-gray-800 rounded-[20px] shadow-lg p-8 text-center"
         >
           <motion.div
             initial={{ scale: 0 }}
@@ -55,8 +55,8 @@ function WaitingApprovalPage() {
             transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
             className="flex justify-center mb-6"
           >
-            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-              <Clock className="w-8 h-8 text-primary" />
+            <div className="w-16 h-16 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center">
+              <Clock className="w-8 h-8 text-primary dark:text-primary-400" />
             </div>
           </motion.div>
 
@@ -64,7 +64,7 @@ function WaitingApprovalPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="text-2xl font-bold mb-4 font-satoshi"
+            className="text-2xl font-bold mb-4 font-satoshi text-gray-900 dark:text-gray-100"
           >
             Account Pending Approval
           </motion.h1>
@@ -73,7 +73,7 @@ function WaitingApprovalPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="text-gray-600 mb-8"
+            className="text-gray-600 dark:text-gray-300 mb-8"
           >
             Your admin account is waiting for approval. You'll be notified once 
             your account has been approved by a super admin.
@@ -85,8 +85,8 @@ function WaitingApprovalPage() {
             transition={{ delay: 0.5 }}
             className="space-y-4"
           >
-            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500">
-              <Clock className="w-4 h-4 text-primary" />
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+              <Clock className="w-4 h-4 text-primary dark:text-primary-400" />
               <span>Waiting for review</span>
             </div>
           </motion.div>
@@ -100,7 +100,7 @@ function WaitingApprovalPage() {
             <Button
               onClick={handleLogout}
               variant="outline"
-              className="w-full flex items-center justify-center space-x-2"
+              className="w-full flex items-center justify-center space-x-2 hover:bg-gray-100 dark:hover:bg-gray-700"
             >
               <LogOut className="w-4 h-4" />
               <span>Logout</span>

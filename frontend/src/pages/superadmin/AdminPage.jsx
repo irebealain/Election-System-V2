@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
 import axios from "axios"
@@ -8,24 +8,8 @@ import { MoreVertical, Check, X, User, Trash2, Clock } from "lucide-react"
 function AdminPage() {
   const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
-  const [currentPage, setCurrentPage] = useState(1)
-  const [activeDropdown, setActiveDropdown] = useState(null)
-  const dropdownRef = useRef(null)
-  const itemsPerPage = 10
-
-  // Handle click outside dropdown
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setActiveDropdown(null)
-      }
-    }
-
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
-    }
-  }, [])
+  const [selectedAdmin, setSelectedAdmin] = useState(null)
+  const [isDeleteAllConfirmOpen, setIsDeleteAllConfirmOpen] = useState(false)
 
   // Fetch all admins
   useEffect(() => {
@@ -45,101 +29,131 @@ function AdminPage() {
   }, [])
 
   // Handle admin approval
-  const handleApproval = async (adminId, action) => {
+  const handleApprove = async (adminId) => {
     try {
-      if (action === 'approve') {
-        // Handle approval
-        const response = await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/superadmins/approve/${adminId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
-          }
-        );
-        
-        if (response.data.success) {
-          setAdmins(admins.map(admin => 
-            admin._id === adminId 
-              ? { 
-                  ...admin, 
-                  isApproved: true,
-                  status: 'approved'
-                }
-              : admin
-          ));
-          setActiveDropdown(null);
-          toast.success('Administrator approved successfully');
-        }
-      } else if (action === 'reject') {
-        // Handle rejection
-        if (!window.confirm('Are you sure you want to reject this administrator?')) {
-          return;
-        }
+      const token = localStorage.getItem('authToken')
+      if (!token) {
+        toast.error('Please login again')
+        return
+      }
 
-        const response = await axios.put(
-          `${import.meta.env.VITE_API_URL}/api/superadmins/reject/${adminId}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`
-            }
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/superadmins/approve/${adminId}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
           }
-        );
-        
-        if (response.data.success) {
-          setAdmins(admins.map(admin => 
-            admin._id === adminId 
-              ? { 
-                  ...admin, 
-                  isApproved: false,
-                  status: 'rejected'
-                }
-              : admin
-          ));
-          setActiveDropdown(null);
-          toast.success('Administrator rejected successfully');
         }
+      )
+
+      if (response.data.success) {
+        setAdmins(admins.map(admin => 
+          admin._id === adminId 
+            ? { ...admin, status: 'approved' }
+            : admin
+        ))
+        toast.success('Admin approved successfully')
+        setSelectedAdmin(null)
       }
     } catch (error) {
-      console.error(`Error ${action}ing admin:`, error);
-      toast.error(error.response?.data?.message || `Failed to ${action} administrator`);
+      console.error('Error approving admin:', error)
+      toast.error(error.response?.data?.message || 'Failed to approve admin')
     }
-  };
+  }
+
+  // Handle admin rejection
+  const handleReject = async (adminId) => {
+    try {
+      const token = localStorage.getItem('authToken')
+      console.log("token", token)
+      if (!token) {
+        toast.error('Please login again')
+        return
+      }
+
+      const response = await axios.put(
+        `${import.meta.env.VITE_API_URL}/api/superadmins/reject/${adminId}`,
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+
+      if (response.data.success) {
+        setAdmins(admins.map(admin => 
+          admin._id === adminId 
+            ? { ...admin, status: 'rejected' }
+            : admin
+        ))
+        toast.success('Admin rejected successfully')
+        setSelectedAdmin(null)
+      }
+    } catch (error) {
+      console.error('Error rejecting admin:', error)
+      toast.error(error.response?.data?.message || 'Failed to reject admin')
+    }
+  }
 
   // Handle admin deletion
   const handleDelete = async (adminId) => {
-    if (!window.confirm('Are you sure you want to delete this administrator?')) {
-      return;
-    }
-
     try {
+      const token = localStorage.getItem('authToken')
+      if (!token) {
+        toast.error('Please login again')
+        return
+      }
+
       const response = await axios.delete(
         `${import.meta.env.VITE_API_URL}/api/admins/${adminId}`,
         {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         }
-      );
-      
+      )
+
       if (response.data.success) {
-        setAdmins(admins.filter(admin => admin._id !== adminId));
-        setActiveDropdown(null);
-        toast.success('Administrator deleted successfully');
+        setAdmins(admins.filter(admin => admin._id !== adminId))
+        toast.success('Admin deleted successfully')
+        setSelectedAdmin(null)
       }
     } catch (error) {
-      console.error('Error deleting admin:', error);
-      toast.error(error.response?.data?.message || 'Failed to delete administrator');
+      console.error('Error deleting admin:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete admin')
     }
-  };
+  }
 
-  // Calculate pagination
-  const totalPages = Math.ceil(admins.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentAdmins = admins.slice(startIndex, endIndex)
+  // Handle delete all admins
+  const handleDeleteAll = async () => {
+    try {
+      const token = localStorage.getItem('authToken')
+      if (!token) {
+        toast.error('Please login again')
+        return
+      }
+
+      const response = await axios.delete(
+        `${import.meta.env.VITE_API_URL}/api/admins/delete-all`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+      )
+
+      if (response.data.success) {
+        setAdmins([])
+        toast.success('All admins deleted successfully')
+        setIsDeleteAllConfirmOpen(false)
+      }
+    } catch (error) {
+      console.error('Error deleting all admins:', error)
+      toast.error(error.response?.data?.message || 'Failed to delete all admins')
+    }
+  }
 
   if (loading) {
     return <div className="flex items-center justify-center h-screen">Loading...</div>
@@ -147,9 +161,19 @@ function AdminPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight font-satoshi">Administrators Management</h1>
-        <p className="text-muted-foreground">Manage and approve administrator access requests.</p>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight font-satoshi">Administrators Management</h1>
+          <p className="text-muted-foreground">Manage and approve administrator access requests.</p>
+        </div>
+        <Button 
+          variant="destructive" 
+          onClick={() => setIsDeleteAllConfirmOpen(true)}
+          className="flex items-center gap-2"
+        >
+          <Trash2 className="h-4 w-4" />
+          Delete All
+        </Button>
       </div>
 
       <Card>
@@ -169,7 +193,7 @@ function AdminPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {currentAdmins.map((admin) => (
+                {admins.map((admin) => (
                   <tr key={admin._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
                     <td className="p-3">
                       <div className="flex items-center gap-3">
@@ -219,69 +243,42 @@ function AdminPage() {
                       )}
                     </td>
                     <td className="p-3">
-                      <div className="relative" ref={dropdownRef}>
+                      <div className="relative">
                         <button
-                          onClick={() => setActiveDropdown(activeDropdown === admin._id ? null : admin._id)}
+                          onClick={() => setSelectedAdmin(selectedAdmin === admin._id ? null : admin._id)}
                           className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                         >
                           <MoreVertical className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                         </button>
                         
-                        {activeDropdown === admin._id && (
+                        {selectedAdmin === admin._id && (
                           <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
                             <div className="py-1">
-                              {admin.status === 'pending' ? (
+                              {admin.status === 'pending' && (
                                 <>
                                   <button
-                                    onClick={() => handleApproval(admin._id, 'approve')}
+                                    onClick={() => handleApprove(admin._id)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
                                   >
                                     <Check className="w-4 h-4 mr-2" />
                                     Approve
                                   </button>
                                   <button
-                                    onClick={() => handleApproval(admin._id, 'reject')}
+                                    onClick={() => handleReject(admin._id)}
                                     className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
                                   >
                                     <X className="w-4 h-4 mr-2" />
                                     Reject
-                                  </button>
-                                </>
-                              ) : admin.status === 'rejected' ? (
-                                <>
-                                  <button
-                                    onClick={() => handleApproval(admin._id, 'approve')}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-green-700 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-900/20"
-                                  >
-                                    <Check className="w-4 h-4 mr-2" />
-                                    Approve
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(admin._id)}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
-                                  </button>
-                                </>
-                              ) : (
-                                <>
-                                  <button
-                                    onClick={() => handleApproval(admin._id, 'reject')}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                  >
-                                    <X className="w-4 h-4 mr-2" />
-                                    Reject
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(admin._id)}
-                                    className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                                  >
-                                    <Trash2 className="w-4 h-4 mr-2" />
-                                    Delete
                                   </button>
                                 </>
                               )}
+                              <button
+                                onClick={() => handleDelete(admin._id)}
+                                className="flex items-center w-full px-4 py-2 text-sm text-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                              >
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Delete
+                              </button>
                             </div>
                           </div>
                         )}
@@ -292,33 +289,34 @@ function AdminPage() {
               </tbody>
             </table>
           </div>
-
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex justify-center space-x-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(page => Math.max(1, page - 1))}
-                disabled={currentPage === 1}
-              >
-                Previous
-              </Button>
-              <span className="px-4 py-2 text-sm">
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setCurrentPage(page => Math.min(totalPages, page + 1))}
-                disabled={currentPage === totalPages}
-              >
-                Next
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
+
+      {/* Delete All Confirmation Modal */}
+      {isDeleteAllConfirmOpen && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h3 className="text-lg font-semibold mb-4">Delete All Admins</h3>
+            <p className="text-gray-600 dark:text-gray-300 mb-6">
+              Are you sure you want to delete all administrators? This action cannot be undone.
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteAllConfirmOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleDeleteAll}
+              >
+                Delete All
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

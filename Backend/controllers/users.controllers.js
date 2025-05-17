@@ -128,21 +128,62 @@ export const userLogin = async (req, res) => {
 
     // If student ID is provided, validate it
     if (studentId) {
-      const validStudentId = await StudentId.findOne({
+      const studentIdRecord = await StudentId.findOne({
         studentId: studentId,
-        electionId: user.electionId,
-        status: 'available'
+        electionId: user.electionId
       });
 
-      if (!validStudentId) {
+      if (!studentIdRecord) {
         return res.status(400).json({ 
           success: false, 
-          message: "Invalid student ID or already registered for this election." 
+          message: "Student ID not found for this election." 
         });
       }
 
-      // Mark student ID as used and associate it with the user
-      await StudentId.findByIdAndUpdate(validStudentId._id, {
+      // If student ID is already registered, find the user who registered it
+      if (studentIdRecord.status === 'used' && studentIdRecord.usedBy) {
+        const registeredUser = await User.findById(studentIdRecord.usedBy);
+        
+        if (!registeredUser) {
+          return res.status(400).json({
+            success: false,
+            message: "Error finding registered user for this student ID."
+          });
+        }
+
+        // If the email matches the registered user's email, proceed with login
+        if (registeredUser.email === email) {
+          // Generate JWT token
+          const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "4d" });
+
+          return res.status(200).json({
+            success: true,
+            message: "Login successful.",
+            data: {
+              token,
+              user: {
+                id: user._id,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                email: user.email,
+                level: user.level,
+                role: user.role,
+                electionId: user.electionId,
+                studentId: user.studentId
+              }
+            }
+          });
+        } else {
+          // If email doesn't match, this is a different user trying to use the same student ID
+          return res.status(400).json({
+            success: false,
+            message: "This student ID is registered to a different account. Please use your own student ID."
+          });
+        }
+      }
+
+      // If student ID is available, mark it as used and associate with user
+      await StudentId.findByIdAndUpdate(studentIdRecord._id, {
         status: 'used',
         usedBy: user._id
       });
@@ -311,20 +352,6 @@ export const googleUserLogin = async (req, res) => {
       });
     }
 
-    // Verify student ID
-    const validStudentId = await StudentId.findOne({
-      studentId: studentId,
-      electionId: currentElection._id,
-      status: 'available'
-    });
-
-    if (!validStudentId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid student ID or already registered for this election." 
-      });
-    }
-
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_ID,
@@ -332,19 +359,96 @@ export const googleUserLogin = async (req, res) => {
     const payload = ticket.getPayload();
     const email = payload.email;
     const picture = payload.picture || "";
+
+    // First check if this student ID is already registered
+    const studentIdRecord = await StudentId.findOne({
+      studentId: studentId,
+      electionId: currentElection._id
+    });
+
+    if (!studentIdRecord) {
+      return res.status(400).json({ 
+        success: false, 
+        message: "Student ID not found for this election." 
+      });
+    }
+
+    // If student ID is already registered, find the user who registered it
+    if (studentIdRecord.status === 'used' && studentIdRecord.usedBy) {
+      const registeredUser = await User.findById(studentIdRecord.usedBy);
+      
+      if (!registeredUser) {
+        return res.status(400).json({
+          success: false,
+          message: "Error finding registered user for this student ID."
+        });
+      }
+
+      // If the email matches the registered user's email, log them in
+      if (registeredUser.email === email) {
+        const appToken = jwt.sign({ id: registeredUser._id, email: registeredUser.email, role: registeredUser.role }, JWT_SECRET, { expiresIn: "4d" });
+        return res.status(200).json({
+          success: true,
+          message: "Logged in successfully",
+          token: appToken,
+          user: { 
+            id: registeredUser._id,
+            firstName: registeredUser.firstName,
+            lastName: registeredUser.lastName,
+            email: registeredUser.email,
+            level: registeredUser.level,
+            electionId: currentElection._id,
+            picture: picture,
+            role: registeredUser.role,
+            studentId: registeredUser.studentId
+          },
+        });
+      } else {
+        // If email doesn't match, this is a different user trying to use the same student ID
+        return res.status(400).json({
+          success: false,
+          message: "This student ID is registered to a different account. Please use your own student ID."
+        });
+      }
+    }
+
+    // If student ID is available, proceed with normal login/signup flow
     const user = await User.findOne({ email });
+
     if (!user) {
       return googleUserSignup(req, res);
     }
 
+    // Check if the student ID is already associated with this user in the current election
+    if (user.studentId === studentId && user.electionId.toString() === currentElection._id.toString()) {
+      const appToken = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "4d" });
+      return res.status(200).json({
+        success: true,
+        message: "Logged in successfully",
+        token: appToken,
+        user: { 
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          level: user.level,
+          electionId: currentElection._id,
+          picture: picture,
+          role: user.role,
+          studentId: user.studentId
+        },
+      });
+    }
+
     // Mark student ID as used and associate it with the user
-    await StudentId.findByIdAndUpdate(validStudentId._id, {
+    await StudentId.findByIdAndUpdate(studentIdRecord._id, {
       status: 'used',
       usedBy: user._id
     });
 
-    // Update user's student ID
+    // Update user's student ID and election ID
     user.studentId = studentId;
+    user.electionId = currentElection._id;
     await user.save();
 
     const appToken = jwt.sign({ id: user._id, email: user.email, role: user.role }, JWT_SECRET, { expiresIn: "4d" });

@@ -41,8 +41,7 @@ const userSchema = new mongoose.Schema({
   },  
   studentId: {
     type: String,
-    required: true,
-    unique: true,
+    required: false, // Changed to false to make it optional
     trim: true
   },
   level: {

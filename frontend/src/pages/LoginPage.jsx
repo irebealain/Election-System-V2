@@ -363,6 +363,10 @@ function LoginPage() {
 
   // Update your Google button click handler
   const handleGoogleAuth = async () => {
+    if (role === "student" && !studentId) {
+      toast.error("Please enter your student ID");
+      return;
+    }
     setLoading(true);
     googleLogin();
   };

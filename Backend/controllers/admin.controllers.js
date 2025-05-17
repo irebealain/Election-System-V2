@@ -154,8 +154,18 @@ export const deleteAdmin = async (req, res) => {
   } catch (error) {
     res.status(404).json({success: false, message: "Admin not found."})
   }
-  
 }
+
+// Delete all admins
+export const deleteAllAdmins = async (req, res) => {
+  try {
+    await Admin.deleteMany({});
+    res.status(200).json({success: true, message: "All admins deleted successfully."})
+  } catch (error) {
+    res.status(500).json({success: false, message: "Failed to delete all admins."})
+  }
+}
+
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Sign up the admin sign up using Google Auth

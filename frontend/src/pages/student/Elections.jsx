@@ -71,11 +71,24 @@ function Elections() {
         c => c.electionId === currentElection._id
       )
 
+      // Filter positions based on student level
+      const filteredPositions = electionPositions.filter(position => {
+        // If student is upper level, show all positions except Junior Minister
+        if (currentUser.level === 'upper') {
+          return position.title !== 'Junior Minister'
+        }
+        // If student is lower level, show only Junior Minister position
+        else if (currentUser.level === 'lower') {
+          return position.title === 'Junior Minister'
+        }
+        return false
+      })
+
       // Filter positions to only include those with candidates
-      const positionsWithCandidates = electionPositions.filter(position => {
+      const positionsWithCandidates = filteredPositions.filter(position => {
         const hasCandidates = electionCandidates.some(candidate => candidate.positionId === position._id)
         if (!hasCandidates) {
-          console.log(`Position "${position.name}" has no candidates and will be hidden`)
+          console.log(`Position "${position.title}" has no candidates and will be hidden`)
         }
         return hasCandidates
       })
@@ -107,7 +120,7 @@ function Elections() {
             if (candidate) {
               const position = positionsWithCandidates.find(p => p._id === candidate.positionId)
               if (position) {
-                initialVotes[position.name] = candidate._id
+                initialVotes[position.title] = candidate._id
               }
             }
           })

@@ -414,17 +414,21 @@ function StudentDashboard() {
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
                     <td className="p-3">
-                      {student.voted ? (
-                        <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
-                          <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
-                          Voted
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
-                          <span className="h-1.5 w-1.5 rounded-full bg-gray-400 dark:bg-gray-500 mr-1.5"></span>
-                          Not Voted
-                        </span>
-                      )}
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
+                        ${currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                        }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full mr-1.5
+                          ${currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                            ? 'bg-green-500 dark:bg-green-400'
+                            : 'bg-yellow-500 dark:bg-yellow-400'
+                          }`}
+                        />
+                        {currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                          ? 'Voted'
+                          : 'Not Voted'}
+                      </span>
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">
                       {student.createdAt ? (
