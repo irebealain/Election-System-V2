@@ -375,45 +375,76 @@ function ElectionStats() {
 
       {/* Elections List */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {elections.map((election) => (
-          <Card key={election._id} className="hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span>{election.title}</span>
-                <span className={`px-2 py-1 rounded-full text-xs ${
-                  election.status === 'ongoing' ? 'bg-green-100 text-green-800' :
-                  election.status === 'completed' ? 'bg-blue-100 text-blue-800' :
-                  'bg-gray-100 text-gray-800'
-                }`}>
-                  {election.status}
-                </span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center text-sm text-gray-600">
-                  <Calendar className="w-4 h-4 mr-2" />
-                  {format(new Date(election.startDate), 'MMM d, yyyy')} - {format(new Date(election.endDate), 'MMM d, yyyy')}
+        {elections.map((election) => {
+          const electionPositions = positions.filter(p => p.electionId === election._id);
+          const electionCandidates = candidates.filter(c => c.electionId === election._id);
+          const electionVotes = votes.filter(v => v.electionId === election._id);
+          
+          return (
+            <Card key={election._id} className="hover:shadow-lg transition-shadow overflow-hidden">
+              <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg font-bold">{election.title}</CardTitle>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {format(new Date(election.startDate), 'MMM d')} - {format(new Date(election.endDate), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${
+                    election.status === 'ongoing' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                      : election.status === 'completed' 
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      election.status === 'ongoing' 
+                        ? 'bg-green-500 dark:bg-green-400' 
+                        : election.status === 'completed' 
+                        ? 'bg-blue-500 dark:bg-blue-400'
+                        : 'bg-yellow-500 dark:bg-yellow-400'
+                    }`} />
+                    {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                  </span>
                 </div>
-                <div className="flex justify-between items-center mt-4">
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-3 bg-primary/10 rounded-lg">
+                    <p className="text-xl font-bold text-primary">{electionPositions.length}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Positions</p>
+                  </div>
+                  <div className="text-center p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{electionCandidates.length}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Candidates</p>
+                  </div>
+                  <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{electionVotes.length}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Total Votes</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={() => handleElectionSelect(election)}
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
+                  >
+                    <Trophy className="w-4 h-4 mr-2" />
+                    View Results
+                  </Button>
                   <Button
                     variant="outline"
-                    onClick={() => handleElectionSelect(election)}
-                  >
-                    View Statistics
-                  </Button>
-                  <Button
-                    variant="ghost"
                     onClick={() => handleDownloadResults(election)}
+                    className="w-full"
                   >
                     <Download className="w-4 h-4 mr-2" />
-                    Download Results
+                    Download Report
                   </Button>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Statistics Modal */}
@@ -455,97 +486,108 @@ function ElectionStats() {
                         exit={{ opacity: 0, y: -50 }}
                         transition={{ duration: 0.5 }}
                         className="absolute inset-0 flex flex-col items-center justify-center p-4"
-                      >
-                        <div className="w-full space-y-4">
-                          <div className="text-center">
-                            <h3 className="text-2xl font-bold mb-2 text-primary">
-                              {position?.title || 'Unknown Position'}
-                            </h3>
-                            <div className="w-16 h-0.5 bg-primary mx-auto rounded-full"></div>
-                          </div>
+                      >                          <div className="w-full max-w-2xl mx-auto space-y-6">
+                            <div className="text-center relative">
+                              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
+                              <h3 className="text-2xl font-bold text-primary inline-block px-6 bg-white dark:bg-gray-800">
+                                {position?.title || 'Unknown Position'}
+                              </h3>
+                            </div>
 
-                          {winner ? (
-                            <div className="space-y-4">
-                              <div className="relative">
-                                <div className="absolute -top-4 -left-4 w-8 h-8 bg-primary/20 rounded-full flex items-center justify-center">
-                                  <Crown className="w-4 h-4 text-primary" />
+                            {winner ? (
+                              <div className="space-y-6">
+                                {/* Winner Card */}
+                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-6 shadow-lg border border-primary/10">
+                                  <div className="absolute -top-3 -left-3">
+                                    <div className="relative">
+                                      <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg">
+                                        <Crown className="w-6 h-6" />
+                                      </div>
+                                      <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-400 text-white rounded-full flex items-center justify-center text-xs font-bold">
+                                        1st
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="text-center mt-2">
+                                    <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{winner.name}</h4>
+                                    <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full">
+                                      <Trophy className="w-4 h-4 text-primary" />
+                                      <span className="font-semibold text-primary">
+                                        {winner.value} votes ({winner.percentage.toFixed(1)}%)
+                                      </span>
+                                    </div>
+                                  </div>
                                 </div>
-                                <div className="bg-primary/10 p-4 rounded-lg text-center">
-                                  <p className="text-2xl font-bold mb-1">{winner.name}</p>
-                                  <p className="text-sm text-gray-600">
-                                    {winner.value} votes ({winner.percentage.toFixed(1)}%)
-                                  </p>
+
+                                {/* Results Chart */}
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
+                                  <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4 text-center">Vote Distribution</h4>
+                                  <div className="h-[200px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <PieChart>
+                                        <Pie
+                                          data={results}
+                                          cx="50%"
+                                          cy="50%"
+                                          outerRadius={80}
+                                          innerRadius={60}
+                                          fill="#8884d8"
+                                          dataKey="value"
+                                          paddingAngle={2}
+                                          label={({ name, value, percent }) => {
+                                            if (percent < 0.05) return null;
+                                            return `${name} (${(percent * 100).toFixed(1)}%)`;
+                                          }}
+                                          labelLine={{ stroke: '#666', strokeWidth: 1 }}
+                                        >
+                                          {results.map((entry, index) => (
+                                            <Cell 
+                                              key={`cell-${index}`} 
+                                              fill={COLORS[index % COLORS.length]}
+                                              className="hover:opacity-80 transition-opacity"
+                                              strokeWidth={1}
+                                              stroke="white"
+                                            />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip 
+                                          contentStyle={{ 
+                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                                            backdropFilter: 'blur(8px)',
+                                            borderRadius: '8px',
+                                            padding: '8px 12px',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                                            border: '1px solid rgba(229, 231, 235, 0.5)'
+                                          }}
+                                          formatter={(value, name, props) => {
+                                            const percentage = (value / results.reduce((a, b) => a + b.value, 0) * 100).toFixed(1);
+                                            return [
+                                              <span className="font-medium">{value} votes ({percentage}%)</span>,
+                                              <span className="text-gray-600">{name}</span>
+                                            ];
+                                          }}
+                                        />
+                                        <Legend 
+                                          verticalAlign="bottom"
+                                          height={36}
+                                          formatter={(value) => (
+                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                                              {value}
+                                            </span>
+                                          )}
+                                        />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </div>
                                 </div>
                               </div>
-
-                              <div className="h-40">
-                                <ResponsiveContainer width="100%" height="100%">
-                                  <PieChart>
-                                    <Pie
-                                      data={results}
-                                      cx="50%"
-                                      cy="50%"
-                                      outerRadius={60}
-                                      fill="#8884d8"
-                                      dataKey="value"
-                                      label={({ name, percentage }) => {
-                                        if (percentage < 5) return null;
-                                        return `${name}: ${percentage.toFixed(1)}%`;
-                                      }}
-                                      labelLine={({ viewBox, x, y, cx, cy }) => {
-                                        const midAngle = Math.atan2(y - cy, x - cx);
-                                        const radius = 60;
-                                        const labelRadius = radius * 1.2;
-                                        const labelX = cx + (labelRadius * Math.cos(midAngle));
-                                        const labelY = cy + (labelRadius * Math.sin(midAngle));
-                                        
-                                        return (
-                                          <path
-                                            d={`M${x},${y} L${labelX},${labelY}`}
-                                            stroke="#666"
-                                            fill="none"
-                                          />
-                                        );
-                                      }}
-                                    >
-                                      {results.map((entry, index) => (
-                                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                                      ))}
-                                    </Pie>
-                                    <Tooltip 
-                                      contentStyle={{ 
-                                        backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                                        border: 'none',
-                                        borderRadius: '8px',
-                                        padding: '8px',
-                                        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                        backdropFilter: 'blur(8px)'
-                                      }}
-                                      formatter={(value, name, props) => {
-                                        const percentage = (value / results.reduce((a, b) => a + b.value, 0) * 100).toFixed(1);
-                                        return [`${value} votes (${percentage}%)`, name];
-                                      }}
-                                    />
-                                    <Legend 
-                                      verticalAlign="bottom" 
-                                      height={36}
-                                      formatter={(value) => <span className="text-xs">{value}</span>}
-                                      layout="horizontal"
-                                      align="center"
-                                      wrapperStyle={{
-                                        paddingTop: '10px'
-                                      }}
-                                    />
-                                  </PieChart>
-                                </ResponsiveContainer>
+                            ) : (
+                              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                                <Users className="w-12 h-12 mb-3 text-gray-400" />
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No winner data available</p>
                               </div>
-                            </div>
-                          ) : (
-                            <div className="h-40 flex flex-col items-center justify-center text-muted-foreground">
-                              <Users className="w-8 h-8 mb-2" />
-                              <p className="text-sm">No winner data available</p>
-                            </div>
-                          )}
+                            )}
                         </div>
                       </motion.div>
                     );

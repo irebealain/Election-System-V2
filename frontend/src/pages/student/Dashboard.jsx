@@ -322,41 +322,46 @@ function StudentDashboard() {
               <div className="h-[150px]">
                 {positionChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={positionChartData}>
+                    <BarChart
+                      data={positionChartData}
+                      barCategoryGap="0%"
+                      barGap={0}
+                      margin={{ left: 0, right: 0, top: 10, bottom: 10 }}
+                    >
                       <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
-                      <XAxis 
-                        dataKey="name" 
+                      <XAxis
+                        dataKey="name"
+                        tick={{ fontSize: 10 }}
+                        tickLine={false}
+                        axisLine={false}
+                        padding={{ left: 0, right: 0 }}
+                      />
+                      <YAxis
                         tick={{ fontSize: 10 }}
                         tickLine={false}
                         axisLine={false}
                       />
-                      <YAxis 
-                        tick={{ fontSize: 10 }}
-                        tickLine={false}
-                        axisLine={false}
-                      />
-                      <Tooltip 
-                        contentStyle={{ 
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: '#fff',
                           border: 'none',
                           borderRadius: '8px',
                           padding: '12px',
-                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                          backdropFilter: 'blur(8px)'
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
                         }}
                         formatter={(value) => [`${value} candidates`, '']}
-                        cursor={{ fill: 'transparent' }}
+                        cursor={false}
                       />
-                      <Legend 
-                        verticalAlign="bottom" 
+                      <Legend
+                        verticalAlign="bottom"
                         height={36}
                         formatter={(value) => <span className="text-xs">{value}</span>}
                         wrapperStyle={{ opacity: 0.8 }}
                       />
-                      <Bar 
-                        dataKey="candidates" 
-                        fill="#3B82F6" 
-                        radius={[4, 4, 0, 0]} 
+                      <Bar
+                        dataKey="candidates"
+                        fill="#3B82F6"
+                        radius={[4, 4, 0, 0]}
                         barSize={20}
                       />
                     </BarChart>
@@ -367,9 +372,9 @@ function StudentDashboard() {
                     <p className="text-xs">No position data available</p>
                   </div>
                 )}
-            </div>
-          </CardContent>
-        </Card>
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
       </div>
 

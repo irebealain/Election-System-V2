@@ -23,7 +23,9 @@ import { getAllElections } from "../../services/electionService"
 import { getAllUsers } from "../../services/UserService"
 import { getAllAdmins } from "../../services/adminService"
 import { getAllVotes } from "../../services/voteService"
-import { ArrowUp, ArrowDown, Users, Award, Calendar, Filter, TrendingUp, TrendingDown, AlertCircle, Clock } from "lucide-react"
+import { getAllPositions } from "../../services/positionService"
+import { getAllCandidates } from "../../services/candidateService"
+import { ArrowUp, ArrowDown, Users, Award, Calendar, Filter, TrendingUp, TrendingDown, AlertCircle, Clock, ExternalLink } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/common/Select"
 
 function SuperAdminDashboard() {
@@ -31,6 +33,8 @@ function SuperAdminDashboard() {
   const [students, setStudents] = useState([])
   const [admins, setAdmins] = useState([])
   const [votes, setVotes] = useState([])
+  const [positions, setPositions] = useState([])
+  const [candidates, setCandidates] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [timeRange, setTimeRange] = useState('all') // 'all', 'year', 'month', 'week'
@@ -42,17 +46,21 @@ function SuperAdminDashboard() {
     const fetchData = async () => {
       try {
         setError(null)
-        const [electionsData, usersData, adminsData, votesData] = await Promise.all([
+        const [electionsData, usersData, adminsData, votesData, positionsData, candidatesData] = await Promise.all([
           getAllElections(),
           getAllUsers(),
           getAllAdmins(),
-          getAllVotes()
+          getAllVotes(),
+          getAllPositions(),
+          getAllCandidates()
         ])
 
         setElections(electionsData || [])
         setStudents(usersData || [])
         setAdmins(adminsData || [])
         setVotes(votesData || [])
+        setPositions(positionsData || [])
+        setCandidates(candidatesData || [])
           } catch (error) {
         console.error("Error fetching data:", error)
         setError("Failed to fetch data. Please try again later.")
@@ -141,17 +149,37 @@ function SuperAdminDashboard() {
 
   // Enhanced election chart data with more metrics
   const getElectionChartData = () => {
-    return elections.map(election => ({
-      name: election.title,
-      candidates: election.candidates?.length || 0,
-      positions: election.positions?.length || 0,
-      votes: votes.filter(v => v.electionId === election._id).length,
-      status: election.status,
-      color: election.status === 'ongoing' ? '#46A977' : 
-             election.status === 'completed' ? '#3B82F6' : '#F79F21',
-      startDate: new Date(election.startDate).toLocaleDateString(),
-      endDate: new Date(election.endDate).toLocaleDateString()
-    }))
+    return elections.map(election => {
+      const electionPositions = positions.filter(p => p.electionId === election._id)
+      const electionCandidates = candidates.filter(c => c.electionId === election._id)
+      const positionsWithCandidates = electionPositions.filter(pos => 
+        electionCandidates.some(cand => cand.positionId === pos._id)
+      )
+      
+      // Calculate voter turnout
+      const electionVotes = votes.filter(v => v.electionId === election._id)
+      const eligibleVoters = students.length // Can be refined based on election criteria
+      const voterTurnout = eligibleVoters > 0 ? (electionVotes.length / eligibleVoters) * 100 : 0
+
+      // Calculate candidate distribution
+      const totalCandidates = electionCandidates.length
+      const avgCandidatesPerPosition = electionPositions.length > 0 
+        ? totalCandidates / electionPositions.length 
+        : 0
+
+      return {
+        name: election.title,
+        positions: electionPositions.length,
+        candidates: totalCandidates,
+        filledPositions: positionsWithCandidates.length,
+        positionsFillRate: electionPositions.length > 0 
+          ? (positionsWithCandidates.length / electionPositions.length) * 100 
+          : 0,
+        candidatesPerPosition: avgCandidatesPerPosition,
+        voterTurnout,
+        status: election.status
+      }
+    })
   }
 
   // Format student growth data
@@ -248,18 +276,67 @@ function SuperAdminDashboard() {
                   </div>
                 </div>
               </div>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="text-center p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-green-600 dark:text-green-400">{electionStats.activeElections}</p>
-                  <p className="text-xs text-muted-foreground">Active</p>
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="text-center p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                    <p className="text-sm font-medium text-green-600 dark:text-green-400">{electionStats.activeElections}</p>
+                    <p className="text-xs text-muted-foreground">Active</p>
+                  </div>
+                  <div className="text-center p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                    <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{electionStats.completedElections}</p>
+                    <p className="text-xs text-muted-foreground">Completed</p>
+                  </div>
+                  <div className="text-center p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                    <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{electionStats.upcomingElections}</p>
+                    <p className="text-xs text-muted-foreground">Upcoming</p>
+                  </div>
                 </div>
-                <div className="text-center p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{electionStats.completedElections}</p>
-                  <p className="text-xs text-muted-foreground">Completed</p>
-                </div>
-                <div className="text-center p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
-                  <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{electionStats.upcomingElections}</p>
-                  <p className="text-xs text-muted-foreground">Upcoming</p>
+
+                {/* Status Distribution Bar */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center text-xs">
+                    <span className="font-medium text-gray-600 dark:text-gray-400">Status Distribution</span>
+                    <span className="text-gray-500">{electionStats.totalElections} total</span>
+                  </div>
+                  <div className="h-2 w-full rounded-full overflow-hidden flex">
+                    {/* Ongoing Elections */}
+                    <div 
+                      className="h-full bg-green-500 dark:bg-green-400 transition-all duration-500"
+                      style={{ 
+                        width: `${(electionStats.activeElections / electionStats.totalElections) * 100}%`,
+                        marginRight: electionStats.activeElections > 0 ? '1px' : '0'
+                      }}
+                    />
+                    {/* Completed Elections */}
+                    <div 
+                      className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-500"
+                      style={{ 
+                        width: `${(electionStats.completedElections / electionStats.totalElections) * 100}%`,
+                        marginRight: electionStats.completedElections > 0 ? '1px' : '0'
+                      }}
+                    />
+                    {/* Upcoming Elections */}
+                    <div 
+                      className="h-full bg-yellow-500 dark:bg-yellow-400 transition-all duration-500"
+                      style={{ 
+                        width: `${(electionStats.upcomingElections / electionStats.totalElections) * 100}%`
+                      }}
+                    />
+                  </div>
+                  <div className="flex justify-between text-xs font-medium">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 bg-green-500 dark:bg-green-400 rounded-full"></span>
+                      <span className="text-gray-600 dark:text-gray-400">Active</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 bg-blue-500 dark:bg-blue-400 rounded-full"></span>
+                      <span className="text-gray-600 dark:text-gray-400">Completed</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-2 w-2 bg-yellow-500 dark:bg-yellow-400 rounded-full"></span>
+                      <span className="text-gray-600 dark:text-gray-400">Upcoming</span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -270,16 +347,6 @@ function SuperAdminDashboard() {
           <CardHeader className="pb-1">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm font-medium">Candidates & Positions</CardTitle>
-              <Select value={selectedMetric} onValueChange={setSelectedMetric}>
-                <SelectTrigger className="w-[100px] h-9">
-                  <SelectValue placeholder="Select metric" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="candidates">Candidates</SelectItem>
-                  <SelectItem value="positions">Positions</SelectItem>
-                  <SelectItem value="votes">Votes</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
@@ -293,81 +360,62 @@ function SuperAdminDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="h-[150px]">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart 
-                    data={getElectionChartData()} 
-                    margin={{ top: 10, right: 20, left: 10, bottom: 10 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
-                    <XAxis 
-                      dataKey="name" 
-                      fontSize={11}
-                      tickLine={false}
-                      axisLine={{ stroke: '#E5E7EB' }}
-                      tick={{ fill: '#6B7280' }}
-                      angle={-45}
-                      textAnchor="end"
-                      height={40}
-                    />
-                    <YAxis 
-                      fontSize={11}
-                      tickLine={false}
-                      axisLine={{ stroke: '#E5E7EB' }}
-                      tick={{ fill: '#6B7280' }}
-                    />
-                    <Tooltip
-                      content={({ active, payload, label }) => {
-                        if (active && payload && payload.length) {
-                          const data = payload[0].payload
-                          return (
-                            <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                              <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">{label}</p>
-                              <div className="space-y-0.5">
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Candidates:</span> {data.candidates}
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Positions:</span> {data.positions}
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Votes:</span> {data.votes}
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Status:</span> 
-                                  <span className={`ml-1 px-1.5 py-0.5 rounded-full text-xs font-medium
-                                    ${data.status === 'ongoing' ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400' :
-                                      data.status === 'completed' ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-400' :
-                                      'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'}`}>
-                                    {data.status}
-                                  </span>
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Period:</span> {data.startDate} - {data.endDate}
-                                </p>
-                              </div>
-                            </div>
-                          )
-                        }
-                        return null
-                      }}
-                    />
-                    <Legend 
-                      verticalAlign="top" 
-                      height={24}
-                      wrapperStyle={{ fontSize: '11px', color: '#6B7280' }}
-                    />
-                    <Bar 
-                      dataKey={selectedMetric}
-                      name={selectedMetric.charAt(0).toUpperCase() + selectedMetric.slice(1)}
-                      fill={selectedMetric === 'candidates' ? '#46A977' : 
-                            selectedMetric === 'positions' ? '#F79F21' : '#3B82F6'}
-                      radius={[3, 3, 0, 0]}
-                      barSize={15}
-                      className="hover:opacity-80 transition-opacity"
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
+              <div className="space-y-6 pt-4">
+                {getElectionChartData()
+                  .filter(election => election.status === 'ongoing')
+                  .map((election) => (
+                    <div key={election.name} className="space-y-4">
+                      <div className="flex justify-between items-center">
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">{election.name}</h3>
+                        <div className="flex items-center gap-2">
+                          <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Positions progress */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-medium text-purple-600 dark:text-purple-400">Positions Filled</span>
+                          <span className="text-gray-500">{election.filledPositions}/{election.positions} positions</span>
+                        </div>
+                        <div className="h-2 bg-purple-100 dark:bg-purple-900/20 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-purple-500 dark:bg-purple-400 rounded-full transition-all duration-500"
+                            style={{ width: `${election.positionsFillRate}%` }}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Candidates progress */}
+                      <div className="space-y-2">
+                        <div className="flex justify-between items-center text-xs">
+                          <span className="font-medium text-orange-600 dark:text-orange-400">Candidates per Position</span>
+                          <span className="text-gray-500">{election.candidates} total</span>
+                        </div>
+                        <div className="h-2 bg-orange-100 dark:bg-orange-900/20 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-orange-500 dark:bg-orange-400 rounded-full transition-all duration-500"
+                            style={{ 
+                              width: `${Math.min((election.candidatesPerPosition / 3) * 100, 100)}%`
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                          <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Position Fill Rate</p>
+                          <p className="text-sm font-semibold mt-1">{Math.round(election.positionsFillRate)}%</p>
+                        </div>
+                        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                          <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Avg. Candidates/Position</p>
+                          <p className="text-sm font-semibold mt-1">{election.candidatesPerPosition.toFixed(1)}</p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
               </div>
             )}
           </CardContent>
@@ -408,23 +456,26 @@ function SuperAdminDashboard() {
                     </div>
                   </div>
                 </div>
-                <div className="h-[120px]">
+                <div className="h-[8.3rem]">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
                         data={[
-                          { name: 'Voted', value: studentStats.votedStudents, color: '#46A977' },
-                          { name: 'Not Voted', value: studentStats.totalStudents - studentStats.votedStudents, color: '#F79F21' }
+                          { name: 'Voted', value: studentStats.votedStudents },
+                          { name: 'Not Voted', value: studentStats.totalStudents - studentStats.votedStudents }
                         ]}
                         cx="50%"
-                        cy="50%"
-                        innerRadius={45}
-                        outerRadius={60}
-                        paddingAngle={5}
+                        cy="48%"
+                        innerRadius={40}
+                        outerRadius={50}
+                        paddingAngle={2}
                         dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                        
                       >
-                        <Cell fill="#46A977" className="hover:opacity-80 transition-opacity" />
-                        <Cell fill="#F79F21" className="hover:opacity-80 transition-opacity" />
+                        <Cell fill="#10B981" className="hover:opacity-80 transition-opacity" strokeWidth={2} />
+                        <Cell fill="#FFA600" className="hover:opacity-80 transition-opacity" strokeWidth={2} />
                       </Pie>
                       <Tooltip
                         content={({ active, payload }) => {
@@ -432,24 +483,35 @@ function SuperAdminDashboard() {
                             const data = payload[0].payload
                             const percentage = ((data.value / studentStats.totalStudents) * 100).toFixed(1)
                             return (
-                              <div className="bg-white dark:bg-gray-800 p-3 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100 mb-1">{data.name}</p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Count:</span> {data.value}
-                                </p>
-                                <p className="text-xs text-gray-600 dark:text-gray-400">
-                                  <span className="font-medium">Percentage:</span> {percentage}%
-                                </p>
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
+                                <div className="mt-1 space-y-0.5">
+                                  <p className="text-xs font-medium">
+                                    <span className="text-gray-500 dark:text-gray-400">Count:</span>{' '}
+                                    <span className="text-gray-900 dark:text-gray-100">{data.value}</span>
+                                  </p>
+                                  <p className="text-xs font-medium">
+                                    <span className="text-gray-500 dark:text-gray-400">Percentage:</span>{' '}
+                                    <span className="text-gray-900 dark:text-gray-100">{percentage}%</span>
+                                  </p>
+                                </div>
                               </div>
                             )
                           }
                           return null
                         }}
+                        wrapperStyle={{ outline: 'none' }}
                       />
                       <Legend 
-                        verticalAlign="bottom" 
-                        height={24}
-                        wrapperStyle={{ fontSize: '11px', color: '#6B7280' }}
+                        verticalAlign="top"
+                        height={36}
+                        iconSize={8}
+                        iconType="circle"
+                        formatter={(value) => (
+                          <span className="mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
+                            {value}
+                          </span>
+                        )}
                       />
                     </PieChart>
                   </ResponsiveContainer>
@@ -457,7 +519,7 @@ function SuperAdminDashboard() {
                 <div className="grid grid-cols-3 gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
                   <div className="text-center">
                     <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Current Election</p>
-                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{studentStats.currentElection.title}</p>
+                    <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">{studentStats.currentElection.title}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Total Students</p>
@@ -475,45 +537,63 @@ function SuperAdminDashboard() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Students</CardTitle>
-              <CardDescription>Students registered for the current election.</CardDescription>
-            </div>
-            <div className="mt-4">
-              <Button variant="outline" size="sm" onClick={() => navigate("/superadmin/students")}>
-                View All
-              </Button>
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Students</CardTitle>
+                <CardDescription className="mt-1">Students registered for the current election</CardDescription>
+              </div>
+              <div 
+                onClick={() => navigate("/superadmin/students")}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer transition-colors"
+                title="View all students"
+              >
+                <ExternalLink className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-              <table className="w-full text-sm">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800">
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Voting Status</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
+                  <tr className="border-b border-gray-100 dark:border-gray-800">
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Student</th>
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Level</th>
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Status</th>
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Registered</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {students.slice(0, 5).map((student) => (
-                    <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="p-3">
+                <tbody>
+                  {students.slice(0, 5).map((student, index) => (
+                    <tr 
+                      key={student._id} 
+                      className={`
+                        hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors
+                        ${index !== students.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}
+                      `}
+                    >
+                      <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
                             {student.firstName.charAt(0)}
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                              {student.firstName} {student.lastName}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                              {student.email}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
-                      <td className="p-3">
+                      <td className="py-3 px-4">
+                        <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400">
+                          {student.level}
+                        </span>
+                      </td>
+                      <td className="py-3 px-4">
                         {votes.some(v => v.studentId === student._id) ? (
                           <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
                             <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
@@ -526,8 +606,17 @@ function SuperAdminDashboard() {
                           </span>
                         )}
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">
-                        {new Date(student.createdAt).toLocaleDateString()}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                            {new Date(student.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </span>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -537,43 +626,57 @@ function SuperAdminDashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <div>
-              <CardTitle>Admins</CardTitle>
-              <CardDescription>Administrators with access to the system.</CardDescription>
-            </div>
-            <div className="mt-4">
-              <Button variant="outline" size="sm" onClick={() => navigate("/superadmin/admins")}>
-                View All
-              </Button>
+        <Card className="overflow-hidden">
+          <CardHeader className="border-b border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-lg">Admins</CardTitle>
+                <CardDescription className="mt-1">Administrators with access to the system</CardDescription>
+              </div>
+              <div 
+                onClick={() => navigate("/superadmin/admins")}
+                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer transition-colors"
+                title="View all admins"
+              >
+                <ExternalLink className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
-              <table className="w-full text-sm">
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800">
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Admin Information</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Status</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Last Login</th>
+                  <tr className="border-b border-gray-100 dark:border-gray-800">
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Admin Information</th>
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Status</th>
+                    <th className="text-left py-3 px-4 text-xs uppercase tracking-wider font-medium text-gray-500 dark:text-gray-400">Last Login</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {admins.slice(0, 5).map((admin) => (
-                    <tr key={admin._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
-                      <td className="p-3">
+                <tbody>
+                  {admins.slice(0, 5).map((admin, index) => (
+                    <tr 
+                      key={admin._id} 
+                      className={`
+                        hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors
+                        ${index !== admins.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}
+                      `}
+                    >
+                      <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
+                          <div className="h-9 w-9 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
                             {admin.firstName.charAt(0)}
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{admin.firstName} {admin.lastName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{admin.email}</p>
+                          <div className="min-w-0">
+                            <p className="font-medium text-sm text-gray-900 dark:text-gray-100 truncate">
+                              {admin.firstName} {admin.lastName}
+                            </p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400 truncate mt-0.5">
+                              {admin.email}
+                            </p>
                           </div>
                         </div>
                       </td>
-                      <td className="p-3">
+                      <td className="py-3 px-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
                           ${admin.isApproved 
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
@@ -588,20 +691,22 @@ function SuperAdminDashboard() {
                           {admin.isApproved ? 'Active' : 'Pending'}
                         </span>
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">
-                        {admin.lastLogin ? (
-                          <div className="flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {new Date(admin.lastLogin).toLocaleString('en-US', {
-                              month: 'short',
-                              day: 'numeric',
-                              hour: '2-digit',
-                              minute: '2-digit'
-                            })}
-                          </div>
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500">Never</span>
-                        )}
+                      <td className="py-3 px-4">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
+                          {admin.lastLogin ? (
+                            <span className="text-xs text-gray-600 dark:text-gray-400">
+                              {new Date(admin.lastLogin).toLocaleDateString('en-US', {
+                                month: 'short',
+                                day: 'numeric',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                              })}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400 dark:text-gray-500">Never</span>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}

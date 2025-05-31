@@ -96,10 +96,36 @@ function LoginPage() {
   const validateEmail = (email) => {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Email is required</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, email: "Email is required" });
       setValidations({ ...validations, email: false });
       return false;
     } else if (!regex.test(email)) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Please enter a valid email</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, email: "Please enter a valid email" });
       setValidations({ ...validations, email: false });
       return false;
@@ -112,10 +138,36 @@ function LoginPage() {
 
   const validatePassword = (password) => {
     if (!password) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Password is required</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, password: "Password is required" });
       setValidations({ ...validations, password: false });
       return false;
     } else if (password.length < 6) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Password must be at least 6 characters</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({
         ...errors,
         password: "Password must be at least 6 characters",
@@ -131,11 +183,37 @@ function LoginPage() {
 
   const validateName = (name) => {
     if (!name && !isLogin) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Name is required</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, name: "Name is required" });
       setValidations({ ...validations, name: false });
       return false;
-    } else if (name && name.length < 2 && !isLogin) {
-      setErrors({ ...errors, name: "Name is too short" });
+    } else if (name && name.trim().split(' ').length < 2 && !isLogin) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Please enter both first and last name</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
+      setErrors({ ...errors, name: "Please enter both first and last name" });
       setValidations({ ...validations, name: false });
       return false;
     } else {
@@ -148,6 +226,19 @@ function LoginPage() {
   const validateConfirmPassword = (confirmPassword) => {
     if (!isLogin) {
       if (!confirmPassword) {
+        toast.custom((t) => (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <AlertCircle className="h-5 w-5" />
+            <span>Please confirm your password</span>
+          </motion.div>
+        ), {
+          duration: 3000,
+        });
         setErrors({
           ...errors,
           confirmPassword: "Please confirm your password",
@@ -155,6 +246,19 @@ function LoginPage() {
         setValidations({ ...validations, confirmPassword: false });
         return false;
       } else if (confirmPassword !== password) {
+        toast.custom((t) => (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.3 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          >
+            <AlertCircle className="h-5 w-5" />
+            <span>Passwords do not match</span>
+          </motion.div>
+        ), {
+          duration: 3000,
+        });
         setErrors({ ...errors, confirmPassword: "Passwords do not match" });
         setValidations({ ...validations, confirmPassword: false });
         return false;
@@ -181,10 +285,36 @@ function LoginPage() {
 
   const validateStudentId = (id) => {
     if (!id) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Student ID is required</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, studentId: "Student ID is required" });
       setValidations({ ...validations, studentId: false });
       return false;
     } else if (id.length < 3) {
+      toast.custom((t) => (
+        <motion.div
+          initial={{ opacity: 0, y: 50, scale: 0.3 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
+          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <span>Student ID is too short</span>
+        </motion.div>
+      ), {
+        duration: 3000,
+      });
       setErrors({ ...errors, studentId: "Student ID is too short" });
       setValidations({ ...validations, studentId: false });
       return false;

@@ -519,52 +519,56 @@ function Elections() {
                   key={candidate._id} 
                   whileHover={{ y: -5 }} 
                   transition={{ duration: 0.2 }}
+                  className="h-full"
                 >
                   <Card className={cn(
                     "overflow-hidden h-full transition-all duration-200",
                     hasVoted ? 'opacity-75' : '',
-                    votes[positionName] === candidate._id ? 'border-primary' : ''
+                    votes[positionName] === candidate._id ? 'border-primary shadow-lg shadow-primary/10' : ''
                   )}>
                     <CardHeader className="p-0">
-                      <div className="relative h-48 w-full overflow-hidden">
+                      <div className="relative aspect-[21/9] w-full">
+                        <div className="absolute inset-0 z-10 h-[10rem]" />
                         <img
                           src={candidate.profilePic || "/placeholder.svg"}
                           alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="w-full h-full object-cover object-center transition-transform duration-300 hover:scale-105"
+                          className="w-full h-full object-cover"
                           loading="lazy"
                         />
                         {hasVoted && (
-                          <div className="absolute top-2 right-2">
-                            <div className="inline-flex items-center rounded-full bg-green-500 px-2.5 py-0.5 text-xs font-medium text-white">
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                          <div className="absolute top-2 right-2 z-20">
+                            <div className="inline-flex items-center rounded-full bg-green-500/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
                               Voted
                             </div>
                           </div>
                         )}
                         {!hasVoted && votes[positionName] === candidate._id && (
-                          <div className="absolute top-2 right-2">
-                            <div className="inline-flex items-center rounded-full bg-primary px-2.5 py-0.5 text-xs font-medium text-primary-foreground">
-                              <CheckCircle2 className="h-4 w-4 mr-1" />
+                          <div className="absolute top-2 right-2 z-20">
+                            <div className="inline-flex items-center rounded-full bg-primary/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
+                              <CheckCircle2 className="h-3 w-3 mr-1" />
                               Selected
                             </div>
                           </div>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-4 flex-grow">
-                      <CardTitle className="text-xl mb-2">
+                    <CardContent className="p-3 flex-grow relative">
+                      <CardTitle className="text-lg mb-1.5 font-satoshi">
                         {candidate.firstName} {candidate.lastName}
                       </CardTitle>
-                      <CardDescription className="line-clamp-3">{candidate.mandate}</CardDescription>
+                      <CardDescription className="line-clamp-2 text-sm">
+                        {candidate.mandate}
+                      </CardDescription>
                     </CardContent>
-                    <CardFooter className="flex justify-between p-4 pt-0">
+                    <CardFooter className="flex justify-between p-3 pt-0 gap-2">
                       <Button 
                         variant="outline" 
                         size="sm" 
                         onClick={() => openCandidateDetails(candidate)}
-                        className="hover:bg-primary/10"
+                        className="hover:bg-primary/10 flex-1 h-8"
                       >
-                        <Info className="h-4 w-4 mr-1" />
+                        <Info className="h-3.5 w-3.5 mr-1.5" />
                         Details
                       </Button>
 
@@ -572,12 +576,29 @@ function Elections() {
                         onClick={() => handleVote(candidate._id, candidate.positionId)}
                         variant={votes[positionName] === candidate._id ? "destructive" : "default"}
                         className={cn(
-                          "transition-colors duration-200",
-                          votes[positionName] === candidate._id ? "" : "bg-primary hover:bg-primary/90"
+                          "transition-colors duration-200 flex-1 h-8",
+                          votes[positionName] === candidate._id 
+                            ? "hover:bg-destructive/90" 
+                            : "bg-primary hover:bg-primary/90"
                         )}
                         disabled={hasVoted}
                       >
-                        {hasVoted ? "Already Voted" : votes[positionName] === candidate._id ? "Remove Vote" : "Vote"}
+                        {hasVoted ? (
+                          <span className="flex items-center">
+                            <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Voted
+                          </span>
+                        ) : votes[positionName] === candidate._id ? (
+                          <span className="flex items-center">
+                            <XCircle className="h-3.5 w-3.5 mr-1.5" />
+                            Remove
+                          </span>
+                        ) : (
+                          <span className="flex items-center">
+                            <ThumbsUp className="h-3.5 w-3.5 mr-1.5" />
+                            Vote
+                          </span>
+                        )}
                       </Button>
                     </CardFooter>
                   </Card>
