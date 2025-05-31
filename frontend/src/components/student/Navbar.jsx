@@ -4,7 +4,7 @@ import { User, LogOut, Settings, ChevronDown, Menu } from "lucide-react"
 import { useAuth } from "../../context/AuthContext"
 import Button from "../common/Button"
 import ModeToggle from "../common/ModeToggle"
-import logo from "../../assets/logo.svg"
+import logo from "../../assets/Logo.svg"
 import LinkBar from "./LinkBar"
 import { useClickOutside } from "../../hooks/useClickOutside"
 
