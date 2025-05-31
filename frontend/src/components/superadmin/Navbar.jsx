@@ -5,7 +5,7 @@ import { useAuth } from "../../context/AuthContext"
 import Button from "../common/Button"
 import ModeToggle from "../common/ModeToggle"
 import LinkBar from "./LinkBar"
-import logo from "../../assets/logo.svg"
+import logo from "../../assets/Logo.svg"
 import { useClickOutside } from "../../hooks/useClickOutside"
 import NotificationBell from "../common/NotificationBell"
 
