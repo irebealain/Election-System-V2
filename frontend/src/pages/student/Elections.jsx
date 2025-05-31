@@ -79,7 +79,7 @@ function Elections() {
         }
         // If student is lower level, show only Junior Minister position
         else if (currentUser.level === 'lower') {
-          return position.title === 'Junior Minister'
+          return position.title === 'Junior Minister-Female' && position.title === 'Junior Minister-Male'
         }
         return false
       })
