@@ -486,12 +486,11 @@ function ElectionStats() {
                         exit={{ opacity: 0, y: -50 }}
                         transition={{ duration: 0.5 }}
                         className="absolute inset-0 flex flex-col items-center justify-center p-4"
-                      >                          <div className="w-full max-w-2xl mx-auto space-y-6">
+                      >                          
+                      <div className="w-full max-w-2xl mx-auto space-y-6">
                             <div className="text-center relative">
                               <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
-                              <h3 className="text-2xl font-bold text-primary inline-block px-6 bg-white dark:bg-gray-800">
-                                {position?.title || 'Unknown Position'}
-                              </h3>
+                              
                             </div>
 
                             {winner ? (
@@ -510,6 +509,9 @@ function ElectionStats() {
                                   </div>
                                   
                                   <div className="text-center mt-2">
+                                    <h3 className="text-2xl font-bold text-primary inline-block px-6 bg-white dark:bg-gray-800">
+                                    {position?.title || 'Unknown Position'}
+                                    </h3>
                                     <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{winner.name}</h4>
                                     <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/20 rounded-full">
                                       <Trophy className="w-4 h-4 text-primary" />
