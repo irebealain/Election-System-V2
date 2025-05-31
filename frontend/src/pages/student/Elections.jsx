@@ -532,7 +532,7 @@ function Elections() {
                         <img
                           src={candidate.profilePic || "/placeholder.svg"}
                           alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="w-full h-full object-cover"
+                          className="w-full h-[12rem] object-cover"
                           loading="lazy"
                         />
                         {hasVoted && (
