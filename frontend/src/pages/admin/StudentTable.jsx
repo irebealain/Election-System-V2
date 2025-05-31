@@ -7,7 +7,8 @@ import {toast} from "react-hot-toast"
 import { Search, UserPlus, Edit, Trash, Eye, Download, Filter, RefreshCw, UserCheck, UserX, Mail } from "lucide-react"
 import gsap from "gsap"
 import { getAllUsers } from "../../services/UserService"
-import axios from "axios"
+// import axios from "axios"
+import instance from "../../lib/axios"
 
 function StudentManagement() {
   const [students, setStudents] = useState([])
@@ -118,7 +119,7 @@ function StudentManagement() {
     setIsLoading(true)
 
     try {
-      const response = await axios.post('http://localhost:3000/api/users/signup', {
+      const response = await instance.post('/api/users/signup', {
           firstName: formData.firstName,
           lastName: formData.lastName,
           email: formData.email,
