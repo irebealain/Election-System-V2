@@ -499,7 +499,7 @@ function ElectionStats() {
                                 <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-6 shadow-lg border border-primary/10">
                                   <div className="absolute -top-3 -left-3">
                                     <div className="relative">
-                                      <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg">
+                                      <div className="w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-8">
                                         <Crown className="w-6 h-6" />
                                       </div>
                                       <div className="absolute -right-1 -bottom-1 w-5 h-5 bg-yellow-400 text-white rounded-full flex items-center justify-center text-xs font-bold">
