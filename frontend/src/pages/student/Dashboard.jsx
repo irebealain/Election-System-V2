@@ -208,15 +208,15 @@ function StudentDashboard() {
                           { name: "Not Voted", value: notVotedCount }
                     ]}
                     cx="50%"
-                    cy="50%"
-                        innerRadius={40}
+                    cy="55%"
+                        innerRadius={50}
                         outerRadius={60}
                         paddingAngle={5}
                     dataKey="value"
                         // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                   >
-                        <Cell fill="#10B981" />
-                        <Cell fill="#F59E0B" />
+                        <Cell fill="#10B981" radius={8} />
+                        <Cell fill="#F59E0B" radius={8} />
                   </Pie>
                   <Tooltip 
                     contentStyle={{ 
