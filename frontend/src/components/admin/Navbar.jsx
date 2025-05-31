@@ -31,6 +31,7 @@ function Navbar() {
         <Link to="/admin/dashboard" className="flex items-center mr-6">
           <span className="text-xl font-bold font-satoshi">
             <img src={logo} alt="" />
+            <p>Hey my name is alain.</p>
           </span>
           {/* <span className="ml-2 text-sm text-muted-foreground">Admin</span> */}
         </Link>
