@@ -600,7 +600,7 @@ function SuperAdminDashboard() {
                             Voted
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-800 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
+                          <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
                             <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 dark:bg-yellow-400 mr-1.5"></span>
                             Not Voted
                           </span>
