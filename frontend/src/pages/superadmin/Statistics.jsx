@@ -431,7 +431,7 @@ function ElectionStats() {
             const eligiblePositions = electionPositions.filter(pos => {
               const isJuniorMinister = pos.title.toLowerCase().includes('junior minister');
               return (student.level === 'lower' && isJuniorMinister) || 
-                     (student.level === 'upper' && !isJuniorMinister);
+                    (student.level === 'upper' && !isJuniorMinister);
             });
             
             console.log('Student:', student.firstName, student.lastName);
@@ -490,8 +490,8 @@ function ElectionStats() {
                     <p className="text-xs text-gray-600 dark:text-gray-400">Candidates</p>
                   </div>
                   <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{electionVotes.length}</p>
-                    <p className="text-xs text-gray-600 dark:text-gray-400">Total Votes</p>
+                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">{electionVoters.size}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Students Voted</p>
                   </div>
                 </div>
                 
