@@ -198,50 +198,86 @@ function StudentDashboard() {
               <CardDescription className="text-xs">Percentage of students who voted in the current election</CardDescription>
           </CardHeader>
           <CardContent>
-              <div className="h-[150px]">
-                {totalVoters > 0 ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={[
-                          { name: "Voted", value: votedCount },
-                          { name: "Not Voted", value: notVotedCount }
-                    ]}
-                    cx="50%"
-                    cy="55%"
-                        innerRadius={50}
-                        outerRadius={60}
-                        paddingAngle={5}
-                    dataKey="value"
-                        // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                  >
-                        <Cell fill="#10B981" radius={8} />
-                        <Cell fill="#F59E0B" radius={8} />
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
-                          border: 'none',
-                          borderRadius: '8px',
-                      padding: '12px',
-                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                          backdropFilter: 'blur(8px)'
-                    }}
-                        formatter={(value) => [`${value} students`, '']}
+            <div className="h-[150px]">
+              {totalVoters > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "Voted", value: votedCount },
+                        { name: "Not Voted", value: notVotedCount }
+                      ]}
+                      cx="50%"
+                      cy="55%"
+                      innerRadius={50}
+                      outerRadius={60}
+                      paddingAngle={3}
+                      dataKey="value"
+                      label={({ name, percent }) => {
+                        if (percent < 0.08) return null;
+                        return `${name} (${(percent * 100).toFixed(0)}%)`;
+                      }}
+                      labelLine={{ 
+                        stroke: 'rgba(156, 163, 175, 0.5)', 
+                        strokeWidth: 1,
+                        strokeDasharray: "2 2"
+                      }}
+                    >
+                      <Cell 
+                        fill="#10B981" 
+                        radius={8}
+                        className="transition-all duration-300 hover:opacity-85 hover:scale-105"
+                        strokeWidth={1.5}
+                        stroke="rgba(255, 255, 255, 0.8)"
                       />
-                      <Legend 
-                        verticalAlign="bottom" 
-                        height={36}
-                        formatter={(value) => <span className="text-xs">{value}</span>}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-                ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                    <PieChartIcon className="w-8 h-8 mb-2" />
-                    <p className="text-xs">No voting data available</p>
-            </div>
-                )}
+                      <Cell 
+                        fill="#F59E0B" 
+                        radius={8}
+                        className="transition-all duration-300 hover:opacity-85 hover:scale-105"
+                        strokeWidth={1.5}
+                        stroke="rgba(255, 255, 255, 0.8)"
+                      />
+                    </Pie>
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                        backdropFilter: 'blur(12px)',
+                        borderRadius: '12px',
+                        padding: '10px 14px',
+                        boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
+                        border: '1px solid rgba(229, 231, 235, 0.7)'
+                      }}
+                      formatter={(value, name) => [
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm font-medium text-gray-900">{value} students</span>
+                          <span className="text-xs text-gray-500">{((value / totalVoters) * 100).toFixed(1)}% of total</span>
+                        </div>,
+                        <span className="text-xs font-medium text-gray-600">{name}</span>
+                      ]}
+                    />
+                    <Legend 
+                      verticalAlign="bottom" 
+                      height={36}
+                      iconType="circle"
+                      iconSize={8}
+                      formatter={(value) => (
+                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                          {value}
+                        </span>
+                      )}
+                      wrapperStyle={{
+                        paddingTop: '10px',
+                        fontSize: '12px'
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              ) : (
+                <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                  <PieChartIcon className="w-8 h-8 mb-2" />
+                  <p className="text-xs">No voting data available</p>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
