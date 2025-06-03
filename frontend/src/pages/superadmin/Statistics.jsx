@@ -174,16 +174,57 @@ function ElectionStats() {
   };
 
   const getPositionResults = (positionId) => {
-    if (!positionId || !candidates.length || !votes.length) {
+    if (!positionId || !candidates.length || !votes.length || !selectedElection) {
       return [];
     }
 
-    const positionCandidates = candidates.filter(c => c.positionId === positionId);
+    const positionCandidates = candidates.filter(c => c.positionId === positionId && c.electionId === selectedElection._id);
     if (!positionCandidates.length) {
       return [];
     }
 
-    const positionVotes = votes.filter(v => v.positionId === positionId);
+    // Get all positions for current election
+    const electionPositions = positions.filter(p => p.electionId === selectedElection._id);
+    const juniorMinisterPositions = electionPositions.filter(p => 
+      p.title.toLowerCase().includes('junior minister')
+    );
+    const regularPositions = electionPositions.filter(p => 
+      !p.title.toLowerCase().includes('junior minister')
+    );
+
+    // Track complete votes by students
+    const studentVotes = new Map();
+    votes.forEach(vote => {
+      if (vote.electionId === selectedElection._id) {
+        const studentId = vote.studentId;
+        if (!studentVotes.has(studentId)) {
+          studentVotes.set(studentId, new Set());
+        }
+        studentVotes.get(studentId).add(vote.positionId);
+      }
+    });
+
+    // Count valid votes based on student level and voting completion
+    const validVotes = votes.filter(vote => {
+      const studentVoteSet = studentVotes.get(vote.studentId);
+      
+      // No votes recorded for this student
+      if (!studentVoteSet) return false;
+
+      const student = candidates.find(c => c.studentId === vote.studentId);
+      if (!student) return false;
+
+      // Check if student has voted for all required positions based on level
+      if (student.level === 'lower') {
+        return juniorMinisterPositions.every(pos => studentVoteSet.has(pos._id));
+      } else if (student.level === 'upper') {
+        return regularPositions.every(pos => studentVoteSet.has(pos._id));
+      }
+      return false;
+    });
+
+    // Filter votes for this position
+    const positionVotes = validVotes.filter(v => v.positionId === positionId);
     const totalVotes = positionVotes.length;
 
     return positionCandidates.map(candidate => {
@@ -509,7 +550,7 @@ function ElectionStats() {
                                   </div>
                                   
                                   <div className="text-center mt-2">
-                                    <h3 className="text-2xl font-bold text-primary inline-block px-6 bg-white dark:bg-gray-800">
+                                    <h3 className="text-2xl font-bold text-primary inline-block px-6 dark:bg-gray-800">
                                     {position?.title || 'Unknown Position'}
                                     </h3>
                                     <h4 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">{winner.name}</h4>
@@ -573,6 +614,9 @@ function ElectionStats() {
                                         <Legend 
                                           verticalAlign="bottom"
                                           height={36}
+                                          roundedCorners={true}
+                                          iconType="circle"
+                                          iconSize={10}
                                           formatter={(value) => (
                                             <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
                                               {value}

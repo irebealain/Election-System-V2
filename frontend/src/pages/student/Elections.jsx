@@ -332,7 +332,7 @@ function Elections() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Clock className="w-4 w-4" />
+          <Clock className="w-4" />
           <span>Next election coming soon</span>
         </motion.div>
       </motion.div>
@@ -377,7 +377,7 @@ function Elections() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 }}
         >
-          <Clock className="w-4 w-4" />
+          <Clock className="w-4" />
           <span>Election ends: {new Date(election.endDate).toLocaleDateString()}</span>
         </motion.div>
 
