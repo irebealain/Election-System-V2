@@ -114,7 +114,27 @@ function SuperAdminDashboard() {
     }
 
     const totalStudents = students.length
-    const votedStudents = votes.filter(v => v.electionId === currentElection._id).length
+    
+    // Get all positions for the current election
+    const electionPositions = positions.filter(p => p.electionId === currentElection._id)
+    
+    // Get unique students who have voted in the current election
+    const studentVotes = new Map() // Map to track votes per student
+    votes.forEach(vote => {
+      if (vote.electionId === currentElection._id) {
+        const studentId = vote.studentId
+        if (!studentVotes.has(studentId)) {
+          studentVotes.set(studentId, new Set())
+        }
+        studentVotes.get(studentId).add(vote.positionId)
+      }
+    })
+
+    // Count students who have voted for all positions
+    const votedStudents = Array.from(studentVotes.entries()).reduce((count, [_, votedPositions]) => {
+      return votedPositions.size === electionPositions.length ? count + 1 : count
+    }, 0)
+
     const notVotedStudents = totalStudents - votedStudents
     
     // Calculate percentages
