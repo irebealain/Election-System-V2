@@ -5,7 +5,7 @@ import { getAllElections, getElectionResults } from '../../services/electionServ
 import { getAllVotes } from '../../services/voteService';
 import { getAllCandidates } from '../../services/candidateService';
 import { getAllPositions } from '../../services/positionService';
-import { getAllStudents } from '../../services/UserService';
+import { getAllUsers } from '../../services/UserService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -156,7 +156,7 @@ function ElectionStats() {
         getAllPositions(),
         getAllCandidates(),
         getAllVotes(),
-        getAllStudents()
+        getAllUsers()
       ]);
 
       if (!electionsData || !positionsData || !candidatesData || !votesData || !studentsData) {
@@ -419,21 +419,12 @@ function ElectionStats() {
             studentVotesMap.get(vote.studentId).add(vote.positionId);
           });
           
-          console.log('Processing votes for election:', election.title);
-          
           // Filter students who completed all their required positions
           const completedVotes = allElectionVotes.filter(vote => {
             const studentVotedPositions = studentVotesMap.get(vote.studentId);
-            const student = (students || []).find(s => s._id === vote.studentId);
+            const student = students.find(s => s._id === vote.studentId);
             
-            if (!student) {
-              console.log('Student not found for vote:', vote.studentId);
-              return false;
-            }
-            if (!studentVotedPositions) {
-              console.log('No votes found for student:', student.firstName, student.lastName);
-              return false;
-            }
+            if (!student || !studentVotedPositions) return false;
             
             // Get positions this student is eligible for
             const eligiblePositions = electionPositions.filter(pos => {
@@ -443,7 +434,7 @@ function ElectionStats() {
             });
             
             // Check if student has voted for all their eligible positions
-            return eligiblePositions.every(pos => studentVotesMap.has(pos._id));
+            return eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
           });
           
           const electionVotes = completedVotes;
@@ -708,4 +699,4 @@ function ElectionStats() {
   );
 }
 
-export default ElectionStats;
+export default ElectionStats; 
