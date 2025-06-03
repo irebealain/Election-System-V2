@@ -174,65 +174,54 @@ function ElectionStats() {
   };
 
   const getPositionResults = (positionId) => {
-    if (!positionId || !candidates.length || !votes.length || !selectedElection) {
+    // Basic validation
+    if (!positionId || !selectedElection) {
       return [];
     }
 
-    const positionCandidates = candidates.filter(c => c.positionId === positionId && c.electionId === selectedElection._id);
+    // Get candidates for this position in current election
+    const positionCandidates = candidates.filter(c => 
+      c.positionId === positionId && c.electionId === selectedElection._id
+    );
+
+    // If no candidates, return empty array
     if (!positionCandidates.length) {
       return [];
     }
 
-    // Get all positions for current election
-    const electionPositions = positions.filter(p => p.electionId === selectedElection._id);
-    const juniorMinisterPositions = electionPositions.filter(p => 
-      p.title.toLowerCase().includes('junior minister')
-    );
-    const regularPositions = electionPositions.filter(p => 
-      !p.title.toLowerCase().includes('junior minister')
-    );
+    // Get all votes for current election
+    const electionVotes = votes.filter(v => v.electionId === selectedElection._id);
+    if (!electionVotes.length) {
+      return positionCandidates.map(candidate => ({
+        name: `${candidate.firstName} ${candidate.lastName}`,
+        value: 0,
+        percentage: 0
+      }));
+    }
 
-    // Track complete votes by students
-    const studentVotes = new Map();
-    votes.forEach(vote => {
-      if (vote.electionId === selectedElection._id) {
-        const studentId = vote.studentId;
-        if (!studentVotes.has(studentId)) {
-          studentVotes.set(studentId, new Set());
-        }
-        studentVotes.get(studentId).add(vote.positionId);
-      }
-    });
+    // Get votes for this specific position
+    const positionVotes = electionVotes.filter(v => v.positionId === positionId);
+    if (!positionVotes.length) {
+      return positionCandidates.map(candidate => ({
+        name: `${candidate.firstName} ${candidate.lastName}`,
+        value: 0,
+        percentage: 0
+      }));
+    }
 
-    // Count valid votes based on student level and voting completion
-    const validVotes = votes.filter(vote => {
-      const studentVoteSet = studentVotes.get(vote.studentId);
-      
-      // No votes recorded for this student
-      if (!studentVoteSet) return false;
+    // Count total unique voters for this position
+    const uniqueVoters = new Set(positionVotes.map(v => v.studentId));
+    const totalVoters = uniqueVoters.size;
 
-      const student = candidates.find(c => c.studentId === vote.studentId);
-      if (!student) return false;
-
-      // Check if student has voted for all required positions based on level
-      if (student.level === 'lower') {
-        return juniorMinisterPositions.every(pos => studentVoteSet.has(pos._id));
-      } else if (student.level === 'upper') {
-        return regularPositions.every(pos => studentVoteSet.has(pos._id));
-      }
-      return false;
-    });
-
-    // Filter votes for this position
-    const positionVotes = validVotes.filter(v => v.positionId === positionId);
-    const totalVotes = positionVotes.length;
-
+    // Count votes for each candidate
     return positionCandidates.map(candidate => {
-      const voteCount = positionVotes.filter(v => v.candidateId === candidate._id).length;
+      const candidateVotes = positionVotes.filter(v => v.candidateId === candidate._id);
+      const voteCount = candidateVotes.length;
+      
       return {
         name: `${candidate.firstName} ${candidate.lastName}`,
         value: voteCount,
-        percentage: totalVotes > 0 ? (voteCount / totalVotes) * 100 : 0
+        percentage: totalVoters > 0 ? (voteCount / totalVoters) * 100 : 0
       };
     }).sort((a, b) => b.value - a.value);
   };
