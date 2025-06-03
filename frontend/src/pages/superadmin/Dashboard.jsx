@@ -117,6 +117,12 @@ function SuperAdminDashboard() {
     
     // Get all positions for the current election
     const electionPositions = positions.filter(p => p.electionId === currentElection._id)
+    const juniorMinisterPositions = electionPositions.filter(p => 
+      p.title.toLowerCase().includes('junior minister')
+    )
+    const regularPositions = electionPositions.filter(p => 
+      !p.title.toLowerCase().includes('junior minister')
+    )
     
     // Get unique students who have voted in the current election
     const studentVotes = new Map() // Map to track votes per student
@@ -130,9 +136,25 @@ function SuperAdminDashboard() {
       }
     })
 
-    // Count students who have voted for all positions
-    const votedStudents = Array.from(studentVotes.entries()).reduce((count, [_, votedPositions]) => {
-      return votedPositions.size === electionPositions.length ? count + 1 : count
+    // Count students who have voted for their required positions based on level
+    const votedStudents = students.reduce((count, student) => {
+      const studentVoteSet = studentVotes.get(student._id)
+      if (!studentVoteSet) return count
+
+      if (student.level === 'lower') {
+        // Lower level students need to vote for all junior minister positions
+        const hasVotedAll = juniorMinisterPositions.every(position => 
+          studentVoteSet.has(position._id)
+        )
+        return hasVotedAll ? count + 1 : count
+      } else if (student.level === 'upper') {
+        // Upper level students need to vote for all regular positions
+        const hasVotedAll = regularPositions.every(position => 
+          studentVoteSet.has(position._id)
+        )
+        return hasVotedAll ? count + 1 : count
+      }
+      return count
     }, 0)
 
     const notVotedStudents = totalStudents - votedStudents
@@ -631,17 +653,51 @@ function SuperAdminDashboard() {
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        {votes.some(v => v.studentId === student._id) ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400 text-[10px]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
-                            Voted
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300 text-[10px]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 dark:bg-yellow-400 mr-1.5"></span>
-                            Not Voted
-                          </span>
-                        )}
+                        {(() => {
+                          const currentElection = elections.find(e => e.status === 'ongoing')
+                          if (!currentElection) return 'No Active Election'
+
+                          const electionPositions = positions.filter(p => p.electionId === currentElection._id)
+                          const juniorMinisterPositions = electionPositions.filter(p => 
+                            p.title.toLowerCase().includes('junior minister')
+                          )
+                          const regularPositions = electionPositions.filter(p => 
+                            !p.title.toLowerCase().includes('junior minister')
+                          )
+
+                          const studentVotes = new Set(
+                            votes
+                              .filter(v => v.electionId === currentElection._id && v.studentId === student._id)
+                              .map(v => v.positionId)
+                          )
+
+                          const hasVotedAll = student.level === 'lower'
+                            ? juniorMinisterPositions.every(pos => studentVotes.has(pos._id))
+                            : regularPositions.every(pos => studentVotes.has(pos._id))
+
+                          if (hasVotedAll) {
+                            return (
+                              <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400 text-[10px]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
+                                Completed
+                              </span>
+                            )
+                          } else if (studentVotes.size > 0) {
+                            return (
+                              <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-400 text-[10px]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 dark:bg-yellow-400 mr-1.5"></span>
+                                Partial
+                              </span>
+                            )
+                          } else {
+                            return (
+                              <span className="inline-flex items-center rounded-full bg-gray-100 dark:bg-gray-900/30 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300 text-[10px]">
+                                <span className="h-1.5 w-1.5 rounded-full bg-gray-500 dark:bg-gray-400 mr-1.5"></span>
+                                Not Voted
+                              </span>
+                            )
+                          }
+                        })()}
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-1.5">
