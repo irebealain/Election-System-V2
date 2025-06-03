@@ -105,6 +105,9 @@ function SuperAdminDashboard() {
       return {
         totalStudents: 0,
         votedStudents: 0,
+        notVotedStudents: 0,
+        votedPercentage: 0,
+        notVotedPercentage: 0,
         participationRate: 0,
         trend: 'stable'
       }
@@ -112,14 +115,19 @@ function SuperAdminDashboard() {
 
     const totalStudents = students.length
     const votedStudents = votes.filter(v => v.electionId === currentElection._id).length
-    const participationRate = totalStudents > 0 ? Math.round((votedStudents / totalStudents) * 100) : 0
+    const notVotedStudents = totalStudents - votedStudents
+    
+    // Calculate percentages
+    const votedPercentage = totalStudents > 0 ? (votedStudents / totalStudents) * 100 : 0
+    const notVotedPercentage = totalStudents > 0 ? (notVotedStudents / totalStudents) * 100 : 0
+    const participationRate = Math.round(votedPercentage)
 
     // Calculate voting trend
     const lastHourVotes = votes.filter(v => {
       const voteDate = new Date(v.createdAt)
       const hourAgo = new Date()
       hourAgo.setHours(hourAgo.getHours() - 1)
-      return voteDate > hourAgo
+      return voteDate > hourAgo && v.electionId === currentElection._id
     }).length
 
     const trend = lastHourVotes > 0 ? 'up' : 'stable'
@@ -127,6 +135,9 @@ function SuperAdminDashboard() {
     return {
       totalStudents,
       votedStudents,
+      notVotedStudents,
+      votedPercentage: votedPercentage.toFixed(1),
+      notVotedPercentage: notVotedPercentage.toFixed(1),
       participationRate,
       currentElection,
       trend,
@@ -461,8 +472,16 @@ function SuperAdminDashboard() {
                     <PieChart>
                       <Pie
                         data={[
-                          { name: 'Voted', value: studentStats.votedStudents },
-                          { name: 'Not Voted', value: studentStats.totalStudents - studentStats.votedStudents }
+                          { 
+                            name: 'Voted', 
+                            value: studentStats.votedStudents,
+                            percentage: studentStats.votedPercentage 
+                          },
+                          { 
+                            name: 'Not Voted', 
+                            value: studentStats.notVotedStudents,
+                            percentage: studentStats.notVotedPercentage 
+                          }
                         ]}
                         cx="50%"
                         cy="48%"
@@ -472,16 +491,14 @@ function SuperAdminDashboard() {
                         dataKey="value"
                         startAngle={90}
                         endAngle={-270}
-                        
                       >
-                        <Cell fill="#10B981" className="hover:opacity-80 transition-opacity" strokeWidth={2} />
-                        <Cell fill="#FFA600" className="hover:opacity-80 transition-opacity" strokeWidth={2} />
+                        <Cell fill="#10B981" className="transition-opacity" strokeWidth={2} />
+                        <Cell fill="#FFA600" className="transition-opacity" strokeWidth={2} />
                       </Pie>
                       <Tooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload
-                            const percentage = ((data.value / studentStats.totalStudents) * 100).toFixed(1)
                             return (
                               <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
@@ -492,7 +509,7 @@ function SuperAdminDashboard() {
                                   </p>
                                   <p className="text-xs font-medium">
                                     <span className="text-gray-500 dark:text-gray-400">Percentage:</span>{' '}
-                                    <span className="text-gray-900 dark:text-gray-100">{percentage}%</span>
+                                    <span className="text-gray-900 dark:text-gray-100">{data.percentage}%</span>
                                   </p>
                                 </div>
                               </div>
@@ -507,9 +524,9 @@ function SuperAdminDashboard() {
                         height={36}
                         iconSize={8}
                         iconType="circle"
-                        formatter={(value) => (
+                        formatter={(value, entry) => (
                           <span className="mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {value}
+                            {value} ({entry.payload.percentage}%)
                           </span>
                         )}
                       />
@@ -595,12 +612,12 @@ function SuperAdminDashboard() {
                       </td>
                       <td className="py-3 px-4">
                         {votes.some(v => v.studentId === student._id) ? (
-                          <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400">
+                          <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400 text-[10px]">
                             <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
                             Voted
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300">
+                          <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-gray-800 dark:text-gray-300 text-[10px]">
                             <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 dark:bg-yellow-400 mr-1.5"></span>
                             Not Voted
                           </span>
