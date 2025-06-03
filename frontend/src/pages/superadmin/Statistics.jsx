@@ -9,21 +9,13 @@ import { getAllUsers } from '../../services/UserService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
-import { saveAs } from 'file-saver';
+// import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import PDFGenerator from '../../components/PDFGenerator';
-
-// Position icons mapping
-const positionIcons = {
-  president: <Users className="w-6 h-6" />,
-  vicePresident: <Users className="w-6 h-6" />,
-  secretary: <Users className="w-6 h-6" />,
-  treasurer: <Users className="w-6 h-6" />,
-};
 
 // Color palette for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
@@ -144,7 +136,7 @@ function ElectionStats() {
 
   useEffect(() => {
     fetchData();
-    console.log("Position data:", positions);
+    // console.log("Position data:", positions);
   }, []);
 
   const fetchData = async () => {
@@ -419,12 +411,21 @@ function ElectionStats() {
             studentVotesMap.get(vote.studentId).add(vote.positionId);
           });
           
+          console.log('Total votes for this election:', allElectionVotes.length);
+          
           // Filter students who completed all their required positions
           const completedVotes = allElectionVotes.filter(vote => {
             const studentVotedPositions = studentVotesMap.get(vote.studentId);
             const student = students.find(s => s._id === vote.studentId);
             
-            if (!student || !studentVotedPositions) return false;
+            if (!student) {
+              console.log('Student not found for vote:', vote.studentId);
+              return false;
+            }
+            if (!studentVotedPositions) {
+              console.log('No votes found for student:', student.firstName, student.lastName);
+              return false;
+            }
             
             // Get positions this student is eligible for
             const eligiblePositions = electionPositions.filter(pos => {
@@ -433,8 +434,17 @@ function ElectionStats() {
                      (student.level === 'upper' && !isJuniorMinister);
             });
             
+            console.log('Student:', student.firstName, student.lastName);
+            console.log('Level:', student.level);
+            console.log('Eligible positions:', eligiblePositions.length);
+            console.log('Voted positions:', studentVotedPositions.size);
+            
             // Check if student has voted for all their eligible positions
-            return eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
+            const hasVotedAll = eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
+            if (!hasVotedAll) {
+              console.log('Student has not voted for all eligible positions');
+            }
+            return hasVotedAll;
           });
           
           const electionVotes = completedVotes;
