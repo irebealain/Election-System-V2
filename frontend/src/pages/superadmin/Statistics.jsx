@@ -5,6 +5,7 @@ import { getAllElections, getElectionResults } from '../../services/electionServ
 import { getAllVotes } from '../../services/voteService';
 import { getAllCandidates } from '../../services/candidateService';
 import { getAllPositions } from '../../services/positionService';
+import { getAllStudents } from '../../services/adminService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
 import { Download, Trophy, Calendar, Users, CheckCircle2, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -130,6 +131,7 @@ function ElectionStats() {
   const [positions, setPositions] = useState([]);
   const [candidates, setCandidates] = useState([]);
   const [votes, setVotes] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -149,14 +151,15 @@ function ElectionStats() {
     try {
       setLoading(true);
       setError(null);
-      const [electionsData, positionsData, candidatesData, votesData] = await Promise.all([
+      const [electionsData, positionsData, candidatesData, votesData, studentsData] = await Promise.all([
         getAllElections(),
         getAllPositions(),
         getAllCandidates(),
-        getAllVotes()
+        getAllVotes(),
+        getAllStudents()
       ]);
 
-      if (!electionsData || !positionsData || !candidatesData || !votesData) {
+      if (!electionsData || !positionsData || !candidatesData || !votesData || !studentsData) {
         throw new Error('Failed to fetch required data');
       }
 
@@ -164,6 +167,7 @@ function ElectionStats() {
       setPositions(positionsData);
       setCandidates(candidatesData);
       setVotes(votesData);
+      setStudents(studentsData.data || []);
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load election statistics. Please try again later.');
