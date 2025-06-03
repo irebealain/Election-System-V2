@@ -189,8 +189,12 @@ function ElectionStats() {
       return [];
     }
 
-    // Get all votes for current election
-    const electionVotes = votes.filter(v => v.electionId === selectedElection._id);
+    // Get all votes for current election from non-deleted students
+    const electionVotes = votes.filter(v => {
+      const studentExists = candidates.some(c => c.studentId === v.studentId);
+      return v.electionId === selectedElection._id && studentExists;
+    });
+
     if (!electionVotes.length) {
       return positionCandidates.map(candidate => ({
         name: `${candidate.firstName} ${candidate.lastName}`,
@@ -199,7 +203,7 @@ function ElectionStats() {
       }));
     }
 
-    // Get votes for this specific position
+    // Get votes for this specific position (only from existing students)
     const positionVotes = electionVotes.filter(v => v.positionId === positionId);
     if (!positionVotes.length) {
       return positionCandidates.map(candidate => ({
@@ -209,8 +213,14 @@ function ElectionStats() {
       }));
     }
 
-    // Count total unique voters for this position
-    const uniqueVoters = new Set(positionVotes.map(v => v.studentId));
+    // Count total unique active voters for this position
+    const uniqueVoters = new Set(positionVotes.filter(v => 
+      candidates.some(c => c.studentId === v.studentId)
+    ).map(v => v.studentId));
+    
+    if (!uniqueVoters) {
+      return null;
+    }
     const totalVoters = uniqueVoters.size;
 
     // Count votes for each candidate
