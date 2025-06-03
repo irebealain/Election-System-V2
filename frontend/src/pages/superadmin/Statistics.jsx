@@ -596,62 +596,73 @@ function ElectionStats() {
                                 {/* Results Chart */}
                                 <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
                                   <h4 className="text-sm font-medium text-gray-600 dark:text-gray-400 mb-4 text-center">Vote Distribution</h4>
-                                  <div className="h-[200px]">
+                                  <div className="h-[250px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                       <PieChart>
                                         <Pie
                                           data={results}
                                           cx="50%"
                                           cy="50%"
-                                          outerRadius={80}
-                                          innerRadius={60}
+                                          outerRadius={85}
+                                          innerRadius={65}
                                           fill="#8884d8"
                                           dataKey="value"
-                                          paddingAngle={2}
+                                          paddingAngle={3}
                                           label={({ name, value, percent }) => {
-                                            if (percent < 0.05) return null;
-                                            return `${name} (${(percent * 100).toFixed(1)}%)`;
+                                            if (percent < 0.08) return null; // Only show labels for segments > 8%
+                                            return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
                                           }}
-                                          labelLine={{ stroke: '#666', strokeWidth: 1 }}
+                                          labelLine={{ 
+                                            stroke: 'rgba(156, 163, 175, 0.5)', 
+                                            strokeWidth: 1,
+                                            strokeDasharray: "2 2"
+                                          }}
                                         >
                                           {results.map((entry, index) => (
                                             <Cell 
                                               key={`cell-${index}`} 
                                               fill={COLORS[index % COLORS.length]}
-                                              className="hover:opacity-80 transition-opacity"
-                                              strokeWidth={1}
-                                              stroke="white"
+                                              className="transition-all duration-300 hover:opacity-85 hover:scale-105"
+                                              strokeWidth={1.5}
+                                              stroke="rgba(255, 255, 255, 0.8)"
                                             />
                                           ))}
                                         </Pie>
                                         <Tooltip 
                                           contentStyle={{ 
-                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                            backdropFilter: 'blur(8px)',
-                                            borderRadius: '8px',
-                                            padding: '8px 12px',
-                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
-                                            border: '1px solid rgba(229, 231, 235, 0.5)'
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backdropFilter: 'blur(12px)',
+                                            borderRadius: '12px',
+                                            padding: '10px 14px',
+                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
+                                            border: '1px solid rgba(229, 231, 235, 0.7)'
                                           }}
                                           formatter={(value, name, props) => {
-                                            const percentage = (value / results.reduce((a, b) => a + b.value, 0) * 100).toFixed(1);
+                                            const total = results.reduce((a, b) => a + b.value, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
                                             return [
-                                              <span className="font-medium">{value} votes ({percentage}%)</span>,
-                                              <span className="text-gray-600">{name}</span>
+                                              <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium text-gray-900">{value} votes</span>
+                                                <span className="text-xs text-gray-500">{percentage}% of total</span>
+                                              </div>,
+                                              <span className="text-xs font-medium text-gray-600">{name}</span>
                                             ];
                                           }}
                                         />
                                         <Legend 
                                           verticalAlign="bottom"
-                                          height={36}
-                                          roundedCorners={true}
+                                          height={30}
                                           iconType="circle"
-                                          iconSize={10}
+                                          iconSize={8}
                                           formatter={(value) => (
-                                            <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                              {value}
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                              {value.length > 20 ? `${value.substring(0, 20)}...` : value}
                                             </span>
                                           )}
+                                          wrapperStyle={{
+                                            paddingTop: '10px',
+                                            fontSize: '12px'
+                                          }}
                                         />
                                       </PieChart>
                                     </ResponsiveContainer>
@@ -711,4 +722,4 @@ function ElectionStats() {
   );
 }
 
-export default ElectionStats; 
+export default ElectionStats;
