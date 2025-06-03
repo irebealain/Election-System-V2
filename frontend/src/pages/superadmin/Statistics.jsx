@@ -402,7 +402,38 @@ function ElectionStats() {
         {elections.map((election) => {
           const electionPositions = positions.filter(p => p.electionId === election._id);
           const electionCandidates = candidates.filter(c => c.electionId === election._id);
-          const electionVotes = votes.filter(v => v.electionId === election._id);
+          
+          // Get all votes for this election
+          const allElectionVotes = votes.filter(v => v.electionId === election._id);
+          
+          // Group votes by student
+          const studentVotesMap = new Map();
+          allElectionVotes.forEach(vote => {
+            if (!studentVotesMap.has(vote.studentId)) {
+              studentVotesMap.set(vote.studentId, new Set());
+            }
+            studentVotesMap.get(vote.studentId).add(vote.positionId);
+          });
+          
+          // Filter students who completed all their required positions
+          const completedVotes = allElectionVotes.filter(vote => {
+            const studentVotedPositions = studentVotesMap.get(vote.studentId);
+            const student = students.find(s => s._id === vote.studentId);
+            
+            if (!student || !studentVotedPositions) return false;
+            
+            // Get positions this student is eligible for
+            const eligiblePositions = electionPositions.filter(pos => {
+              const isJuniorMinister = pos.title.toLowerCase().includes('junior minister');
+              return (student.level === 'lower' && isJuniorMinister) || 
+                     (student.level === 'upper' && !isJuniorMinister);
+            });
+            
+            // Check if student has voted for all their eligible positions
+            return eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
+          });
+          
+          const electionVotes = completedVotes;
           
           return (
             <Card key={election._id} className="hover:shadow-lg transition-shadow overflow-hidden">
