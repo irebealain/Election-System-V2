@@ -73,13 +73,13 @@ function Elections() {
 
       // Filter positions based on student level
       const filteredPositions = electionPositions.filter(position => {
-        // If student is upper level, show all positions except Junior Minister
+        // If student is upper level, show all positions except Junior Minister positions
         if (currentUser.level === 'upper') {
-          return position.title !== 'Junior Minister'
+          return !position.title.toLowerCase().includes('junior minister')
         }
-        // If student is lower level, show only Junior Minister position
+        // If student is lower level, show only Junior Minister positions
         else if (currentUser.level === 'lower') {
-          return position.title === 'Junior Minister-Female' && position.title === 'Junior Minister-Male'
+          return position.title.toLowerCase().includes('junior minister')
         }
         return false
       })
