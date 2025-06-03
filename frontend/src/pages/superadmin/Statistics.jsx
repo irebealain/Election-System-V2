@@ -419,12 +419,21 @@ function ElectionStats() {
             studentVotesMap.get(vote.studentId).add(vote.positionId);
           });
           
+          console.log('Processing votes for election:', election.title);
+          
           // Filter students who completed all their required positions
           const completedVotes = allElectionVotes.filter(vote => {
             const studentVotedPositions = studentVotesMap.get(vote.studentId);
-            const student = students.find(s => s._id === vote.studentId);
+            const student = (students || []).find(s => s._id === vote.studentId);
             
-            if (!student || !studentVotedPositions) return false;
+            if (!student) {
+              console.log('Student not found for vote:', vote.studentId);
+              return false;
+            }
+            if (!studentVotedPositions) {
+              console.log('No votes found for student:', student.firstName, student.lastName);
+              return false;
+            }
             
             // Get positions this student is eligible for
             const eligiblePositions = electionPositions.filter(pos => {
@@ -434,7 +443,7 @@ function ElectionStats() {
             });
             
             // Check if student has voted for all their eligible positions
-            return eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
+            return eligiblePositions.every(pos => studentVotesMap.has(pos._id));
           });
           
           const electionVotes = completedVotes;
@@ -699,4 +708,4 @@ function ElectionStats() {
   );
 }
 
-export default ElectionStats; 
+export default ElectionStats;
