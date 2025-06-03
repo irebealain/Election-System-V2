@@ -213,30 +213,9 @@ function StudentDashboard() {
                       outerRadius={60}
                       paddingAngle={3}
                       dataKey="value"
-                      label={({ name, percent }) => {
-                        if (percent < 0.08) return null;
-                        return `${name} (${(percent * 100).toFixed(0)}%)`;
-                      }}
-                      labelLine={{ 
-                        stroke: 'rgba(156, 163, 175, 0.5)', 
-                        strokeWidth: 1,
-                        strokeDasharray: "2 2"
-                      }}
                     >
-                      <Cell 
-                        fill="#10B981" 
-                        radius={8}
-                        className="transition-all duration-300 hover:opacity-85 hover:scale-105"
-                        strokeWidth={1.5}
-                        stroke="rgba(255, 255, 255, 0.8)"
-                      />
-                      <Cell 
-                        fill="#F59E0B" 
-                        radius={8}
-                        className="transition-all duration-300 hover:opacity-85 hover:scale-105"
-                        strokeWidth={1.5}
-                        stroke="rgba(255, 255, 255, 0.8)"
-                      />
+                      <Cell fill="#10B981" radius={8} />
+                      <Cell fill="#F59E0B" radius={8} />
                     </Pie>
                     <Tooltip 
                       contentStyle={{ 
@@ -250,7 +229,7 @@ function StudentDashboard() {
                       formatter={(value, name) => [
                         <div className="flex flex-col gap-1">
                           <span className="text-sm font-medium text-gray-900">{value} students</span>
-                          <span className="text-xs text-gray-500">{((value / totalVoters) * 100).toFixed(1)}% of total</span>
+                          <span className="text-xs text-gray-500">{((value / totalStudents) * 100).toFixed(1)}% of total</span>
                         </div>,
                         <span className="text-xs font-medium text-gray-600">{name}</span>
                       ]}
