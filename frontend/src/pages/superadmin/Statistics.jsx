@@ -5,9 +5,9 @@ import { getAllElections, getElectionResults } from '../../services/electionServ
 import { getAllVotes } from '../../services/voteService';
 import { getAllCandidates } from '../../services/candidateService';
 import { getAllPositions } from '../../services/positionService';
-import { getAllStudents } from '../../services/adminService';
+import { getAllStudents } from '../../services/UserService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Download, Trophy, Calendar, Users, CheckCircle2, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
+import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
