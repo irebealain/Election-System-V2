@@ -155,11 +155,14 @@ function ElectionStats() {
         throw new Error('Failed to fetch required data');
       }
 
+      console.log('Students data structure:', studentsData);
+      
       setElections(electionsData);
       setPositions(positionsData);
       setCandidates(candidatesData);
       setVotes(votesData);
-      setStudents(studentsData.data || []);
+      // If studentsData is already an array, use it directly, otherwise try to access .data
+      setStudents(Array.isArray(studentsData) ? studentsData : (studentsData?.data || []));
     } catch (error) {
       console.error('Error fetching data:', error);
       setError('Failed to load election statistics. Please try again later.');
