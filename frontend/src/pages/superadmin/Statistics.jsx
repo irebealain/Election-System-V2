@@ -416,18 +416,15 @@ function ElectionStats() {
           
           console.log('Total votes for this election:', allElectionVotes.length);
           
-          // Filter students who completed all their required positions
-          const completedVotes = allElectionVotes.filter(vote => {
-            const studentVotedPositions = studentVotesMap.get(vote.studentId);
-            const student = students.find(s => s._id === vote.studentId);
-            
-            if (!student) {
-              console.log('Student not found for vote:', vote.studentId);
-              return false;
-            }
+          // Get all unique students who voted in this election
+          const electionVoters = new Set();
+          
+          // First pass to get students who have voted
+          for (const student of students) {
+            const studentVotedPositions = studentVotesMap.get(student._id);
             if (!studentVotedPositions) {
               console.log('No votes found for student:', student.firstName, student.lastName);
-              return false;
+              continue;
             }
             
             // Get positions this student is eligible for
@@ -444,13 +441,15 @@ function ElectionStats() {
             
             // Check if student has voted for all their eligible positions
             const hasVotedAll = eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
-            if (!hasVotedAll) {
+            if (hasVotedAll) {
+              electionVoters.add(student._id);
+            } else {
               console.log('Student has not voted for all eligible positions');
             }
-            return hasVotedAll;
-          });
+          }
           
-          const electionVotes = completedVotes;
+          // Filter votes to only include those from students who voted for all their positions
+          const electionVotes = allElectionVotes.filter(vote => electionVoters.has(vote.studentId));
           
           return (
             <Card key={election._id} className="hover:shadow-lg transition-shadow overflow-hidden">
