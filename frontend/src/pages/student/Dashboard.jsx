@@ -334,20 +334,20 @@ function StudentDashboard() {
               <CardDescription className="text-xs">Candidates per position</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[150px]">
+              <div className="h-[150px] overflow-y-auto">
                 {positionChartData.length > 0 ? (
                   <div className="space-y-4">
                     {positionChartData.map((position, index) => (
-                      <div key={index} className="space-y-1">
-                        <div className="flex justify-between text-xs text-gray-600">
-                          <span>{position.name}</span>
-                          <span>{position.candidates} candidates</span>
+                      <div key={position.name} className="space-y-1.5">
+                        <div className="flex items-center justify-between text-xs">
+                          <span className="font-medium text-gray-700 dark:text-gray-300">{position.name}</span>
+                          <span className="text-gray-500 dark:text-gray-400">{position.candidates} candidates</span>
                         </div>
-                        <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/20">
                           <div
-                            className="h-full bg-blue-500 rounded-full transition-all duration-300 ease-in-out"
+                            className="h-full bg-blue-500 dark:bg-blue-400 transition-all rounded-full"
                             style={{
-                              width: `${(position.candidates / Math.max(...positionChartData.map(p => p.candidates))) * 100}%`
+                              width: `${Math.min((position.candidates / Math.max(...positionChartData.map(p => p.candidates))) * 100, 100)}%`
                             }}
                           />
                         </div>
