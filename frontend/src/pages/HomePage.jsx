@@ -262,7 +262,7 @@ export default function SchoolElectionLanding() {
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <Sparkles className="h-4 w-4 mr-2" />
-              Modern School Democracy Platform
+              Modern ASYV Voting Platform
             </motion.div>
             <motion.h1
               className="text-5xl sm:text-6xl md:text-7xl font-bold text-slate-900 leading-tight mb-8"
@@ -270,8 +270,8 @@ export default function SchoolElectionLanding() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8, delay: 0.3 }}
             >
-              <span className="block">Transform Your</span>
-              <span className="block text-slate-600 opacity-80">School Elections</span>
+              <span className="block">Transform ASYV's</span>
+              <span className="block text-slate-600 opacity-80">SG Elections</span>
             </motion.h1>
             <motion.p
               className="text-xl md:text-2xl text-slate-500 opacity-90 mb-12 max-w-4xl mx-auto leading-relaxed"
@@ -336,7 +336,7 @@ export default function SchoolElectionLanding() {
             animate={featuresInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">Built for Modern Schools</h2>
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">Built for Modern Casting</h2>
             <p className="text-xl text-slate-500 opacity-90 max-w-3xl mx-auto">
               Everything you need to run secure, transparent, and engaging school elections
             </p>
@@ -405,7 +405,7 @@ export default function SchoolElectionLanding() {
           >
             <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6">Simple Setup Process</h2>
             <p className="text-xl text-slate-500 opacity-90 max-w-3xl mx-auto">
-              Get your school election running in just a few easy steps
+              Get the elections running in just a few easy steps
             </p>
           </motion.div>
 
@@ -509,10 +509,8 @@ export default function SchoolElectionLanding() {
             transition={{ duration: 0.6, delay: 0.2 }}
             viewport={{ once: true }}
           >
-            <div className="h-10 w-10 bg-white rounded-xl flex items-center justify-center text-slate-900 font-bold text-lg mr-3">
-              ES
-            </div>
-            <span className="font-bold text-2xl">ElectSystem</span>
+            <img src={logo} alt="Logo" />
+            <span className="font-bold text-2xl">ASYV Election System</span>
           </motion.div>
           <motion.p
             className="text-slate-400 text-lg mb-6 opacity-80"
@@ -521,7 +519,7 @@ export default function SchoolElectionLanding() {
             transition={{ duration: 0.6, delay: 0.4 }}
             viewport={{ once: true }}
           >
-            Modern, secure, and transparent election system for schools
+            Modern, secure, and transparent election system for ASYV
           </motion.p>
           <motion.p
             className="text-slate-500 text-sm opacity-70"
@@ -530,7 +528,7 @@ export default function SchoolElectionLanding() {
             transition={{ duration: 0.6, delay: 0.6 }}
             viewport={{ once: true }}
           >
-            &copy; {new Date().getFullYear()} ElectSystem. All rights reserved.
+            &copy; {new Date().getFullYear()} Election System. All rights reserved.
           </motion.p>
         </div>
       </motion.footer>
