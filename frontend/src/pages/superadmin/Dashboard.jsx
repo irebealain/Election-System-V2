@@ -654,39 +654,19 @@ function SuperAdminDashboard() {
                       </td>
                       <td className="py-3 px-4">
                         {(() => {
-                          const currentElection = elections.find(e => e.status === 'ongoing')
-                          if (!currentElection) return 'No Active Election'
-
-                          const electionPositions = positions.filter(p => p.electionId === currentElection._id)
-                          const juniorMinisterPositions = electionPositions.filter(p => 
-                            p.title.toLowerCase().includes('junior minister')
-                          )
-                          const regularPositions = electionPositions.filter(p => 
-                            !p.title.toLowerCase().includes('junior minister')
-                          )
-
                           const studentVotes = new Set(
                             votes
-                              .filter(v => v.electionId === currentElection._id && v.studentId === student._id)
+                              .filter(v => v.studentId === student._id)
                               .map(v => v.positionId)
                           )
 
-                          const hasVotedAll = student.level === 'lower'
-                            ? juniorMinisterPositions.every(pos => studentVotes.has(pos._id))
-                            : regularPositions.every(pos => studentVotes.has(pos._id))
+                          const hasVoted = studentVotes.size > 0
 
-                          if (hasVotedAll) {
+                          if (hasVoted) {
                             return (
                               <span className="inline-flex items-center rounded-full bg-green-100 dark:bg-green-900/30 px-2.5 py-0.5 text-xs font-medium text-green-800 dark:text-green-400 text-[10px]">
                                 <span className="h-1.5 w-1.5 rounded-full bg-green-500 dark:bg-green-400 mr-1.5"></span>
-                                Completed
-                              </span>
-                            )
-                          } else if (studentVotes.size > 0) {
-                            return (
-                              <span className="inline-flex items-center rounded-full bg-yellow-100 dark:bg-yellow-900/30 px-2.5 py-0.5 text-xs font-medium text-yellow-800 dark:text-yellow-400 text-[10px]">
-                                <span className="h-1.5 w-1.5 rounded-full bg-yellow-500 dark:bg-yellow-400 mr-1.5"></span>
-                                Partial
+                                Voted
                               </span>
                             )
                           } else {
