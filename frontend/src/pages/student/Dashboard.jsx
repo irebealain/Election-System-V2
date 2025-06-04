@@ -374,7 +374,7 @@ function StudentDashboard() {
                       <Bar
                         dataKey="candidates"
                         fill="#F97316"
-                        radius={[4, 4, 0, 0]}
+                        radius={[10, 10, 0, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
