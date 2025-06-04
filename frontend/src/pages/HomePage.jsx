@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion"
+import { Link } from "react-router-dom"
 import {
   ArrowRight,
   CheckCircle,
@@ -15,40 +16,6 @@ import {
   UserCheck,
   Eye,
 } from "lucide-react"
-
-// Component Props
-/*
-NavLinkProps:
-- children: React node
-- active: boolean
-- onClick: function
-
-FeatureCardProps:
-- icon: React node
-- title: string
-- description: string
-- delay: number
-- accent: "emerald" or "orange"
-
-ProcessStepProps:
-- number: string
-- title: string
-- description: string
-- delay: number
-- accent: "emerald" or "orange"
-
-VotingStepProps:
-- icon: React node
-- title: string
-- description: string
-- delay: number
-- accent: "emerald" or "orange"
-
-AnimatedStarProps:
-- className: string
-- delay: number
-- scrollY: motion value
-*/
 
 export default function SchoolElectionLanding() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
