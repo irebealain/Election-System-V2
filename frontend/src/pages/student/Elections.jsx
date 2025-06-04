@@ -529,12 +529,12 @@ function Elections() {
                     <CardHeader className="p-0">
                       <div className="relative aspect-[21/9] w-full">
                         <div className="absolute inset-0 z-10 h-[10rem]" />
-                        <img
-                          src={candidate.profilePic || "/placeholder.svg"}
-                          alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="w-full h-[15rem] object-fill rounded-sm"
-                          loading="lazy"
-                        />
+                            <img
+                              src={candidate.profilePic || "/placeholder.svg"}
+                              alt={`${candidate.firstName} ${candidate.lastName}`}
+                              className="w-full h-full object-contain p-3 transition-transform duration-300 hover:scale-105"
+                              loading="lazy"
+                            />
                         {hasVoted && (
                           <div className="absolute top-2 right-2 z-20">
                             <div className="inline-flex items-center rounded-full bg-green-500/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
