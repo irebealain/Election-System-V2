@@ -278,12 +278,12 @@ function StudentDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
-                        data={levelChartData}
+                    data={levelChartData}
                     cx="50%"
                     cy="50%"
-                        innerRadius={40}
-                        outerRadius={60}
-                        paddingAngle={5}
+                    innerRadius={50}
+                    outerRadius={60}
+                    paddingAngle={3}
                     dataKey="value"
                         // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       >
@@ -308,6 +308,7 @@ function StudentDashboard() {
                       <Legend 
                         verticalAlign="bottom" 
                         height={36}
+                        iconType="circle"
                         formatter={(value) => <span className="text-xs">{value}</span>}
                   />
                 </PieChart>
@@ -339,9 +340,10 @@ function StudentDashboard() {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={positionChartData}
-                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                      margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
+                      barSize={12}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
                       <XAxis 
                         dataKey="name" 
                         angle={-45}
@@ -353,19 +355,25 @@ function StudentDashboard() {
                       <YAxis hide />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                          backgroundColor: 'rgba(17, 24, 39, 0.95)',
                           backdropFilter: 'blur(12px)',
-                          borderRadius: '12px',
+                          borderRadius: '8px',
                           padding: '8px 12px',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
-                          border: 'none'
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
+                          border: '1px solid rgba(255, 255, 255, 0.1)',
+                          color: 'white'
                         }}
-                        formatter={(value) => [`${value} candidates`, '']}
-                        cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                        formatter={(value) => [
+                          <div className="flex flex-col gap-1">
+                            <span className="text-sm font-medium text-white">{value} candidates</span>
+                          </div>,
+                          ''
+                        ]}
+                        cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
                       />
                       <Bar
                         dataKey="candidates"
-                        fill="#3B82F6"
+                        fill="#F97316"
                         radius={[4, 4, 0, 0]}
                       />
                     </BarChart>
