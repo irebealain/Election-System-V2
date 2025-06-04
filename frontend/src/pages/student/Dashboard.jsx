@@ -334,30 +334,48 @@ function StudentDashboard() {
               <CardDescription className="text-xs">Candidates per position</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[150px] overflow-y-auto">
+              <div className="h-[150px]">
                 {positionChartData.length > 0 ? (
-                  <div className="space-y-4">
-                    {positionChartData.map((position, index) => (
-                      <div key={position.name} className="space-y-1.5">
-                        <div className="flex items-center justify-between text-xs">
-                          <span className="font-medium text-gray-700 dark:text-gray-300">{position.name}</span>
-                          <span className="text-gray-500 dark:text-gray-400">{position.candidates} candidates</span>
-                        </div>
-                        <div className="relative h-2 w-full overflow-hidden rounded-full bg-blue-100 dark:bg-blue-900/20">
-                          <div
-                            className="h-full bg-blue-500 dark:bg-blue-400 transition-all rounded-full"
-                            style={{
-                              width: `${Math.min((position.candidates / Math.max(...positionChartData.map(p => p.candidates))) * 100, 100)}%`
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={positionChartData}
+                      margin={{ top: 10, right: 10, left: 10, bottom: 20 }}
+                    >
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.3} />
+                      <XAxis 
+                        dataKey="name" 
+                        angle={-45}
+                        textAnchor="end"
+                        height={60}
+                        tick={{ fontSize: 10 }}
+                        interval={0}
+                      />
+                      <YAxis hide />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                          backdropFilter: 'blur(12px)',
+                          borderRadius: '12px',
+                          padding: '8px 12px',
+                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+                          border: 'none'
+                        }}
+                        formatter={(value) => [`${value} candidates`, '']}
+                        cursor={{ fill: 'rgba(59, 130, 246, 0.1)' }}
+                      />
+                      <Bar
+                        dataKey="candidates"
+                        fill="#3B82F6"
+                        radius={[4, 4, 0, 0]}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                    <BarChart2 className="w-8 h-8 mb-2" />
-                    <p className="text-xs">No position data available</p>
+                    <div className="rounded-full bg-gray-100 p-2 dark:bg-gray-800">
+                      <BarChart2 className="w-8 h-8" />
+                    </div>
+                    <p className="text-xs mt-2">No position data available</p>
                   </div>
                 )}
               </div>
