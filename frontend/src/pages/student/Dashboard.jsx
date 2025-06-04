@@ -309,6 +309,7 @@ function StudentDashboard() {
                         verticalAlign="bottom" 
                         height={36}
                         iconType="circle"
+                        iconSize={8}
                         formatter={(value) => <span className="text-xs">{value}</span>}
                   />
                 </PieChart>
@@ -355,12 +356,11 @@ function StudentDashboard() {
                       <YAxis hide />
                       <Tooltip
                         contentStyle={{
-                          backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
                           backdropFilter: 'blur(12px)',
                           borderRadius: '8px',
                           padding: '8px 12px',
                           boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                          border: '1px solid rgba(255, 255, 255, 0.1)',
                           color: 'white'
                         }}
                         formatter={(value) => [
