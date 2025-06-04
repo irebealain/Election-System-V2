@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion"
 import { Link } from "react-router-dom"
+import logo from "../assets/Logo.png"
 import {
   ArrowRight,
   CheckCircle,
@@ -167,9 +168,10 @@ export default function SchoolElectionLanding() {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               <motion.div className="flex-shrink-0" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-lg">
-                  ES
-                </div>
+                {/* <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                  
+                </div> */}
+                <img src= {logo} alt="Logo" />
               </motion.div>
               <div className="hidden md:block ml-8">
                 <div className="ml-10 flex items-baseline space-x-8">
