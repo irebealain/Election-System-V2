@@ -68,9 +68,20 @@ function StudentDashboard() {
     ? students.filter(student => student.electionId === currentElection._id).length
     : 0
   const totalStudents = students.length
-  const votedCount = currentElection 
-    ? votes.filter(vote => vote.electionId === currentElection._id).length
+  
+  // Calculate how many positions each student needs to vote for
+  const requiredPositionsCount = electionPositions.length
+
+  // Count students who have voted for all their required positions
+  const votedCount = currentElection
+    ? students.filter(student => {
+        const studentVotes = votes.filter(
+          vote => vote.studentId === student._id && vote.electionId === currentElection._id
+        )
+        return studentVotes.length === requiredPositionsCount
+      }).length
     : 0
+
   const participationRate = totalStudents > 0 ? (votedCount / totalStudents) * 100 : 0
   const notVotedCount = totalStudents - votedCount
 
@@ -280,7 +291,7 @@ function StudentDashboard() {
                   <Pie
                     data={levelChartData}
                     cx="50%"
-                    cy="50%"
+                    cy="55%"
                     innerRadius={50}
                     outerRadius={60}
                     paddingAngle={3}
@@ -342,7 +353,7 @@ function StudentDashboard() {
                     <BarChart
                       data={positionChartData}
                       margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                      barSize={12}
+                      barSize={20}
                     >
                       <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
                       <XAxis 
@@ -374,7 +385,7 @@ function StudentDashboard() {
                       <Bar
                         dataKey="candidates"
                         fill="#F97316"
-                        radius={[10, 10, 0, 0]}
+                        radius={[5, 5, 0, 0]}
                       />
                     </BarChart>
                   </ResponsiveContainer>
