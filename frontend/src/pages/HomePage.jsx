@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import { motion, useScroll, useTransform, useInView, AnimatePresence } from "framer-motion"
 import { Link } from "react-router-dom"
 import logo from "../assets/Logo.svg"
+import dashboardImg from "../assets/ElectionDashboard.png"
 import {
   ArrowRight,
   CheckCircle,
@@ -318,7 +319,7 @@ export default function SchoolElectionLanding() {
               whileHover={{ rotate: 1, scale: 1.02 }}
             >
               <div className="rounded-xl overflow-hidden">
-                <img src="/dashboard-screenshot.png" alt="Election System Dashboard" className="w-full h-auto" />
+                <img src= {dashboardImg} alt="Election System Dashboard" className="w-full h-auto" />
               </div>
             </motion.div>
             {/* Reflection effect */}
