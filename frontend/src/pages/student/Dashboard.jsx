@@ -82,8 +82,9 @@ function StudentDashboard() {
       }).length
     : 0
 
-  const participationRate = totalStudents > 0 ? (votedCount / totalStudents) * 100 : 0
   const notVotedCount = totalStudents - votedCount
+  const votedPercentage = totalStudents > 0 ? (votedCount / totalStudents) * 100 : 0
+  const notVotedPercentage = totalStudents > 0 ? (notVotedCount / totalStudents) * 100 : 0
 
   // Group students by level for current election
   const levelData = students.reduce((acc, student) => {
@@ -212,54 +213,67 @@ function StudentDashboard() {
             <div className="h-[150px]">
               {totalVoters > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: "Voted", value: votedCount },
-                        { name: "Not Voted", value: notVotedCount }
-                      ]}
-                      cx="50%"
-                      cy="55%"
-                      innerRadius={50}
-                      outerRadius={60}
-                      paddingAngle={3}
-                      dataKey="value"
-                    >
-                      <Cell fill="#10B981" radius={8} />
-                      <Cell fill="#F59E0B" radius={8} />
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                        backdropFilter: 'blur(12px)',
-                        borderRadius: '12px',
-                        padding: '10px 14px',
-                        boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
-                        border: '1px solid rgba(229, 231, 235, 0.7)'
-                      }}
-                      formatter={(value, name) => [
-                        <div className="flex flex-col gap-1">
-                          <span className="text-sm font-medium text-gray-900">{value} students</span>
-                          <span className="text-xs text-gray-500">{((value / totalStudents) * 100).toFixed(1)}% of total</span>
-                        </div>,
-                        <span className="text-xs font-medium text-gray-600">{name}</span>
-                      ]}
-                    />
-                    <Legend 
-                      verticalAlign="bottom" 
-                      height={36}
-                      iconType="circle"
-                      iconSize={8}
-                      formatter={(value) => (
-                        <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                          {value}
-                        </span>
-                      )}
-                      wrapperStyle={{
-                        paddingTop: '10px',
-                        fontSize: '12px'
-                      }}
-                    />
+                    <PieChart>
+                      <Pie
+                        data={[
+                          { 
+                            name: 'Voted', 
+                            value: votedCount,
+                            percentage: votedPercentage.toFixed(1)
+                          },
+                          { 
+                            name: 'Not Voted', 
+                            value: notVotedCount,
+                            percentage: notVotedPercentage.toFixed(1)
+                          }
+                        ]}
+                        cx="50%"
+                        cy="48%"
+                        innerRadius={40}
+                        outerRadius={50}
+                        paddingAngle={2}
+                        dataKey="value"
+                        startAngle={90}
+                        endAngle={-270}
+                      >
+                        <Cell fill="#10B981" className="transition-opacity" strokeWidth={2} />
+                        <Cell fill="#FFA600" className="transition-opacity" strokeWidth={2} />
+                      </Pie>
+                      <Tooltip
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            const data = payload[0].payload
+                            return (
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
+                                <div className="mt-1 space-y-0.5">
+                                  <p className="text-xs font-medium">
+                                    <span className="text-gray-500 dark:text-gray-400">Count:</span>{' '}
+                                    <span className="text-gray-900 dark:text-gray-100">{data.value}</span>
+                                  </p>
+                                  <p className="text-xs font-medium">
+                                    <span className="text-gray-500 dark:text-gray-400">Percentage:</span>{' '}
+                                    <span className="text-gray-900 dark:text-gray-100">{data.percentage}%</span>
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          }
+                          return null
+                        }}
+                        wrapperStyle={{ outline: 'none' }}
+                      />
+                      <Legend 
+                        verticalAlign="top"
+                        height={36}
+                        iconSize={8}
+                        iconType="circle"
+                        formatter={(value, entry) => (
+                          <span className="mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
+                            {value} ({entry.payload.percentage}%)
+                          </span>
+                        )}
+                      />
                   </PieChart>
                 </ResponsiveContainer>
               ) : (
