@@ -157,7 +157,7 @@ function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{votedCount}</div>
-              <p className="text-xs text-muted-foreground">{participationRate.toFixed(1)}% participation rate</p>
+              <p className="text-xs text-muted-foreground">{votedPercentage.toFixed(1)}% participation rate</p>
             </CardContent>
           </Card>
         </motion.div>
