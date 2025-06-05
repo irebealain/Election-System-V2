@@ -301,22 +301,22 @@ function StudentDashboard() {
                             color: '#10B981',
                             percentage: votedPercentage.toFixed(1)
                           },
-                          { 
-                            name: 'Partially Voted', 
-                            value: students.filter(student => {
-                              const studentVoteSet = studentVotes.get(student._id)
-                              if (!studentVoteSet) return false
-                              const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
-                              return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
-                            }).length,
-                            color: '#F59E0B',
-                            percentage: ((students.filter(student => {
-                              const studentVoteSet = studentVotes.get(student._id)
-                              if (!studentVoteSet) return false
-                              const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
-                              return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
-                            }).length / totalStudents) * 100).toFixed(1)
-                          },
+                          // { 
+                          //   name: 'Partially Voted', 
+                          //   value: students.filter(student => {
+                          //     const studentVoteSet = studentVotes.get(student._id)
+                          //     if (!studentVoteSet) return false
+                          //     const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
+                          //     return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
+                          //   }).length,
+                          //   color: '#F59E0B',
+                          //   percentage: ((students.filter(student => {
+                          //     const studentVoteSet = studentVotes.get(student._id)
+                          //     if (!studentVoteSet) return false
+                          //     const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
+                          //     return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
+                          //   }).length / totalStudents) * 100).toFixed(1)
+                          // },
                           { 
                             name: 'Not Voted',
                             value: students.filter(student => !studentVotes.has(student._id)).length,
