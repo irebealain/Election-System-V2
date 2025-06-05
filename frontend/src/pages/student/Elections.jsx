@@ -50,15 +50,9 @@ function Elections() {
       setLoading(true)
       // Fetch current election
       const electionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`)
-      const elections = Array.isArray(electionResponse.data.data) ? electionResponse.data.data : [electionResponse.data.data]
-      const currentElection = elections.find(e => e.status === 'ongoing')
-
-      // Debug logging
-      console.log('All elections:', elections)
-      console.log('Current election:', currentElection)
+      const currentElection = electionResponse.data.data.find(e => e.status === 'ongoing')
       
       if (!currentElection) {
-        console.log('No active election found')
         toast.error("No active election found")
         setElection(null)
         setPositions([])
