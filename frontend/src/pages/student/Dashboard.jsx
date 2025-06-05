@@ -52,6 +52,7 @@ function StudentDashboard() {
   // Calculate pagination
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
+  const totalPages = Math.ceil(students.length / itemsPerPage)
   const currentStudents = students.slice(startIndex, endIndex)
 
   // Filter positions and candidates for current election

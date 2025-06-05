@@ -77,10 +77,10 @@ function Elections() {
         if (currentUser.level === 'upper') {
           return !position.title.toLowerCase().includes('junior minister')
         }
-        // // If student is lower level, show only Junior Minister positions
-        // else if (currentUser.level === 'lower') {
-        //   return position.title.toLowerCase().includes('junior minister')
-        // }
+        // If student is lower level, show only Junior Minister positions
+        else if (currentUser.level === 'lower') {
+          return position.title.toLowerCase().includes('junior minister')
+        }
         return false
       })
 
