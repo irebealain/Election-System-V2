@@ -55,6 +55,8 @@ function Elections() {
       const currentElection = electionResponse.data.data.find(e => e.status === 'ongoing')
       console.log('Current Election:', currentElection)
       
+      console.log('Current Election:', currentElection)
+      
       if (!currentElection) {
         console.log('No active election found')
         toast.error("No active election found")
@@ -67,73 +69,45 @@ function Elections() {
 
       // Fetch positions for the current election
       const positionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/positions`)
-      console.log('All positions data:', positionsResponse.data)
-      const electionPositions = positionsResponse.data.data.filter(p => {
-        console.log('Checking position for current election:', {
-          position: p.title,
-          positionElectionId: p.electionId,
-          currentElectionId: currentElection._id,
-          matches: p.electionId === currentElection._id
-        })
-        return p.electionId === currentElection._id
-      })
+      const electionPositions = positionsResponse.data.data.filter(p => p.electionId === currentElection._id)
+      console.log('All positions from API:', positionsResponse.data.data)
+      console.log('Filtered positions for current election:', electionPositions)
 
       // Fetch candidates for the current election
       const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
-      console.log('All candidates data:', candidatesResponse.data)
-      const electionCandidates = candidatesResponse.data.data.filter(c => {
-        console.log('Checking candidate for current election:', {
-          name: `${c.firstName} ${c.lastName}`,
-          candidateElectionId: c.electionId,
-          currentElectionId: currentElection._id,
-          matches: c.electionId === currentElection._id
-        })
-        return c.electionId === currentElection._id
-      })
+      const electionCandidates = candidatesResponse.data.data.filter(
+        c => c.electionId === currentElection._id
+      )
+      console.log('All candidates from API:', candidatesResponse.data.data)
+      console.log('Filtered candidates for current election:', electionCandidates)
 
       // Filter positions based on student level
-      console.log('Current user level:', currentUser.level)
       const filteredPositions = electionPositions.filter(position => {
-        const title = position.title.toLowerCase()
-        const isJuniorPosition = title.includes('junior minister')
-        const shouldInclude = currentUser.level === 'upper'
-          ? !isJuniorPosition // Upper level sees everything except junior positions 
-          : currentUser.level === 'lower'
-          ? isJuniorPosition // Lower level only sees junior positions
-          : true // Other levels see everything
-
-        console.log('Filtering position by level:', {
-          position: position.title,
-          isJuniorPosition,
-          userLevel: currentUser.level,
-          shouldInclude
-        })
-
-        return shouldInclude
+        // If student is upper level, show all positions except Junior Minister positions
+        if (currentUser.level === 'upper') {
+          return !position.title.toLowerCase().includes('junior minister')
+        }
+        // If student is lower level, show only Junior Minister positions
+        // else if (currentUser.level === 'lower') {
+        //   return position.title.toLowerCase().includes('junior minister')
+        // }
+        return true // Show all positions for any other case
       })
-      console.log('Positions after level filtering:', filteredPositions)
+      console.log('Positions filtered by student level:', filteredPositions)
+      console.log('Current user level:', currentUser.level)
 
       // Filter positions to only include those with candidates
       const positionsWithCandidates = filteredPositions.filter(position => {
-        const matchingCandidates = electionCandidates.filter(candidate => {
-          const matches = candidate.positionId === position._id
-          console.log('Checking candidate match:', {
-            position: position.title,
-            candidateName: `${candidate.firstName} ${candidate.lastName}`,
-            candidatePositionId: candidate.positionId,
-            positionId: position._id,
-            matches
-          })
-          return matches
-        })
-        const hasCandidates = matchingCandidates.length > 0
-        console.log(`Position "${position.title}" has ${matchingCandidates.length} candidates`)
+        const hasCandidates = electionCandidates.some(candidate => candidate.positionId === position._id)
+        console.log(`Checking candidates for position ${position.title}:`, hasCandidates)
+        if (!hasCandidates) {
+          console.log(`Position "${position.title}" has no candidates and will be hidden`)
+        }
         return hasCandidates
       })
       console.log('Final positions with candidates:', positionsWithCandidates)
 
       if (positionsWithCandidates.length === 0) {
-        console.log('No positions with candidates found')
         toast.error("No positions with candidates found in the current election")
         setElection(null)
         setPositions([])
