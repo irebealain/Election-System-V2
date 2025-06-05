@@ -363,7 +363,7 @@ function StudentDashboard() {
                         wrapperStyle={{ outline: 'none' }}
                       />
                       <Legend 
-                        verticalAlign="top"
+                        verticalAlign="bottom"
                         height={36}
                         iconSize={8}
                         iconType="circle"
