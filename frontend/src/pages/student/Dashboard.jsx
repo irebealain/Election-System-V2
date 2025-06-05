@@ -50,7 +50,6 @@ function StudentDashboard() {
   }, [])
 
   // Calculate pagination
-  const totalPages =
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentStudents = students.slice(startIndex, endIndex)
