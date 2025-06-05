@@ -26,6 +26,7 @@ function Elections() {
   useEffect(() => {
     document.title = "Elections | Student Dashboard"
     fetchElectionData()
+    console.log(positions, "Positions fetched")
   }, [])
 
   useEffect(() => {
@@ -81,7 +82,7 @@ function Elections() {
         else if (currentUser.level === 'lower') {
           return position.title.toLowerCase().includes('junior minister')
         }
-        return false
+        return true // Show all positions for any other case
       })
 
       // Filter positions to only include those with candidates
