@@ -50,6 +50,7 @@ function StudentDashboard() {
   }, [])
 
   // Calculate pagination
+  const totalPages = Math.ceil(students.length / itemsPerPage)
   const startIndex = (currentPage - 1) * itemsPerPage
   const endIndex = startIndex + itemsPerPage
   const currentStudents = students.slice(startIndex, endIndex)
@@ -62,90 +63,42 @@ function StudentDashboard() {
     ? candidates.filter(candidate => candidate.electionId === currentElection._id)
     : []
 
-  // Get positions based on student level
-  const juniorMinisterPositions = electionPositions.filter(p => 
-    p.title.toLowerCase().includes('junior minister')
-  )
-  const regularPositions = electionPositions.filter(p => 
-    !p.title.toLowerCase().includes('junior minister')
-  )
-
+  // Calculate statistics for current election
+  const totalVoters = currentElection 
+    ? students.filter(student => student.electionId === currentElection._id).length
+    : 0
   const totalStudents = students.length
+  
+  // Calculate how many positions each student needs to vote for
+  const requiredPositionsCount = electionPositions.length
 
-  // Track votes per student with their positions
-  const studentVotes = new Map()
-  if (currentElection) {
-    votes.forEach(vote => {
-      if (vote.electionId === currentElection._id) {
-        if (!studentVotes.has(vote.studentId)) {
-          studentVotes.set(vote.studentId, new Set())
-        }
-        studentVotes.get(vote.studentId).add(vote.positionId)
-      }
-    })
-  }
-
-  // Count students who have voted for all their required positions based on level
-  const votedCount = students.reduce((count, student) => {
-    const studentVoteSet = studentVotes.get(student._id)
-    if (!studentVoteSet) return count
-
-    if (student.level === 'lower') {
-      // Lower level students need to vote for all junior minister positions
-      const hasVotedAll = juniorMinisterPositions.every(position => 
-        studentVoteSet.has(position._id)
-      )
-      return hasVotedAll ? count + 1 : count
-    } else if (student.level === 'upper') {
-      // Upper level students need to vote for all regular positions
-      const hasVotedAll = regularPositions.every(position => 
-        studentVoteSet.has(position._id)
-      )
-      return hasVotedAll ? count + 1 : count
-    }
-    return count
-  }, 0)
+  // Count students who have voted for all their required positions
+  const votedCount = currentElection
+    ? students.filter(student => {
+        const studentVotes = votes.filter(
+          vote => vote.studentId === student._id && vote.electionId === currentElection._id
+        )
+        return studentVotes.length === requiredPositionsCount
+      }).length
+    : 0
 
   const notVotedCount = totalStudents - votedCount
   const votedPercentage = totalStudents > 0 ? (votedCount / totalStudents) * 100 : 0
   const notVotedPercentage = totalStudents > 0 ? (notVotedCount / totalStudents) * 100 : 0
-  const participationRate = Math.round(votedPercentage)
 
-  // Calculate voting trend and last hour votes
-  const lastHourVotes = votes.filter(v => {
-    const voteDate = new Date(v.createdAt)
-    const hourAgo = new Date()
-    hourAgo.setHours(hourAgo.getHours() - 1)
-    return voteDate > hourAgo && v.electionId === currentElection._id
-  }).length
-
-  const votingTrend = lastHourVotes > 0 ? 'up' : 'stable'
-
-  // Calculate level-based voting statistics
-  const levelStats = students.reduce((acc, student) => {
-    const level = student.level || 'Unknown'
-    if (!acc[level]) {
-      acc[level] = { total: 0, voted: 0 }
-    }
-    acc[level].total++
-
-    const studentVoteSet = studentVotes.get(student._id)
-    if (studentVoteSet) {
-      if (level === 'lower' && juniorMinisterPositions.every(pos => studentVoteSet.has(pos._id))) {
-        acc[level].voted++
-      } else if (level === 'upper' && regularPositions.every(pos => studentVoteSet.has(pos._id))) {
-        acc[level].voted++
-      }
+  // Group students by level for current election
+  const levelData = students.reduce((acc, student) => {
+    if (currentElection && student.electionId === currentElection._id) {
+      const level = student.level || 'Unknown'
+      acc[level] = (acc[level] || 0) + 1
     }
     return acc
   }, {})
 
-  const levelChartData = Object.entries(levelStats).map(([name, stats]) => ({
+  const levelChartData = Object.entries(levelData).map(([name, value]) => ({
     name,
-    total: stats.total,
-    voted: stats.voted,
-    notVoted: stats.total - stats.voted,
-    percentage: stats.total > 0 ? (stats.voted / stats.total) * 100 : 0
+    value,
+    percentage: (value / totalVoters) * 100
   }))
 
   // Prepare position data for current election
@@ -204,23 +157,7 @@ function StudentDashboard() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{votedCount}</div>
-              <div className="flex justify-between items-center mt-1">
-                <p className="text-xs text-muted-foreground">{participationRate}% participation rate</p>
-                <div className={`flex items-center gap-1 ${
-                  votingTrend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
-                }`}>
-                  {votingTrend === 'up' ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
-                    </svg>
-                  )}
-                  <span className="text-xs">{lastHourVotes} new votes</span>
-                </div>
-              </div>
+              <p className="text-xs text-muted-foreground">{votedPercentage.toFixed(1)}% participation rate</p>
             </CardContent>
           </Card>
         </motion.div>
@@ -274,7 +211,7 @@ function StudentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[150px]">
-              {totalStudents > 0 ? (
+              {totalVoters > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -358,79 +295,50 @@ function StudentDashboard() {
           <Card className="hover:shadow-lg transition-shadow">
             <CardHeader>
               <CardTitle className="text-sm">Voters by Level</CardTitle>
-              <CardDescription className="text-xs">Level distribution and voting progress</CardDescription>
+              <CardDescription className="text-xs">Level distribution</CardDescription>
           </CardHeader>
           <CardContent>
               <div className="h-[150px]">
                 {levelChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={levelChartData}
-                        cx="50%"
-                        cy="55%"
-                        innerRadius={50}
-                        outerRadius={60}
-                        paddingAngle={3}
-                        dataKey="voted"
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={levelChartData}
+                    cx="50%"
+                    cy="55%"
+                    innerRadius={50}
+                    outerRadius={60}
+                    paddingAngle={3}
+                    dataKey="value"
+                        // label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                       >
                         {levelChartData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                        <Cell 
+                          key={`cell-${index}`} 
                             fill={LEVEL_COLORS[index % LEVEL_COLORS.length]}
-                            className="transition-all duration-300 hover:opacity-80"
-                          />
+                        />
                         ))}
-                      </Pie>
-                      <Tooltip 
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload;
-                            return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
-                                  {data.name} Level
-                                </p>
-                                <div className="mt-2 space-y-1">
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-500 dark:text-gray-400">Total:</span>
-                                    <span className="font-medium text-gray-900 dark:text-gray-100">{data.total}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-500 dark:text-gray-400">Voted:</span>
-                                    <span className="font-medium text-green-600 dark:text-green-400">{data.voted}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-500 dark:text-gray-400">Not Voted:</span>
-                                    <span className="font-medium text-gray-600 dark:text-gray-400">{data.notVoted}</span>
-                                  </div>
-                                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
-                                    <div className="flex items-center justify-between text-xs">
-                                      <span className="text-gray-500 dark:text-gray-400">Completion:</span>
-                                      <span className="font-medium text-primary">{data.percentage.toFixed(1)}%</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ 
+                          backgroundColor: 'rgba(255, 255, 255, 0.9)',
+                          border: 'none',
+                          borderRadius: '8px',
+                      padding: '12px',
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          backdropFilter: 'blur(8px)'
                         }}
+                        formatter={(value) => [`${value} students`, '']}
                       />
                       <Legend 
                         verticalAlign="bottom" 
                         height={36}
                         iconType="circle"
                         iconSize={8}
-                        formatter={(value, entry) => (
-                          <span className="text-xs font-medium flex items-center gap-1">
-                            <span>{entry.payload.name}</span>
-                            <span className="text-primary">({entry.payload.percentage.toFixed(0)}%)</span>
-                          </span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                        formatter={(value) => <span className="text-xs">{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
                 ) : (
                   <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                     <PieChartIcon className="w-8 h-8 mb-2" />
@@ -459,8 +367,7 @@ function StudentDashboard() {
                     <BarChart
                       data={positionChartData}
                       margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                      barSize={24}
-                      barGap={2}
+                      barSize={12}
                     >
                       <defs>
                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
@@ -599,40 +506,21 @@ function StudentDashboard() {
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
                     <td className="p-3">
-                      {(() => {
-                        const studentVoteSet = studentVotes.get(student._id)
-                        let hasCompletedVoting = false
-                        
-                        if (currentElection && studentVoteSet) {
-                          if (student.level === 'lower') {
-                            hasCompletedVoting = juniorMinisterPositions.every(position => 
-                              studentVoteSet.has(position._id)
-                            )
-                          } else if (student.level === 'upper') {
-                            hasCompletedVoting = regularPositions.every(position => 
-                              studentVoteSet.has(position._id)
-                            )
-                          }
-                        }
-
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
-                              ${hasCompletedVoting
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                                : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
-                              }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                                ${hasCompletedVoting
-                                  ? 'bg-green-500 dark:bg-green-400'
-                                  : 'bg-gray-500 dark:bg-gray-400'
-                                }`}
-                              />
-                              {hasCompletedVoting ? 'Voted' : 'Not Voted'}
-                            </span>
-                          </div>
-                        )
-                      })()}
+                      <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
+                        ${currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                          ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                          : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                        }`}>
+                        <span className={`h-1.5 w-1.5 rounded-full mr-1.5
+                          ${currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                            ? 'bg-green-500 dark:bg-green-400'
+                            : 'bg-yellow-500 dark:bg-yellow-400'
+                          }`}
+                        />
+                        {currentElection && votes.some(v => v.studentId === student._id && v.electionId === currentElection._id)
+                          ? 'Voted'
+                          : 'Not Voted'}
+                        </span>
                     </td>
                     <td className="p-3 text-gray-600 dark:text-gray-300">
                       {student.createdAt ? (
