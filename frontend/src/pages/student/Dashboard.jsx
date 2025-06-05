@@ -367,7 +367,8 @@ function StudentDashboard() {
                     <BarChart
                       data={positionChartData}
                       margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                      barSize={12}
+                      barSize={24}
+                      barGap={2}
                     >
                       <defs>
                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
