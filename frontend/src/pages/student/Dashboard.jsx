@@ -367,39 +367,87 @@ function StudentDashboard() {
                     <BarChart
                       data={positionChartData}
                       margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                      barSize={20}
+                      barSize={12}
                     >
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} opacity={0.2} />
+                      <defs>
+                        <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#F59E0B" />
+                          <stop offset="100%" stopColor="#F97316" />
+                        </linearGradient>
+                        <filter id="shadow">
+                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1"/>
+                        </filter>
+                      </defs>
+                      <CartesianGrid 
+                        strokeDasharray="3 3" 
+                        vertical={false} 
+                        opacity={0.1}
+                        stroke="#94A3B8"
+                      />
                       <XAxis 
                         dataKey="name" 
                         angle={-45}
                         textAnchor="end"
                         height={60}
-                        tick={{ fontSize: 10 }}
+                        tick={{ 
+                          fontSize: 10,
+                          fill: '#64748B',
+                          fontWeight: 500
+                        }}
+                        axisLine={false}
+                        tickLine={false}
                         interval={0}
                       />
                       <YAxis hide />
                       <Tooltip
-                        contentStyle={{
-                          backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                          backdropFilter: 'blur(12px)',
-                          borderRadius: '8px',
-                          padding: '8px 12px',
-                          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.2)',
-                          color: 'white'
+                        content={({ active, payload }) => {
+                          if (active && payload && payload.length) {
+                            return (
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                                  {payload[0].payload.name}
+                                </p>
+                                <div className="mt-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <div className="h-2 w-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500" />
+                                    <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                                      {payload[0].value} candidates
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            )
+                          }
+                          return null
                         }}
-                        formatter={(value) => [
-                          <div className="flex flex-col gap-1">
-                            <span className="text-sm font-medium text-white">{value} candidates</span>
-                          </div>,
-                          ''
-                        ]}
-                        cursor={{ fill: 'rgba(255, 255, 255, 0.1)' }}
+                        cursor={{ 
+                          fill: 'rgba(148, 163, 184, 0.1)',
+                          radius: [4, 4, 0, 0]
+                        }}
+                        wrapperStyle={{ outline: 'none' }}
                       />
                       <Bar
                         dataKey="candidates"
-                        fill="#F97316"
-                        radius={[5, 5, 0, 0]}
+                        radius={[6, 6, 0, 0]}
+                        fill="url(#barGradient)"
+                        filter="url(#shadow)"
+                        animationBegin={200}
+                        animationDuration={1000}
+                        onMouseEnter={(data, index) => {
+                          const bar = document.querySelector(`path[name=candidates-${index}]`);
+                          if (bar) {
+                            bar.style.filter = 'brightness(1.1)';
+                            bar.style.transform = 'translateY(-2px)';
+                            bar.style.transition = 'all 0.3s ease';
+                          }
+                        }}
+                        onMouseLeave={(data, index) => {
+                          const bar = document.querySelector(`path[name=candidates-${index}]`);
+                          if (bar) {
+                            bar.style.filter = 'none';
+                            bar.style.transform = 'none';
+                          }
+                        }}
                       />
                     </BarChart>
                   </ResponsiveContainer>
