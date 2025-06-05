@@ -274,7 +274,7 @@ function StudentDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[150px]">
-              {totalVoters > 0 ? (
+              {totalStudents > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -602,18 +602,16 @@ function StudentDashboard() {
                       {(() => {
                         const studentVoteSet = studentVotes.get(student._id)
                         let hasCompletedVoting = false
-                        let totalRequired = 0
-                        let completed = 0
                         
                         if (currentElection && studentVoteSet) {
                           if (student.level === 'lower') {
-                            totalRequired = juniorMinisterPositions.length
-                            completed = juniorMinisterPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                            hasCompletedVoting = completed === totalRequired
+                            hasCompletedVoting = juniorMinisterPositions.every(position => 
+                              studentVoteSet.has(position._id)
+                            )
                           } else if (student.level === 'upper') {
-                            totalRequired = regularPositions.length
-                            completed = regularPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                            hasCompletedVoting = completed === totalRequired
+                            hasCompletedVoting = regularPositions.every(position => 
+                              studentVoteSet.has(position._id)
+                            )
                           }
                         }
 
@@ -622,23 +620,15 @@ function StudentDashboard() {
                             <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
                               ${hasCompletedVoting
                                 ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                                : completed > 0
-                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                  : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
+                                : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
                               }`}>
                               <span className={`h-1.5 w-1.5 rounded-full mr-1.5
                                 ${hasCompletedVoting
                                   ? 'bg-green-500 dark:bg-green-400'
-                                  : completed > 0
-                                    ? 'bg-yellow-500 dark:bg-yellow-400'
-                                    : 'bg-gray-500 dark:bg-gray-400'
+                                  : 'bg-gray-500 dark:bg-gray-400'
                                 }`}
                               />
-                              {hasCompletedVoting
-                                ? 'Completed'
-                                : completed > 0
-                                  ? `${completed}/${totalRequired} Positions`
-                                  : 'Not Voted'}
+                              {hasCompletedVoting ? 'Voted' : 'Not Voted'}
                             </span>
                           </div>
                         )
