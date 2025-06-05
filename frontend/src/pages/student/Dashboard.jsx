@@ -320,7 +320,7 @@ function StudentDashboard() {
                           { 
                             name: 'Not Voted',
                             value: students.filter(student => !studentVotes.has(student._id)).length,
-                            color: '#6B7280',
+                            color: '#F59E0B',
                             percentage: ((students.filter(student => !studentVotes.has(student._id)).length / totalStudents) * 100).toFixed(1)
                           }
                         ]}

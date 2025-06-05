@@ -70,16 +70,12 @@ function Elections() {
       // Fetch positions for the current election
       const positionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/positions`)
       const electionPositions = positionsResponse.data.data.filter(p => p.electionId === currentElection._id)
-      console.log('All positions from API:', positionsResponse.data.data)
-      console.log('Filtered positions for current election:', electionPositions)
 
       // Fetch candidates for the current election
       const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
       const electionCandidates = candidatesResponse.data.data.filter(
         c => c.electionId === currentElection._id
       )
-      console.log('All candidates from API:', candidatesResponse.data.data)
-      console.log('Filtered candidates for current election:', electionCandidates)
 
       // Filter positions based on student level
       const filteredPositions = electionPositions.filter(position => {
@@ -87,14 +83,8 @@ function Elections() {
         if (currentUser.level === 'upper') {
           return !position.title.toLowerCase().includes('junior minister')
         }
-        // If student is lower level, show only Junior Minister positions
-        // else if (currentUser.level === 'lower') {
-        //   return position.title.toLowerCase().includes('junior minister')
-        // }
         return true // Show all positions for any other case
       })
-      console.log('Positions filtered by student level:', filteredPositions)
-      console.log('Current user level:', currentUser.level)
 
       // Filter positions to only include those with candidates
       const positionsWithCandidates = filteredPositions.filter(position => {
