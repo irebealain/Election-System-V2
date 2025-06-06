@@ -593,7 +593,94 @@ function ElectionStats() {
                       transition={{ duration: 0.5 }}
                       className="absolute inset-0 flex flex-col items-center justify-center p-2"
                     >
-                      {/* Your existing winner card and chart code */}
+                      {/* Winner Card */}
+                      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-2">
+                            <Crown className="h-6 w-6 text-yellow-500" />
+                            <h3 className="text-lg font-bold">
+                              {positions.find(p => p._id === selectedPositionId)?.title}
+                            </h3>
+                          </div>
+                          <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+                            Winner
+                          </span>
+                        </div>
+                        
+                        {/* Winner Info */}
+                        {getPositionResults(selectedPositionId)[0] && (
+                          <div className="text-center p-4">
+                            <h4 className="text-xl font-bold mb-2">
+                              {getPositionResults(selectedPositionId)[0].name}
+                            </h4>
+                            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
+                              <span>{getPositionResults(selectedPositionId)[0].value} votes</span>
+                              <span>•</span>
+                              <span>{getPositionResults(selectedPositionId)[0].percentage.toFixed(1)}%</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Results Pie Chart */}
+                      <div className="w-full max-w-md h-[200px]">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={getPositionResults(selectedPositionId)}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={45}
+                              outerRadius={65}
+                              paddingAngle={2}
+                              dataKey="value"
+                            >
+                              {getPositionResults(selectedPositionId).map((entry, index) => (
+                                <Cell 
+                                  key={`cell-${index}`}
+                                  fill={COLORS[index % COLORS.length]}
+                                  className="transition-all duration-300 hover:opacity-80"
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                  const data = payload[0].payload;
+                                  return (
+                                    <div className="bg-white/90 dark:bg-gray-800/90 p-2 rounded-lg shadow-lg">
+                                      <p className="font-medium text-sm">{data.name}</p>
+                                      <p className="text-xs text-gray-500 dark:text-gray-400">
+                                        {data.value} votes ({data.percentage.toFixed(1)}%)
+                                      </p>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              }}
+                            />
+                            <Legend
+                              verticalAlign="bottom"
+                              height={36}
+                              content={({ payload }) => (
+                                <div className="flex flex-wrap justify-center gap-4">
+                                  {payload.map((entry, index) => (
+                                    <div key={`legend-${index}`} className="flex items-center gap-1">
+                                      <span
+                                        className="w-3 h-3 rounded-full"
+                                        style={{ backgroundColor: entry.color }}
+                                      />
+                                      <span className="text-xs font-medium">
+                                        {entry.value}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
                     </motion.div>
                   )}
                 </>
