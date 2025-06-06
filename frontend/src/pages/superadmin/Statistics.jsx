@@ -568,9 +568,9 @@ function ElectionStats() {
                         transition={{ duration: 0.5 }}
                         className="absolute inset-0 flex flex-col items-center justify-center p-2"
                       >                          
-                      <div className="w-full max-w-2xl mx-auto space-y-6">
+                      <div className="w-full max-w-2xl mx-auto space-y-2">
                             <div className="text-center relative">
-                              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
+                              <div className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent top-1/2 -translate-y-1/2 -z-10" />
                               
                             </div>
 
@@ -618,22 +618,22 @@ function ElectionStats() {
                                           dataKey="value"
                                           paddingAngle={3}
                                           label={({ name, value, percent }) => {
-                                            if (percent < 0.08) return null; // Only show labels for segments > 8%
+                                            if (percent < 0.05) return null; // Show more labels by lowering threshold to 5%
                                             return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
                                           }}
                                           labelLine={{ 
-                                            stroke: 'rgba(156, 163, 175, 0.5)', 
-                                            strokeWidth: 1,
-                                            strokeDasharray: "2 2"
+                                            stroke: 'rgba(156, 163, 175, 0.3)', 
+                                            strokeWidth: 0.5,
+                                            strokeDasharray: "1 2"
                                           }}
                                         >
                                           {results.map((entry, index) => (
                                             <Cell 
                                               key={`cell-${index}`} 
                                               fill={COLORS[index % COLORS.length]}
-                                              className="transition-all duration-300 hover:opacity-85 hover:scale-105"
-                                              strokeWidth={1.5}
-                                              stroke="rgba(255, 255, 255, 0.8)"
+                                              className="transition-all duration-300 hover:opacity-90 hover:scale-102"
+                                              strokeWidth={1}
+                                              stroke="rgba(255, 255, 255, 0.9)"
                                             />
                                           ))}
                                         </Pie>
@@ -659,17 +659,18 @@ function ElectionStats() {
                                         />
                                         <Legend 
                                           verticalAlign="bottom"
-                                          height={30}
+                                          height={24}
                                           iconType="circle"
-                                          iconSize={8}
+                                          iconSize={6}
                                           formatter={(value) => (
-                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
-                                              {value.length > 20 ? `${value.substring(0, 20)}...` : value}
+                                            <span className="text-[10px] font-medium text-gray-500 dark:text-gray-400">
+                                              {value.length > 15 ? `${value.substring(0, 15)}...` : value}
                                             </span>
                                           )}
                                           wrapperStyle={{
-                                            paddingTop: '10px',
-                                            fontSize: '12px'
+                                            paddingTop: '8px',
+                                            fontSize: '10px',
+                                            lineHeight: '1'
                                           }}
                                         />
                                       </PieChart>
