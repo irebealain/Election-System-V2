@@ -569,8 +569,8 @@ function ElectionStats() {
                                 <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10 h-[150px]">
                                   <div className="absolute -top-2 -left-2">
                                     <div className="relative">
-                                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
-                                        <Crown className="w-3 h-3" />
+                                      <div className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
+                                        <Crown className="w-6 h-6" />
                                       </div>
                                       <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[16px] font-bold">
                                         1st
@@ -603,19 +603,19 @@ function ElectionStats() {
                                           cx="50%"
                                           cy="50%"
                                           outerRadius={45}
-                                          innerRadius={30}
+                                          innerRadius={35}
                                           fill="#8884d8"
                                           dataKey="value"
                                           paddingAngle={3}
-                                          label={({ name, value, percent }) => {
-                                            if (percent < 0.08) return null; // Only show labels for segments > 8%
-                                            return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
-                                          }}
-                                          labelLine={{ 
-                                            stroke: 'rgba(156, 163, 175, 0.5)', 
-                                            strokeWidth: 1,
-                                            strokeDasharray: "2 2"
-                                          }}
+                                          // label={({ name, value, percent }) => {
+                                          //   if (percent < 0.08) return null; // Only show labels for segments > 8%
+                                          //   return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
+                                          // }}
+                                          // labelLine={{ 
+                                          //   stroke: 'rgba(156, 163, 175, 0.5)', 
+                                          //   strokeWidth: 1,
+                                          //   strokeDasharray: "2 2"
+                                          // }}
                                         >
                                           {results.map((entry, index) => (
                                             <Cell 
