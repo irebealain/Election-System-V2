@@ -133,6 +133,7 @@ function ElectionStats() {
   const canvasRef = useRef(null);
   const pdfGeneratorRef = useRef(null);
   const [isPdfGeneratorReady, setIsPdfGeneratorReady] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -523,13 +524,31 @@ function ElectionStats() {
         <div className="modal-backdrop p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
             <div className="p-4 flex items-center justify-between border-b">
-              <div className="flex items-center gap-2">
-                <Trophy className="h-5 w-5 text-primary" />
-                <h2 className="text-xl font-bold">{selectedElection.title} Winners</h2>
+              <div className="flex items-center gap-4 w-full">
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-5 w-5 text-primary" />
+                  <h2 className="text-xl font-bold">{selectedElection.title} Winners</h2>
+                </div>
+                <select
+                  className="ml-auto w-64 rounded-md border border-gray-200 bg-white px-3 py-1.5 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+                  value={currentPositionIndex}
+                  onChange={(e) => {
+                    setCurrentPositionIndex(Number(e.target.value));
+                    setShowCountdown(true);
+                  }}
+                >
+                  {positions
+                    .filter(p => p.electionId === selectedElection._id)
+                    .map((position, index) => (
+                      <option key={position._id} value={index}>
+                        {position.title}
+                      </option>
+                    ))}
+                </select>
               </div>
               <button
                 onClick={handleCloseModal}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors ml-4"
               >
                 <X className="h-4 w-4" />
               </button>
