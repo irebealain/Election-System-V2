@@ -564,35 +564,28 @@ function ElectionStats() {
                               
                             </div>
 
-                            {winner ? (
-                              <div className="space-y-2">
+                            {winner ? (                                <div className="space-y-2">
                                 {/* Winner Card */}
-                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-4 shadow-lg border border-primary/10 h-[200px] flex flex-col justify-center items-center">
-                                  {/* Decorative elements */}
-                                  <div className="absolute inset-0 overflow-hidden">
-                                    <div className="absolute -top-12 -right-12 w-24 h-24 bg-primary/5 rounded-full blur-xl"></div>
-                                    <div className="absolute -bottom-8 -left-8 w-20 h-20 bg-yellow-400/10 rounded-full blur-lg"></div>
-                                  </div>
-                                  
-                                  <div className="absolute -top-3 -left-3">
+                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10 h-[150px]">
+                                  <div className="absolute -top-2 -left-2">
                                     <div className="relative">
-                                      <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg">
-                                        <Crown className="w-4 h-4" />
+                                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
+                                        <Crown className="w-3 h-3" />
                                       </div>
-                                      <div className="absolute -right-1 -bottom-1 w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[8px] font-bold shadow-sm">
+                                      <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[16px] font-bold">
                                         1st
                                       </div>
                                     </div>
                                   </div>
                                   
-                                  <div className="text-center relative z-10">
-                                    <h3 className="text-sm font-bold text-primary bg-primary/10 rounded-full px-4 py-1 inline-block mb-2">
-                                      {position?.title || 'Unknown Position'}
+                                  <div className="text-center mt-1">
+                                    <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
+                                    {position?.title || 'Unknown Position'}
                                     </h3>
-                                    <h4 className="text-xl font-bold text-gray-900 dark:text-white my-2">{winner.name}</h4>
-                                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/20 rounded-full">
-                                      <Trophy className="w-4 h-4 text-primary" />
-                                      <span className="font-semibold text-primary">
+                                    <h4 className="text-base font-bold text-gray-900 dark:text-white my-0.5">{winner.name}</h4>
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 rounded-full">
+                                      <Trophy className="w-3 h-3 text-primary" />
+                                      <span className="font-semibold text-primary text-xs">
                                         {winner.value} votes ({winner.percentage.toFixed(1)}%)
                                       </span>
                                     </div>
@@ -602,7 +595,7 @@ function ElectionStats() {
                                 {/* Results Chart */}
                                 <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
                                   <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
-                                  <div className="h-[120px]">
+                                  <div className="h-[200px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                       <PieChart>
                                         <Pie
@@ -636,44 +629,22 @@ function ElectionStats() {
                                         </Pie>
                                         <Tooltip 
                                           contentStyle={{ 
-                                            backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                            borderRadius: '16px',
-                                            padding: '16px 20px',
-                                            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)',
-                                            minWidth: '200px',
-                                            border: 'none'
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backdropFilter: 'blur(12px)',
+                                            borderRadius: '12px',
+                                            padding: '10px 14px',
+                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
+                                            border: '1px solid rgba(229, 231, 235, 0.7)'
                                           }}
                                           formatter={(value, name, props) => {
                                             const total = results.reduce((a, b) => a + b.value, 0);
                                             const percentage = ((value / total) * 100).toFixed(1);
-                                            const color = COLORS[props.payload.index % COLORS.length];
-                                            
                                             return [
-                                              <div className="space-y-3">
-                                                <div className="flex items-center gap-2">
-                                                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: color }}></div>
-                                                  <span className="font-medium text-gray-900">{name}</span>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                  <div className="flex justify-between text-sm">
-                                                    <span className="text-gray-500">Total Votes:</span>
-                                                    <span className="font-semibold text-gray-900">{value}</span>
-                                                  </div>
-                                                  <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">
-                                                    <div 
-                                                      className="h-full rounded-full transition-all duration-300"
-                                                      style={{ 
-                                                        width: `${percentage}%`,
-                                                        backgroundColor: color
-                                                      }}
-                                                    ></div>
-                                                  </div>
-                                                  <div className="text-xs font-medium text-gray-500 text-right">
-                                                    {percentage}% of total votes
-                                                  </div>
-                                                </div>
+                                              <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium text-gray-900">{value} votes</span>
+                                                <span className="text-xs text-gray-500">{percentage}% of total</span>
                                               </div>,
-                                              null
+                                              <span className="text-xs font-medium text-gray-600">{name}</span>
                                             ];
                                           }}
                                         />
