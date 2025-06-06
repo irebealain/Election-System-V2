@@ -18,7 +18,17 @@ import html2canvas from 'html2canvas';
 import PDFGenerator from '../../components/PDFGenerator';
 
 // Color palette for charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+// Creative color palette for the pie chart
+const COLORS = [
+  '#4F46E5', // Primary indigo
+  '#10B981', // Emerald
+  '#F59E0B', // Amber
+  '#EC4899', // Pink
+  '#8B5CF6', // Purple
+  '#06B6D4', // Cyan
+  '#F43F5E', // Rose
+  '#14B8A6'  // Teal
+];
 
 function CountdownAnimation({ onComplete }) {
   const [count, setCount] = useState(5);
@@ -567,18 +577,18 @@ function ElectionStats() {
                             {winner ? (                                <div className="space-y-2">
                                 {/* Winner Card */}
                                 <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10">
-                                  <div className="absolute -top-2 -left-2">
+                                  <div className="absolute -top-3 -left-2">
                                     <div className="relative">
-                                      <div className="w-6 h-6 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
-                                        <Crown className="w-3 h-3" />
+                                      <div className="w-8 h-8 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
+                                        <Crown className="w-4 h-4" />
                                       </div>
-                                      <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[8px] font-bold">
+                                      <div className="absolute -right-1 -bottom-1 w-4 h-4 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[9px] font-bold shadow-sm">
                                         1st
                                       </div>
                                     </div>
                                   </div>
                                   
-                                  <div className="text-center mt-1">
+                                  <div className="text-center -mt-1">
                                     <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
                                     {position?.title || 'Unknown Position'}
                                     </h3>
@@ -593,17 +603,17 @@ function ElectionStats() {
                                 </div>
 
                                 {/* Results Chart */}
-                                <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
-                                  <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
-                                  <div className="h-[120px]">
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2 flex-1">
+                                  <h4 className="text-[10px] font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
+                                  <div className="h-[140px]">
                                     <ResponsiveContainer width="100%" height="100%">
                                       <PieChart>
                                         <Pie
                                           data={results}
                                           cx="50%"
                                           cy="50%"
-                                          outerRadius={45}
-                                          innerRadius={30}
+                                          outerRadius={40}
+                                          innerRadius={28}
                                           fill="#8884d8"
                                           dataKey="value"
                                           paddingAngle={3}
@@ -629,22 +639,21 @@ function ElectionStats() {
                                         </Pie>
                                         <Tooltip 
                                           contentStyle={{ 
-                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
-                                            backdropFilter: 'blur(12px)',
-                                            borderRadius: '12px',
-                                            padding: '10px 14px',
-                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
-                                            border: '1px solid rgba(229, 231, 235, 0.7)'
+                                            backgroundColor: 'rgba(255, 255, 255, 1)',
+                                            borderRadius: '8px',
+                                            padding: '6px 10px',
+                                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)',
+                                            border: 'none'
                                           }}
                                           formatter={(value, name, props) => {
                                             const total = results.reduce((a, b) => a + b.value, 0);
                                             const percentage = ((value / total) * 100).toFixed(1);
                                             return [
-                                              <div className="flex flex-col gap-1">
-                                                <span className="text-sm font-medium text-gray-900">{value} votes</span>
-                                                <span className="text-xs text-gray-500">{percentage}% of total</span>
+                                              <div className="flex flex-col gap-0.5">
+                                                <span className="text-xs font-medium text-gray-900">{value} votes ({percentage}%)</span>
+                                                <span className="text-[10px] font-medium text-gray-600">{name}</span>
                                               </div>,
-                                              <span className="text-xs font-medium text-gray-600">{name}</span>
+                                              ''
                                             ];
                                           }}
                                         />
