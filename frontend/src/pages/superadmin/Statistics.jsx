@@ -572,7 +572,7 @@ function ElectionStats() {
                                       <div className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
                                         <Crown className="w-6 h-6" />
                                       </div>
-                                      <div className="absolute -right-1 -bottom-1 w-3 h-3 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[16px] font-bold">
+                                      <div className="absolute -right-1 -bottom-1 w-6 h-9 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[14px] font-bold">
                                         1st
                                       </div>
                                     </div>
@@ -602,8 +602,8 @@ function ElectionStats() {
                                           data={results}
                                           cx="50%"
                                           cy="50%"
-                                          outerRadius={45}
-                                          innerRadius={35}
+                                          outerRadius={55}
+                                          innerRadius={50}
                                           fill="#8884d8"
                                           dataKey="value"
                                           paddingAngle={3}
