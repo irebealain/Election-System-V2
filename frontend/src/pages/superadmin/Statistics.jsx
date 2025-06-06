@@ -130,12 +130,9 @@ function ElectionStats() {
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
-  const [selectedPositionId, setSelectedPositionId] = useState(null);
-  const [showResults, setShowResults] = useState(false);
   const canvasRef = useRef(null);
   const pdfGeneratorRef = useRef(null);
   const [isPdfGeneratorReady, setIsPdfGeneratorReady] = useState(false);
-  const [selectedPosition, setSelectedPosition] = useState(null);
 
   useEffect(() => {
     fetchData();
@@ -526,182 +523,189 @@ function ElectionStats() {
         <div className="modal-backdrop p-4">
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
             <div className="p-4 flex items-center justify-between border-b">
-              <div className="flex items-center gap-4 w-full">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-5 w-5 text-primary" />
-                  <h2 className="text-xl font-bold">{selectedElection.title} Winners</h2>
-                </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors ml-auto"
-                >
-                  <X className="h-4 w-4" />
-                </button>
+              <div className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-bold">{selectedElection.title} Winners</h2>
               </div>
+              <button
+                onClick={handleCloseModal}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
             </div>
 
             <div className="flex-1 relative overflow-hidden">
-              {!selectedPositionId ? (
-                // Initial position selection view
-                <div className="h-full flex flex-col items-center justify-center p-6">
-                  <div className="w-full max-w-md space-y-4">
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select a Position to View Results
-                    </h3>
-                    <select
-                      className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                      value={selectedPositionId || ""}
-                      onChange={(e) => setSelectedPositionId(e.target.value)}
-                    >
-                      <option value="">Choose a position...</option>
-                      {positions
-                        .filter(p => p.electionId === selectedElection._id)
-                        .map((position) => (
-                          <option key={position._id} value={position._id}>
-                            {position.title}
-                          </option>
-                        ))}
-                    </select>
+              {showCountdown && (
+                <CountdownAnimation onComplete={handleCountdownComplete} />
+              )}
+              
+              <AnimatePresence mode="wait">
+                {!showCountdown && positions
+                  .filter(p => p.electionId === selectedElection._id)
+                  .map((position, index) => {
+                    if (index !== currentPositionIndex) return null;
                     
-                    <Button
-                      className="w-full mt-4"
-                      disabled={!selectedPositionId}
-                      onClick={() => {
-                        setShowCountdown(true);
-                        setShowResults(false);
-                      }}
-                    >
-                      <Trophy className="w-4 h-4 mr-2" />
-                      View Results
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                // Results view with countdown
-                <>
-                  {showCountdown ? (
-                    <CountdownAnimation onComplete={() => {
-                      setShowCountdown(false);
-                      setShowResults(true);
-                    }} />
-                  ) : showResults && (
-                    // Your existing results display code here
-                    <motion.div
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -50 }}
-                      transition={{ duration: 0.5 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center p-2"
-                    >
-                      {/* Winner Card */}
-                      <div className="w-full max-w-md bg-white dark:bg-gray-800 rounded-lg shadow-lg p-4 mb-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="flex items-center gap-2">
-                            <Crown className="h-6 w-6 text-yellow-500" />
-                            <h3 className="text-lg font-bold">
-                              {positions.find(p => p._id === selectedPositionId)?.title}
-                            </h3>
-                          </div>
-                          <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
-                            Winner
-                          </span>
-                        </div>
-                        
-                        {/* Winner Info */}
-                        {getPositionResults(selectedPositionId)[0] && (
-                          <div className="text-center p-4">
-                            <h4 className="text-xl font-bold mb-2">
-                              {getPositionResults(selectedPositionId)[0].name}
-                            </h4>
-                            <div className="flex items-center justify-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                              <span>{getPositionResults(selectedPositionId)[0].value} votes</span>
-                              <span>•</span>
-                              <span>{getPositionResults(selectedPositionId)[0].percentage.toFixed(1)}%</span>
+                    const results = getPositionResults(position._id);
+                    const winner = results[0];
+                    
+                    return (
+                      <motion.div
+                        key={position._id}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center p-2"
+                      >                          
+                      <div className="w-full max-w-2xl mx-auto space-y-6">
+                            <div className="text-center relative">
+                              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
+                              
                             </div>
-                          </div>
-                        )}
-                      </div>
 
-                      {/* Results Pie Chart */}
-                      <div className="w-full max-w-md h-[200px]">
-                        <ResponsiveContainer width="100%" height="100%">
-                          <PieChart>
-                            <Pie
-                              data={getPositionResults(selectedPositionId)}
-                              cx="50%"
-                              cy="50%"
-                              innerRadius={45}
-                              outerRadius={65}
-                              paddingAngle={2}
-                              dataKey="value"
-                            >
-                              {getPositionResults(selectedPositionId).map((entry, index) => (
-                                <Cell 
-                                  key={`cell-${index}`}
-                                  fill={COLORS[index % COLORS.length]}
-                                  className="transition-all duration-300 hover:opacity-80"
-                                />
-                              ))}
-                            </Pie>
-                            <Tooltip
-                              content={({ active, payload }) => {
-                                if (active && payload && payload.length) {
-                                  const data = payload[0].payload;
-                                  return (
-                                    <div className="bg-white/90 dark:bg-gray-800/90 p-2 rounded-lg shadow-lg">
-                                      <p className="font-medium text-sm">{data.name}</p>
-                                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                                        {data.value} votes ({data.percentage.toFixed(1)}%)
-                                      </p>
+                            {winner ? (                                <div className="space-y-2">
+                                {/* Winner Card */}
+                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10 h-[150px]">
+                                  <div className="absolute -top-2 -left-2">
+                                    <div className="relative">
+                                      <div className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
+                                        <Crown className="w-6 h-6" />
+                                      </div>
+                                      <div className="absolute -right-1 -bottom-1 w-6 h-6 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[12px] font-bold">
+                                        1st
+                                      </div>
                                     </div>
-                                  );
-                                }
-                                return null;
-                              }}
-                            />
-                            <Legend
-                              verticalAlign="bottom"
-                              height={36}
-                              content={({ payload }) => (
-                                <div className="flex flex-wrap justify-center gap-4">
-                                  {payload.map((entry, index) => (
-                                    <div key={`legend-${index}`} className="flex items-center gap-1">
-                                      <span
-                                        className="w-3 h-3 rounded-full"
-                                        style={{ backgroundColor: entry.color }}
-                                      />
-                                      <span className="text-xs font-medium">
-                                        {entry.value}
+                                  </div>
+                                  
+                                  <div className="text-center mt-1">
+                                    <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
+                                    {position?.title || 'Unknown Position'}
+                                    </h3>
+                                    <h4 className="text-base font-bold text-gray-900 dark:text-white my-0.5">{winner.name}</h4>
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 rounded-full">
+                                      <Trophy className="w-3 h-3 text-primary" />
+                                      <span className="font-semibold text-primary text-xs">
+                                        {winner.value} votes ({winner.percentage.toFixed(1)}%)
                                       </span>
                                     </div>
-                                  ))}
+                                  </div>
                                 </div>
-                              )}
-                            />
-                          </PieChart>
-                        </ResponsiveContainer>
-                      </div>
-                    </motion.div>
-                  )}
-                </>
-              )}
+
+                                {/* Results Chart */}
+                                <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
+                                  <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
+                                  <div className="h-[200px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <PieChart>
+                                        <Pie
+                                          data={results}
+                                          cx="50%"
+                                          cy="50%"
+                                          outerRadius={60}
+                                          innerRadius={50}
+                                          fill="#8884d8"
+                                          dataKey="value"
+                                          paddingAngle={3}
+                                          // label={({ name, value, percent }) => {
+                                          //   if (percent < 0.08) return null; // Only show labels for segments > 8%
+                                          //   return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
+                                          // }}
+                                          // labelLine={{ 
+                                          //   stroke: 'rgba(156, 163, 175, 0.5)', 
+                                          //   strokeWidth: 1,
+                                          //   strokeDasharray: "2 2"
+                                          // }}
+                                        >
+                                          {results.map((entry, index) => (
+                                            <Cell 
+                                              key={`cell-${index}`} 
+                                              fill={COLORS[index % COLORS.length]}
+                                              className="transition-all duration-300 hover:opacity-85 hover:scale-105"
+                                              strokeWidth={1.5}
+                                              stroke="rgba(255, 255, 255, 0.8)"
+                                            />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip 
+                                          contentStyle={{ 
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backdropFilter: 'blur(12px)',
+                                            borderRadius: '12px',
+                                            padding: '10px 14px',
+                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
+                                            border: '1px solid rgba(229, 231, 235, 0.7)'
+                                          }}
+                                          formatter={(value, name, props) => {
+                                            const total = results.reduce((a, b) => a + b.value, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return [
+                                              <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium text-gray-900">{value} votes</span>
+                                                <span className="text-xs text-gray-500">{percentage}% of total</span>
+                                              </div>,
+                                              <span className="text-xs font-medium text-gray-600">{name}</span>
+                                            ];
+                                          }}
+                                        />
+                                        <Legend 
+                                          verticalAlign="bottom"
+                                          height={30}
+                                          iconType="circle"
+                                          iconSize={8}
+                                          formatter={(value) => (
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                              {value.length > 20 ? `${value.substring(0, 20)}...` : value}
+                                            </span>
+                                          )}
+                                          wrapperStyle={{
+                                            paddingTop: '10px',
+                                            fontSize: '12px'
+                                          }}
+                                        />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                                <Users className="w-12 h-12 mb-3 text-gray-400" />
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No winner data available</p>
+                              </div>
+                            )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </AnimatePresence>
             </div>
 
-            {showResults && (
-              <div className="p-4 border-t">
+            <div className="p-4 border-t flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPosition}
+                className="flex items-center gap-1"
+              >
+                <ChevronUp className="w-3 h-3" />
+                Previous
+              </Button>
+              <div className="text-xs text-gray-600">
+                Position {currentPositionIndex + 1} of {positions.filter(p => p.electionId === selectedElection._id).length}
+              </div>
+              {!isLastPosition && (
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => {
-                    setSelectedPositionId(null);
-                    setShowResults(false);
-                  }}
-                  className="w-full"
+                  onClick={handleNextPosition}
+                  className="flex items-center gap-1"
                 >
-                  Choose Another Position
+                  Next
+                  <ChevronDown className="w-3 h-3" />
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       )}
