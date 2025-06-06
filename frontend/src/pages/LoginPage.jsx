@@ -1033,7 +1033,7 @@ function LoginPage() {
                             required
                           >
                             <option value="upper">Upper</option>
-                            <option value="lower">EY</option>
+                            <option value="lower">EY Only</option>
                           </select>
                         </div>
                         {errors.studentLevel && (
