@@ -592,7 +592,7 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   <div>
-                                    <img src={winner.profilePic} alt="Profile" />
+                                    <img src="https://res.cloudinary.com/dnsr4mtqj/image/upload/v1749237383/election-system/jzcrmyoq3hwrslqulkyw.jpg" alt="Profile" />
                                   </div>
                                   </div>
                                 </div>
