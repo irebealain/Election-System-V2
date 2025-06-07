@@ -130,8 +130,6 @@ function ElectionStats() {
   const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
-  const [selectedPositionId, setSelectedPositionId] = useState(null);
-  const [isViewingResults, setIsViewingResults] = useState(false);
   const canvasRef = useRef(null);
   const pdfGeneratorRef = useRef(null);
   const [isPdfGeneratorReady, setIsPdfGeneratorReady] = useState(false);
@@ -538,54 +536,28 @@ function ElectionStats() {
             </div>
 
             <div className="flex-1 relative overflow-hidden">
-              {!isViewingResults ? (
-                <div className="h-full flex flex-col items-center justify-center p-6">
-                  <div className="w-full max-w-md space-y-4">
-                    <h3 className="text-lg font-semibold text-center mb-4">
-                      Select a Position to View Results
-                    </h3>
-                    <select
-                      className="w-full rounded-md border border-gray-200 bg-white px-3 py-2 text-sm 
-                                text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
-                      value={selectedPositionId || ""}
-                      onChange={(e) => setSelectedPositionId(e.target.value)}
-                    >
-                      <option value="">Choose a position...</option>
-                      {positions
-                        .filter(p => p.electionId === selectedElection._id)
-                        .map((position) => (
-                          <option key={position._id} value={position._id}>
-                            {position.title}
-                          </option>
-                        ))}
-                    </select>
+              {showCountdown && (
+                <CountdownAnimation onComplete={handleCountdownComplete} />
+              )}
+              
+              <AnimatePresence mode="wait">
+                {!showCountdown && positions
+                  .filter(p => p.electionId === selectedElection._id)
+                  .map((position, index) => {
+                    if (index !== currentPositionIndex) return null;
                     
-                    <Button
-                      className="w-full mt-4"
-                      disabled={!selectedPositionId}
-                      onClick={handleViewResults}
-                    >
-                      <Trophy className="w-4 h-4 mr-2" />
-                      View Results
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <>
-                  {showCountdown ? (
-                    <CountdownAnimation 
-                      onComplete={() => {
-                        handleCountdownComplete();
-                      }} 
-                    />
-                  ) : (
-                    <motion.div
-                      initial={{ opacity: 0, y: 50 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -50 }}
-                      transition={{ duration: 0.5 }}
-                      className="absolute inset-0 flex flex-col items-center justify-center p-2"
-                    >
+                    const results = getPositionResults(position._id);
+                    const winner = results[0];
+                    
+                    return (
+                      <motion.div
+                        key={position._id}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center p-2"
+                      >                          
                       <div className="w-full max-w-2xl mx-auto space-y-6">
                             <div className="text-center relative">
                               <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
