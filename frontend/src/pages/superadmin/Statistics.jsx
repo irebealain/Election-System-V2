@@ -589,7 +589,7 @@ function ElectionStats() {
                                     <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 rounded-full">
                                       <Trophy className="w-3 h-3 text-primary" />
                                       <span className="font-semibold text-primary text-xs">
-                                        VORES ({winner.percentage.toFixed(1)}%)
+                                        VOTES ({winner.percentage.toFixed(1)}%)
                                       </span>
                                     </div>
                                   </div>
@@ -628,7 +628,7 @@ function ElectionStats() {
                                             <Cell 
                                               key={`cell-${index}`} 
                                               fill={COLORS[index % COLORS.length]}
-                                              className="transition-all duration-300 hover:opacity-85 hover:scale-105"
+                                              className="hover:opacity-85"
                                               strokeWidth={1.5}
                                               stroke="rgba(255, 255, 255, 0.8)"
                                             />
