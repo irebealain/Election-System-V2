@@ -592,7 +592,7 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   <div>
-                                    
+                                    <img src={winner.profilePic} alt="Profile" />
                                   </div>
                                   </div>
                                 </div>
