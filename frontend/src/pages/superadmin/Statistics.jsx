@@ -198,6 +198,7 @@ function ElectionStats() {
       return positionCandidates.map(candidate => ({
         name: `${candidate.firstName} ${candidate.lastName}`,
         value: 0,
+        profile: candidate.profilePic,
         percentage: 0
       }));
     }
@@ -592,7 +593,7 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   <div>
-                                    <img src="https://res.cloudinary.com/dnsr4mtqj/image/upload/v1749237383/election-system/jzcrmyoq3hwrslqulkyw.jpg" alt="Profile" className='w-20 h-20 rounded-full' />
+                                    <img src={winner.profile} alt="Profile" className='w-[8rem] h-[8rem] rounded-full' />
                                   </div>
                                   </div>
                                 </div>
