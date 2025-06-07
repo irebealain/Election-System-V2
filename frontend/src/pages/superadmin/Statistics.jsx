@@ -564,7 +564,7 @@ function ElectionStats() {
                               
                             </div>
 
-                            {winner ? (                                <div className="space-y-2">
+                            {winner ? (<div className="space-y-2">
                                 {/* Winner Card */}
                                 <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10 h-[150px]">
                                   <div className="absolute -top-2 -left-2">
@@ -578,7 +578,8 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   
-                                  <div className="text-center mt-1">
+                                  <div className="text-center mt-1 flex flex-row items-center justify-center gap-4">
+                                    <div>
                                     <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
                                     {position?.title || 'Unknown Position'}
                                     </h3>
@@ -589,6 +590,10 @@ function ElectionStats() {
                                         {winner.value} votes ({winner.percentage.toFixed(1)}%)
                                       </span>
                                     </div>
+                                  </div>
+                                  <div>
+                                    
+                                  </div>
                                   </div>
                                 </div>
 
