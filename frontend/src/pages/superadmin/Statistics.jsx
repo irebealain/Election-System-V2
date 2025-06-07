@@ -589,7 +589,7 @@ function ElectionStats() {
                                     <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 rounded-full">
                                       <Trophy className="w-3 h-3 text-primary" />
                                       <span className="font-semibold text-primary text-xs">
-                                        {winner.value} votes ({winner.percentage.toFixed(1)}%)
+                                        VORES ({winner.percentage.toFixed(1)}%)
                                       </span>
                                     </div>
                                   </div>
