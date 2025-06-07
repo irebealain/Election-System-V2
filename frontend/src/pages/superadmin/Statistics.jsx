@@ -578,7 +578,7 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   
-                                  <div className="text-center mt-1 flex flex-row items-center justify-center gap-4">
+                                  <div className="text-center mt-1 flex flex-row items-center justify-around gap-4">
                                     <div>
                                     <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
                                     {position?.title || 'Unknown Position'}
@@ -592,7 +592,7 @@ function ElectionStats() {
                                     </div>
                                   </div>
                                   <div>
-                                    <img src="https://res.cloudinary.com/dnsr4mtqj/image/upload/v1749237383/election-system/jzcrmyoq3hwrslqulkyw.jpg" alt="Profile" className='w-12 h-12 rounded-full' />
+                                    <img src="https://res.cloudinary.com/dnsr4mtqj/image/upload/v1749237383/election-system/jzcrmyoq3hwrslqulkyw.jpg" alt="Profile" className='w-20 h-20 rounded-full' />
                                   </div>
                                   </div>
                                 </div>
