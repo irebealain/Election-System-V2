@@ -215,6 +215,7 @@ function ElectionStats() {
       return {
         name: `${candidate.firstName} ${candidate.lastName}`,
         value: voteCount,
+        profile: candidate.profilePic,
         percentage: totalVoters > 0 ? (voteCount / totalVoters) * 100 : 0
       };
     }).sort((a, b) => b.value - a.value);
