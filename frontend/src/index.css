@@ -10,35 +10,35 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 142 35% 47%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 39 100% 50%;
+    --primary-foreground: 240 10% 3.9%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
     --muted: 240 4.8% 95.9%;
     --muted-foreground: 240 3.8% 46.1%;
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 124 29% 44%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 142 35% 47%;
-    --radius: 0.5rem;
+    --ring: 39 100% 50%;
+    --radius: 0px;
 
     /* Custom colors */
-    --primary-green: 142 35% 47%;
-    --accent-yellow: 35 87% 55%;
+    --primary-green: 124 29% 44%;
+    --accent-yellow: 39 100% 50%;
     --deep-black: 252 77% 10%;
     --neutral-gray: 0 0% 48%;
     --card-blue: 252 65% 47%;
-    --card-green: 77 73% 44%;
+    --card-green: 124 29% 44%;
     --card-pink: 0 97% 66%;
 
     /* Chart colors */
-    --chart-1: 142 35% 47%;
-    --chart-2: 35 87% 55%;
-    --chart-3: 252 65% 47%;
-    --chart-4: 77 73% 44%;
+    --chart-1: 39 100% 50%;
+    --chart-2: 124 29% 44%;
+    --chart-3: 240 10% 3.9%;
+    --chart-4: 240 4.8% 95.9%;
     --chart-5: 0 97% 66%;
   }
 
@@ -49,25 +49,26 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 142 35% 47%;
-    --primary-foreground: 355.7 100% 97.3%;
+    --primary: 39 100% 50%;
+    --primary-foreground: 240 10% 3.9%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
     --muted: 240 3.7% 15.9%;
     --muted-foreground: 240 5% 64.9%;
-    --accent: 240 3.7% 15.9%;
-    --accent-foreground: 0 0% 98%;
+    --accent: 124 29% 44%;
+    --accent-foreground: 0 0% 100%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 142 35% 47%;
+    --ring: 39 100% 50%;
   }
 }
 
 @layer base {
-  * {
+  *, ::before, ::after {
     @apply border-border;
+    border-radius: 0px !important;
   }
   body {
     @apply bg-background text-foreground;
