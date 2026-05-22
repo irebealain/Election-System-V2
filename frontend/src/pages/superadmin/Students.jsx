@@ -326,11 +326,11 @@ function Students() {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-[10px] text-gray-600 dark:text-gray-400">
+            <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+              <div className="text-[10px] text-gray-600 dark:text-gray-400 text-center sm:text-left">
                 Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
               </div>
-              <div className="flex items-center space-x-2">
+              <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
                 <Button
                   variant="outline"
                   size="sm"

@@ -235,12 +235,12 @@ function StudentManagement() {
 
   const renderPagination = () => {
     return (
-      <div className="flex items-center justify-between mt-4">
-        <div className="text-sm text-gray-500">
+      <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+        <div className="text-sm text-gray-500 text-center sm:text-left">
           Showing {indexOfFirstStudent + 1} to {Math.min(indexOfLastStudent, filteredStudents.length)} of{" "}
           {filteredStudents.length} students
         </div>
-        <div className="flex space-x-2">
+        <div className="flex flex-wrap justify-center sm:justify-end gap-2">
           <Button
             variant="outline"
             size="sm"

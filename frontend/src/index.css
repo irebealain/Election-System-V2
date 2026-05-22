@@ -10,7 +10,7 @@
     --card-foreground: 240 10% 3.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 240 10% 3.9%;
-    --primary: 39 100% 50%;
+    --primary: 25 95% 53%;
     --primary-foreground: 240 10% 3.9%;
     --secondary: 240 4.8% 95.9%;
     --secondary-foreground: 240 5.9% 10%;
@@ -22,12 +22,12 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 5.9% 90%;
     --input: 240 5.9% 90%;
-    --ring: 39 100% 50%;
-    --radius: 0px;
+    --ring: 25 95% 53%;
+    --radius: 20px;
 
     /* Custom colors */
     --primary-green: 124 29% 44%;
-    --accent-yellow: 39 100% 50%;
+    --accent-yellow: 25 95% 53%;
     --deep-black: 252 77% 10%;
     --neutral-gray: 0 0% 48%;
     --card-blue: 252 65% 47%;
@@ -35,7 +35,7 @@
     --card-pink: 0 97% 66%;
 
     /* Chart colors */
-    --chart-1: 39 100% 50%;
+    --chart-1: 25 95% 53%;
     --chart-2: 124 29% 44%;
     --chart-3: 240 10% 3.9%;
     --chart-4: 240 4.8% 95.9%;
@@ -49,7 +49,7 @@
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
-    --primary: 39 100% 50%;
+    --primary: 25 95% 53%;
     --primary-foreground: 240 10% 3.9%;
     --secondary: 240 3.7% 15.9%;
     --secondary-foreground: 0 0% 98%;
@@ -61,14 +61,13 @@
     --destructive-foreground: 0 0% 98%;
     --border: 240 3.7% 15.9%;
     --input: 240 3.7% 15.9%;
-    --ring: 39 100% 50%;
+    --ring: 25 95% 53%;
   }
 }
 
 @layer base {
   *, ::before, ::after {
     @apply border-border;
-    border-radius: 0px !important;
   }
   body {
     @apply bg-background text-foreground;
