@@ -11,6 +11,10 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ['"Fira Sans"', 'sans-serif'],
+        satoshi: ['"Fira Sans"', 'sans-serif'], // Remap satoshi to Fira Sans to keep consistency
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",

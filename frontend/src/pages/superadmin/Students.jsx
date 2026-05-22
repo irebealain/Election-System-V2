@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
+import Modal from "../../components/common/Modal"
 import Button from "../../components/common/Button"
 import { Input } from "../../components/common/Input"
+import Pagination from "../../components/common/Pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/common/Select"
 import { Search, Filter, Download, Plus, MoreVertical, Edit, Trash2, Eye, ChevronLeft, ChevronRight, AlertTriangle, X } from "lucide-react"
 import { getAllUsers, deleteUser, updateUser, exportUsers, getUserById, deleteAllStudents } from "../../services/UserService"
@@ -367,42 +369,43 @@ function Students() {
       </Card>
 
       {/* Delete All Confirmation Dialog */}
-      {isDeleteAllDialogOpen && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-[20px] p-6 max-w-md w-full mx-4 shadow-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-              <h3 className="text-sm font-semibold">Delete All Students</h3>
+      <Modal isOpen={isDeleteAllDialogOpen} onClose={() => setIsDeleteAllDialogOpen(false)}>
+        <div className="bg-white dark:bg-gray-800 rounded-[20px] p-6 w-full shadow-xl">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
             </div>
-            <p className="text-xs text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure you want to delete all students? This action cannot be undone and will permanently remove all student accounts from the system.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteAllDialogOpen(false)}
-                className="text-[10px] h-7"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteAllStudents}
-                className="text-[10px] h-7"
-              >
-                Delete All Students
-              </Button>
-            </div>
+            <h3 className="text-sm font-semibold">Delete All Students</h3>
+          </div>
+          <p className="text-xs text-gray-600 dark:text-gray-300 mb-6">
+            Are you sure you want to delete all students? This action cannot be undone and will permanently remove all student accounts from the system.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteAllDialogOpen(false)}
+              className="text-[10px] h-7"
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAllStudents}
+              className="text-[10px] h-7"
+            >
+              Delete All Students
+            </Button>
           </div>
         </div>
-      )}
+      </Modal>
 
       {/* Student Details Dialog */}
-      {isDetailsDialogOpen && selectedStudent && (
-        <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-[20px] p-5 max-w-lg w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-700">
+      <Modal isOpen={isDetailsDialogOpen && !!selectedStudent} onClose={() => {
+        setIsDetailsDialogOpen(false);
+        setIsEditing(false);
+      }}>
+        {selectedStudent && (
+          <div className="bg-white dark:bg-gray-800 rounded-[20px] p-5 w-full shadow-2xl border border-gray-100 dark:border-gray-700">
             {/* Header */}
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
@@ -451,14 +454,16 @@ function Students() {
                       />
                     </div>
                   ) : (
-                    <p className="text-xs font-medium text-gray-900 dark:text-gray-100">
+                    <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">
                       {selectedStudent.firstName} {selectedStudent.lastName}
                     </p>
                   )}
                 </div>
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Email</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-300">{selectedStudent.email}</p>
+                  <p className="text-xs font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {selectedStudent.email}
+                  </p>
                 </div>
               </div>
 
@@ -533,8 +538,8 @@ function Students() {
               )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   )
 }

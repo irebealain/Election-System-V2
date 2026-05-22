@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+@import url('https://fonts.googleapis.com/css2?family=Fira+Sans:wght@300;400;500;600;700&display=swap');
+
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -71,8 +73,13 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'Fira Sans', sans-serif;
     font-feature-settings: "rlig" 1, "calt" 1;
+    font-size: 0.875rem; /* text-sm by default */
   }
+  h1 { @apply text-2xl font-bold tracking-tight; }
+  h2 { @apply text-xl font-semibold tracking-tight; }
+  h3 { @apply text-lg font-semibold tracking-tight; }
 }
 
 /* Modal backdrop with blur effect */

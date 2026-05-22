@@ -4,6 +4,7 @@ import Button from "../../components/common/Button"
 import axios from "axios"
 import { toast } from "react-hot-toast"
 import { MoreVertical, Check, X, User, Trash2, Clock } from "lucide-react"
+import Modal from "../../components/common/Modal"
 
 function AdminPage() {
   const [admins, setAdmins] = useState([])
@@ -293,30 +294,28 @@ function AdminPage() {
       </Card>
 
       {/* Delete All Confirmation Modal */}
-      {isDeleteAllConfirmOpen && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-[20px] shadow-xl max-w-md w-full">
-            <h3 className="text-lg font-semibold mb-4">Delete All Admins</h3>
-            <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Are you sure you want to delete all administrators? This action cannot be undone.
-            </p>
-            <div className="flex justify-end gap-3">
-              <Button
-                variant="outline"
-                onClick={() => setIsDeleteAllConfirmOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleDeleteAll}
-              >
-                Delete All
-              </Button>
-            </div>
+      <Modal isOpen={isDeleteAllConfirmOpen} onClose={() => setIsDeleteAllConfirmOpen(false)}>
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-[20px] shadow-xl w-full">
+          <h3 className="text-lg font-semibold mb-4">Delete All Admins</h3>
+          <p className="text-gray-600 dark:text-gray-300 mb-6">
+            Are you sure you want to delete all administrators? This action cannot be undone.
+          </p>
+          <div className="flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleteAllConfirmOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteAll}
+            >
+              Delete All
+            </Button>
           </div>
-            </div>
-          )}
+        </div>
+      </Modal>
     </div>
   )
 }
