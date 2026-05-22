@@ -4,7 +4,7 @@ import { cn } from '../../lib/utils';
 const Avatar = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-none", className)}
+    className={cn("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-[20px]", className)}
     {...props}
   />
 ));
@@ -23,7 +23,7 @@ const AvatarFallback = React.forwardRef(({ className, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "flex h-full w-full items-center justify-center rounded-none bg-muted",
+      "flex h-full w-full items-center justify-center rounded-[20px] bg-muted",
       className
     )}
     {...props}

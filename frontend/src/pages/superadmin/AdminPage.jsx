@@ -182,7 +182,7 @@ function AdminPage() {
           <CardDescription>All system administrators and pending requests.</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800">
@@ -252,7 +252,7 @@ function AdminPage() {
                         </button>
                         
                         {selectedAdmin === admin._id && (
-                          <div className="absolute right-0 mt-2 w-48 rounded-md shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
+                          <div className="absolute right-0 mt-2 w-48 rounded-[20px] shadow-lg bg-white dark:bg-gray-800 ring-1 ring-black ring-opacity-5 z-10">
                             <div className="py-1">
                               {admin.status === 'pending' && (
                                 <>
@@ -295,7 +295,7 @@ function AdminPage() {
       {/* Delete All Confirmation Modal */}
       {isDeleteAllConfirmOpen && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-[20px] shadow-xl max-w-md w-full">
             <h3 className="text-lg font-semibold mb-4">Delete All Admins</h3>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
               Are you sure you want to delete all administrators? This action cannot be undone.

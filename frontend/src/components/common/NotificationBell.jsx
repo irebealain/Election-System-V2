@@ -108,7 +108,7 @@ function NotificationBell() {
       
       {/* Notification Panel */}
       {showNotifications && (
-        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-xl shadow-2xl z-50 overflow-hidden transform transition-all duration-300 animate-slideIn">
+        <div className="absolute right-0 mt-2 w-96 bg-white dark:bg-gray-800 rounded-[20px] shadow-2xl z-50 overflow-hidden transform transition-all duration-300 animate-slideIn">
           <div className="p-4 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gradient-to-r from-blue-50 to-purple-50 dark:from-gray-700 dark:to-gray-800">
             <h3 className="font-semibold text-lg text-gray-800 dark:text-gray-200">Notifications</h3>
             {unreadCount > 0 && (
@@ -157,7 +157,7 @@ function NotificationBell() {
                     <div className="mt-3 flex space-x-3">
                       <button
                         onClick={() => handleApproveAdmin(notification.relatedId)}
-                        className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 flex items-center justify-center transition-all duration-200 hover:shadow-md disabled:opacity-50"
+                        className="flex-1 px-4 py-2 text-sm font-medium rounded-[20px] bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 flex items-center justify-center transition-all duration-200 hover:shadow-md disabled:opacity-50"
                         disabled={loading}
                       >
                         <Check className="h-4 w-4 mr-2" />
@@ -165,7 +165,7 @@ function NotificationBell() {
                       </button>
                       <button
                         onClick={() => handleRejectAdmin(notification.relatedId)}
-                        className="flex-1 px-4 py-2 text-sm font-medium rounded-lg bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 flex items-center justify-center transition-all duration-200 hover:shadow-md disabled:opacity-50"
+                        className="flex-1 px-4 py-2 text-sm font-medium rounded-[20px] bg-red-100 text-red-800 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 flex items-center justify-center transition-all duration-200 hover:shadow-md disabled:opacity-50"
                         disabled={loading}
                       >
                         <X className="h-4 w-4 mr-2" />

@@ -343,7 +343,7 @@ function StudentDashboard() {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload
                             return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
                                 <div className="mt-1 space-y-0.5">
                                   <p className="text-xs font-medium">
@@ -423,7 +423,7 @@ function StudentDashboard() {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
                             return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                                   {data.name} Level
                                 </p>
@@ -536,7 +536,7 @@ function StudentDashboard() {
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                                   {payload[0].payload.name}
                                 </p>
@@ -610,7 +610,7 @@ function StudentDashboard() {
             <CardDescription>Overview of student participation in the current election</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800">
@@ -710,7 +710,7 @@ function StudentDashboard() {
               <button
                   onClick={() => setCurrentPage(currentPage - 1)}
                 disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Previous
               </button>
@@ -719,7 +719,7 @@ function StudentDashboard() {
                   <button
                     key={page}
                       onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm rounded-md transition-colors ${
+                      className={`w-8 h-8 text-sm rounded-[20px] transition-colors ${
                       currentPage === page
                         ? 'bg-primary text-white dark:bg-primary-600'
                         : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
@@ -732,7 +732,7 @@ function StudentDashboard() {
               <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm rounded-md border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 Next
               </button>

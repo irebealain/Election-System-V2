@@ -43,7 +43,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 max-w-3xl w-full mx-auto">
+    <div className="bg-white dark:bg-gray-800 rounded-[20px] shadow-lg p-6 max-w-3xl w-full mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-bold text-gray-800 dark:text-white">Student Details</h2>
         <div className="flex gap-2">
@@ -52,14 +52,14 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
               <>
                 <button
                   onClick={handleSubmit}
-                  className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-[20px] hover:bg-green-700 transition-colors"
                 >
                   <Save size={18} />
                   <span>Save</span>
                 </button>
                 <button
                   onClick={handleCancel}
-                  className="flex items-center gap-1 px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 bg-gray-500 text-white rounded-[20px] hover:bg-gray-600 transition-colors"
                 >
                   <X size={18} />
                   <span>Cancel</span>
@@ -68,7 +68,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
             ) : (
               <button
                 onClick={() => setIsEditing(true)}
-                className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="flex items-center gap-1 px-3 py-2 bg-blue-600 text-white rounded-[20px] hover:bg-blue-700 transition-colors"
               >
                 <Edit size={18} />
                 <span>Edit</span>
@@ -76,7 +76,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
             ))}
           <button
             onClick={onClose}
-            className="flex items-center gap-1 px-3 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white rounded-md hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            className="flex items-center gap-1 px-3 py-2 bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-white rounded-[20px] hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
             <X size={18} />
             <span>Close</span>
@@ -97,7 +97,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                   name="firstName"
                   value={editedStudent.firstName}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-[20px] ${
                     errors.firstName ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                   } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 />
@@ -123,7 +123,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                   name="lastName"
                   value={editedStudent.lastName}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-[20px] ${
                     errors.lastName ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                   } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 />
@@ -149,7 +149,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                   name="email"
                   value={editedStudent.email}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-[20px] ${
                     errors.email ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                   } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 />
@@ -174,7 +174,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                 name="phone"
                 value={editedStudent.phone || ""}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               />
             ) : (
               <p className="text-gray-900 dark:text-white">{student.phone || "Not provided"}</p>
@@ -194,7 +194,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                   name="studentId"
                   value={editedStudent.studentId}
                   onChange={handleChange}
-                  className={`w-full px-3 py-2 border rounded-md ${
+                  className={`w-full px-3 py-2 border rounded-[20px] ${
                     errors.studentId ? "border-red-500" : "border-gray-300 dark:border-gray-600"
                   } bg-white dark:bg-gray-700 text-gray-900 dark:text-white`}
                 />
@@ -218,7 +218,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                 name="department"
                 value={editedStudent.department || ""}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Department</option>
                 <option value="Computer Science">Computer Science</option>
@@ -241,7 +241,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                 name="yearLevel"
                 value={editedStudent.yearLevel || ""}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="">Select Year</option>
                 <option value="1">First Year</option>
@@ -266,7 +266,7 @@ const StudentDetailView = ({ student, onSave, onClose, readOnly = false }) => {
                 name="status"
                 value={editedStudent.status || "active"}
                 onChange={handleChange}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
               >
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>

@@ -451,7 +451,7 @@ function Elections() {
                 <motion.div
                   key={position._id}
                   className={cn(
-                    "p-4 rounded-lg border transition-colors duration-200",
+                    "p-4 rounded-[20px] border transition-colors duration-200",
                     hasVoted || votes[position.title]
                       ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
                       : "border-muted hover:border-primary/50"
@@ -473,7 +473,7 @@ function Elections() {
             <AnimatePresence>
               {validationError && !hasVoted && (
                 <motion.div
-                  className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 flex items-start"
+                  className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-[20px] text-red-600 dark:text-red-400 flex items-start"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -489,7 +489,7 @@ function Elections() {
 
               {Object.keys(votes).length === positions.length && !hasVoted && (
                 <motion.div
-                  className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg text-green-600 dark:text-green-400 flex items-start"
+                  className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-[20px] text-green-600 dark:text-green-400 flex items-start"
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
@@ -666,7 +666,7 @@ function Elections() {
         {dialogOpen && selectedCandidate && (
           <div className="modal-backdrop p-4">
             <motion.div
-              className="bg-background rounded-lg shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+              className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}

@@ -7,7 +7,7 @@ const StudentFilters = ({ filters, setFilters }) => {
   }
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4">
+    <div className="bg-white dark:bg-gray-800 rounded-[20px] shadow-md p-4">
       <h2 className="text-lg font-semibold mb-4 text-gray-800 dark:text-white">Filters</h2>
 
       <div className="space-y-4">
@@ -20,7 +20,7 @@ const StudentFilters = ({ filters, setFilters }) => {
             name="year"
             value={filters.year}
             onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="all">All Years</option>
             <option value="1">Year 1</option>
@@ -40,7 +40,7 @@ const StudentFilters = ({ filters, setFilters }) => {
             name="status"
             value={filters.status}
             onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="all">All Statuses</option>
             <option value="active">Active</option>
@@ -59,7 +59,7 @@ const StudentFilters = ({ filters, setFilters }) => {
             name="course"
             value={filters.course}
             onChange={handleFilterChange}
-            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
           >
             <option value="all">All Courses</option>
             <option value="Computer Science">Computer Science</option>
@@ -79,7 +79,7 @@ const StudentFilters = ({ filters, setFilters }) => {
               course: "all",
             })
           }
-          className="w-full mt-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+          className="w-full mt-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-[20px] text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
         >
           Clear Filters
         </button>

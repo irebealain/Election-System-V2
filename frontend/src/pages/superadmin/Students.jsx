@@ -246,7 +246,7 @@ function Students() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+          <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-gray-50 dark:bg-gray-800">
@@ -296,21 +296,21 @@ function Students() {
                         <div className="flex items-center space-x-2">
                           <button
                             onClick={() => handleViewDetails(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-[20px] text-[10px]"
                             title="View Details"
                           >
                             <Eye className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                           </button>
                           <button
                             onClick={() => handleEditStudent(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-[20px] text-[10px]"
                             title="Edit"
                           >
                             <Edit className="h-3.5 w-3.5 text-gray-600 dark:text-gray-400" />
                           </button>
                           <button
                             onClick={() => handleDeleteStudent(student)}
-                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md text-[10px]"
+                            className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-[20px] text-[10px]"
                             title="Delete"
                           >
                             <Trash2 className="h-3.5 w-3.5 text-red-600 dark:text-red-400" />
@@ -369,7 +369,7 @@ function Students() {
       {/* Delete All Confirmation Dialog */}
       {isDeleteAllDialogOpen && (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+          <div className="bg-white dark:bg-gray-800 rounded-[20px] p-6 max-w-md w-full mx-4 shadow-xl">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
                 <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
@@ -402,7 +402,7 @@ function Students() {
       {/* Student Details Dialog */}
       {isDetailsDialogOpen && selectedStudent && (
         <div className="fixed inset-0 backdrop-blur-sm bg-white/30 dark:bg-gray-900/30 flex items-center justify-center z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-xl p-5 max-w-lg w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-[20px] p-5 max-w-lg w-full mx-4 shadow-2xl border border-gray-100 dark:border-gray-700">
             {/* Header */}
             <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-100 dark:border-gray-700">
               <div className="flex items-center gap-3">
@@ -423,7 +423,7 @@ function Students() {
                   setIsDetailsDialogOpen(false);
                   setIsEditing(false);
                 }}
-                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-[20px] transition-colors"
               >
                 <X className="h-4 w-4 text-gray-500 dark:text-gray-400" />
               </button>
@@ -432,7 +432,7 @@ function Students() {
             {/* Content */}
             <div className="space-y-4">
               {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="grid grid-cols-2 gap-4 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-[20px]">
                 <div>
                   <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Full Name</p>
                   {isEditing ? (
@@ -464,7 +464,7 @@ function Students() {
 
               {/* Additional Info */}
               <div className="grid grid-cols-2 gap-4">
-                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-[20px]">
                   <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Level</p>
                   {isEditing ? (
                     <Select
@@ -483,7 +483,7 @@ function Students() {
                     <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{selectedStudent.level}</p>
                   )}
                 </div>
-                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-[20px]">
                   <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Registration Date</p>
                   <p className="text-xs text-gray-600 dark:text-gray-300">
                     {format(new Date(selectedStudent.createdAt), 'MMM d, yyyy')}
@@ -492,7 +492,7 @@ function Students() {
               </div>
 
               {/* Voting Status */}
-              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+              <div className="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-[20px]">
                 <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400 mb-1">Voting Status</p>
                 <div className="flex items-center gap-2">
                   <span className={`h-2 w-2 rounded-full ${

@@ -5,7 +5,7 @@ import Button from "../../components/common/Button"
 import Tabs from "../../components/common/Tabs"
 import {toast} from "react-hot-toast"
 import { Search, UserPlus, Edit, Trash, Eye, Download, Filter, RefreshCw, UserCheck, UserX, Mail } from "lucide-react"
-import gsap from "gsap"
+import { motion } from "framer-motion"
 import { getAllUsers } from "../../services/UserService"
 // import axios from "axios"
 import instance from "../../lib/axios"
@@ -45,14 +45,6 @@ function StudentManagement() {
       [id]: value
     })
   }
-  // Animation effect when component mounts
-  useEffect(() => {
-    gsap.fromTo(
-      ".student-management-container",
-      { opacity: 0, y: 20 },
-      { opacity: 1, y: 0, duration: 0.6, ease: "power2.out" },
-    )
-  }, [])
 
   // Filter students based on search term and filters
   useEffect(() => {
@@ -274,7 +266,12 @@ function StudentManagement() {
   }
 
   return (
-    <div className="space-y-6 student-management-container">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="space-y-6"
+    >
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Student Management</h1>
         <p className="text-muted-foreground">Manage student accounts and information.</p>
@@ -764,7 +761,7 @@ function StudentManagement() {
       {/* Delete Confirmation Dialog */}
       {selectedStudent && isDeleteDialogOpen && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-lg shadow-lg w-full max-w-md overflow-hidden">
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Delete Student</h2>
               <p className="text-sm text-muted-foreground mb-4">
@@ -865,7 +862,7 @@ function StudentManagement() {
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 

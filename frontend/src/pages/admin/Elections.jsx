@@ -150,7 +150,7 @@ function Elections() {
   const CustomTooltip = ({ active, payload }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-background p-3 border rounded-md shadow-md">
+        <div className="bg-background p-3 border rounded-[20px] shadow-md">
           <p className="font-medium">{payload[0].payload.name}</p>
           <p className="text-sm">
             Votes: <span className="font-medium">{payload[0].payload.votes}</span>
@@ -212,15 +212,15 @@ function Elections() {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg">
+            <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-[20px]">
               <div className="text-3xl font-bold">{totalStudents}</div>
               <div className="text-sm text-muted-foreground">Total Students</div>
             </div>
-            <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-lg">
+            <div className="flex flex-col items-center justify-center p-4 bg-muted/30 rounded-[20px]">
               <div className="text-3xl font-bold">{totalVoted}</div>
               <div className="text-sm text-muted-foreground">Total Votes</div>
             </div>
-            <div className="flex flex-col items-center justify-center p-4 bg-primary/10 rounded-lg">
+            <div className="flex flex-col items-center justify-center p-4 bg-primary/10 rounded-[20px]">
               <div className="text-3xl font-bold">{overallPercentage}%</div>
               <div className="text-sm text-muted-foreground">Participation Rate</div>
             </div>
@@ -237,7 +237,7 @@ function Elections() {
                     if (active && payload && payload.length) {
                       const data = payload[0].payload
                       return (
-                        <div className="bg-background p-3 border rounded-md shadow-md">
+                        <div className="bg-background p-3 border rounded-[20px] shadow-md">
                           <p className="font-medium">{data.name}</p>
                           <p className="text-sm">
                             Total Students: <span className="font-medium">{data.total}</span>

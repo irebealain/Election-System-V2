@@ -168,7 +168,7 @@ function Navbar() {
 
 function NotificationItem({ title, description, time }) {
   return (
-    <div className="flex flex-col gap-1 p-3 hover:bg-accent rounded-md cursor-pointer">
+    <div className="flex flex-col gap-1 p-3 hover:bg-accent rounded-[20px] cursor-pointer">
       <div className="font-medium text-sm">{title}</div>
       <div className="text-xs text-muted-foreground">{description}</div>
       <div className="text-xs text-muted-foreground mt-1">{time}</div>

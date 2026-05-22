@@ -45,7 +45,7 @@ export const AccessibleSwitch = forwardRef(
         )}
         <div
           className={cn(
-            "relative inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-none transition-colors",
+            "relative inline-flex h-[24px] w-[44px] shrink-0 cursor-pointer items-center rounded-[20px] transition-colors",
             isChecked ? "bg-primary" : "bg-input",
             hasFocus && "ring-2 ring-offset-2 ring-primary",
             disabled && "cursor-not-allowed opacity-50",
@@ -67,7 +67,7 @@ export const AccessibleSwitch = forwardRef(
           />
           <span
             className={cn(
-              "pointer-events-none absolute mx-[2px] h-[20px] w-[20px] rounded-none bg-background shadow-lg ring-0 transition-transform",
+              "pointer-events-none absolute mx-[2px] h-[20px] w-[20px] rounded-[20px] bg-background shadow-lg ring-0 transition-transform",
               isChecked ? "translate-x-5" : "translate-x-0",
             )}
             aria-hidden="true"

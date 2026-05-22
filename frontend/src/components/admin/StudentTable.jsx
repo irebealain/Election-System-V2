@@ -128,7 +128,7 @@ const StudentTable = ({ students, onSelectStudent, onStatusChange, isLoading }) 
                 <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => onStatusChange(student.id, student.status === "active" ? "inactive" : "active")}
-                    className={`px-3 py-1 rounded-md text-xs font-medium ${
+                    className={`px-3 py-1 rounded-[20px] text-xs font-medium ${
                       student.status === "active"
                         ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-200 dark:bg-yellow-800 dark:text-yellow-100 dark:hover:bg-yellow-700"
                         : "bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-800 dark:text-green-100 dark:hover:bg-green-700"
@@ -138,7 +138,7 @@ const StudentTable = ({ students, onSelectStudent, onStatusChange, isLoading }) 
                   </button>
                   <button
                     onClick={() => onSelectStudent(student)}
-                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-md text-xs font-medium hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:hover:bg-blue-700"
+                    className="px-3 py-1 bg-blue-100 text-blue-800 rounded-[20px] text-xs font-medium hover:bg-blue-200 dark:bg-blue-800 dark:text-blue-100 dark:hover:bg-blue-700"
                   >
                     View
                   </button>

@@ -8,7 +8,7 @@ function IconNav({ items, className }) {
   const [hoveredItem, setHoveredItem] = useState(null)
 
   return (
-    <div className={cn("flex flex-row space-y-1 align-center gap-4 bg-background py-1 px-2 rounded-none", className)}>
+    <div className={cn("flex flex-row space-y-1 align-center gap-4 bg-background py-1 px-2 rounded-[20px]", className)}>
       {items.map((item, index) => {
         const isActive = location.pathname === item.href || location.pathname.startsWith(item.href)
 
@@ -17,7 +17,7 @@ function IconNav({ items, className }) {
             key={index}
             to={item.href}
             className={cn(
-              "relative flex h-10 items-center self-center rounded-none px-4 py-2 text-sm font-medium transition-all !mt-0",
+              "relative flex h-10 items-center self-center rounded-[20px] px-4 py-2 text-sm font-medium transition-all !mt-0",
               isActive
                 ? "bg-accent text-accent-foreground"
                 : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",

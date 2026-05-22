@@ -331,15 +331,15 @@ function SuperAdminDashboard() {
               </div>
               <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
-                  <div className="text-center p-1.5 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                  <div className="text-center p-1.5 bg-green-50 dark:bg-green-900/20 rounded-[20px]">
                     <p className="text-sm font-medium text-green-600 dark:text-green-400">{electionStats.activeElections}</p>
                     <p className="text-xs text-muted-foreground">Active</p>
                   </div>
-                  <div className="text-center p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-center p-1.5 bg-blue-50 dark:bg-blue-900/20 rounded-[20px]">
                     <p className="text-sm font-medium text-blue-600 dark:text-blue-400">{electionStats.completedElections}</p>
                     <p className="text-xs text-muted-foreground">Completed</p>
                   </div>
-                  <div className="text-center p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg">
+                  <div className="text-center p-1.5 bg-yellow-50 dark:bg-yellow-900/20 rounded-[20px]">
                     <p className="text-sm font-medium text-yellow-600 dark:text-yellow-400">{electionStats.upcomingElections}</p>
                     <p className="text-xs text-muted-foreground">Upcoming</p>
                   </div>
@@ -458,11 +458,11 @@ function SuperAdminDashboard() {
                       </div>
 
                       <div className="grid grid-cols-2 gap-4">
-                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                        <div className="p-3 bg-purple-50 dark:bg-purple-900/20 rounded-[20px]">
                           <p className="text-xs font-medium text-purple-600 dark:text-purple-400">Position Fill Rate</p>
                           <p className="text-sm font-semibold mt-1">{Math.round(election.positionsFillRate)}%</p>
                         </div>
-                        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                        <div className="p-3 bg-orange-50 dark:bg-orange-900/20 rounded-[20px]">
                           <p className="text-xs font-medium text-orange-600 dark:text-orange-400">Avg. Candidates/Position</p>
                           <p className="text-sm font-semibold mt-1">{election.candidatesPerPosition.toFixed(1)}</p>
                         </div>
@@ -542,7 +542,7 @@ function SuperAdminDashboard() {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload
                             return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-lg shadow-xl border border-gray-100 dark:border-gray-700">
+                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
                                 <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
                                 <div className="mt-1 space-y-0.5">
                                   <p className="text-xs font-medium">
@@ -575,7 +575,7 @@ function SuperAdminDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 </div>
-                <div className="grid grid-cols-3 gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
+                <div className="grid grid-cols-3 gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-[20px]">
                   <div className="text-center">
                     <p className="text-xs font-medium text-gray-600 dark:text-gray-400">Current Election</p>
                     <p className="text-xs font-semibold text-gray-900 dark:text-gray-100">{studentStats.currentElection.title}</p>
@@ -648,7 +648,7 @@ function SuperAdminDashboard() {
                         </div>
                       </td>
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400">
+                        <span className="inline-flex items-center rounded-[20px] bg-blue-50 dark:bg-blue-900/20 px-2 py-1 text-xs font-medium text-blue-700 dark:text-blue-400">
                           {student.level}
                         </span>
                       </td>

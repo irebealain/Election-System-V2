@@ -62,7 +62,7 @@ export function HorizontalNav({ items, activeItem, onItemClick, className }) {
           <button
             onClick={scrollLeft}
             className={cn(
-              "absolute left-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 flex items-center justify-center bg-background text-foreground rounded-none shadow-md",
+              "absolute left-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 flex items-center justify-center bg-background text-foreground rounded-[20px] shadow-md",
               !canScrollLeft && "opacity-0 pointer-events-none",
             )}
             disabled={!canScrollLeft}
@@ -73,7 +73,7 @@ export function HorizontalNav({ items, activeItem, onItemClick, className }) {
           <button
             onClick={scrollRight}
             className={cn(
-              "absolute right-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 flex items-center justify-center bg-background text-foreground rounded-none shadow-md",
+              "absolute right-0 top-1/2 z-10 -translate-y-1/2 h-8 w-8 flex items-center justify-center bg-background text-foreground rounded-[20px] shadow-md",
               !canScrollRight && "opacity-0 pointer-events-none",
             )}
             disabled={!canScrollRight}
@@ -95,7 +95,7 @@ export function HorizontalNav({ items, activeItem, onItemClick, className }) {
             data-item-id={item.id}
             onClick={() => onItemClick(item.id)}
             className={cn(
-              "relative whitespace-nowrap px-4 py-2 text-sm font-medium rounded-none transition-colors",
+              "relative whitespace-nowrap px-4 py-2 text-sm font-medium rounded-[20px] transition-colors",
               activeItem === item.id
                 ? "text-primary"
                 : "text-muted-foreground hover:text-foreground hover:bg-accent/50",
@@ -108,7 +108,7 @@ export function HorizontalNav({ items, activeItem, onItemClick, className }) {
             </span>
             {activeItem === item.id && (
               <motion.div
-                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-none"
+                className="absolute bottom-0 left-0 right-0 h-0.5 bg-primary rounded-[20px]"
                 layoutId="activeIndicator"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

@@ -28,7 +28,7 @@ const AnimatedToast = ({ message }) => {
       initial={{ opacity: 0, y: 50, scale: 0.3 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-      className="bg-primary text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+      className="bg-primary text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
     >
       <Check className="h-5 w-5" />
       <span>{message}</span>
@@ -101,7 +101,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Email is required</span>
@@ -118,7 +118,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Please enter a valid email</span>
@@ -143,7 +143,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Password is required</span>
@@ -160,7 +160,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Password must be at least 6 characters</span>
@@ -188,7 +188,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Name is required</span>
@@ -205,7 +205,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Please enter both first and last name</span>
@@ -231,7 +231,7 @@ function LoginPage() {
             initial={{ opacity: 0, y: 50, scale: 0.3 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
           >
             <AlertCircle className="h-5 w-5" />
             <span>Please confirm your password</span>
@@ -251,7 +251,7 @@ function LoginPage() {
             initial={{ opacity: 0, y: 50, scale: 0.3 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
           >
             <AlertCircle className="h-5 w-5" />
             <span>Passwords do not match</span>
@@ -290,7 +290,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Student ID is required</span>
@@ -307,7 +307,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Student ID is too short</span>
@@ -353,7 +353,7 @@ function LoginPage() {
         initial={{ opacity: 0, y: 50, scale: 0.3 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-        className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+        className="bg-green-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
       >
         <Check className="h-5 w-5" />
         <span>Welcome back, {user.firstName}! 🎉</span>
@@ -371,7 +371,7 @@ function LoginPage() {
             initial={{ opacity: 0, y: 50, scale: 0.3 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-            className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            className="bg-green-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
           >
             <Check className="h-5 w-5" />
             <span>Admin access granted!</span>
@@ -458,7 +458,7 @@ function LoginPage() {
             initial={{ opacity: 0, y: 50, scale: 0.3 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-            className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+            className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
           >
             <AlertCircle className="h-5 w-5" />
             <span>{error.response?.data?.message || "Google login failed"}</span>
@@ -477,7 +477,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Google login failed. Please try again.</span>
@@ -521,7 +521,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Please fix the errors in the form</span>
@@ -539,7 +539,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>Please fix the errors in the form</span>
@@ -601,7 +601,7 @@ function LoginPage() {
               initial={{ opacity: 0, y: 50, scale: 0.3 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              className="bg-green-500 text-white px-6 py-6 rounded-lg shadow-lg flex items-center space-x-2"
+              className="bg-green-500 text-white px-6 py-6 rounded-[20px] shadow-lg flex items-center space-x-2"
             >
               <Check className="h-5 w-5" />
               <span>Welcome back, {user.firstName}! 🎉</span>
@@ -618,7 +618,7 @@ function LoginPage() {
               initial={{ opacity: 0, y: 50, scale: 0.3 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+              className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
             >
               <AlertCircle className="h-5 w-5" />
               <span>{response.data.message || "Login failed"}</span>
@@ -695,7 +695,7 @@ function LoginPage() {
               initial={{ opacity: 0, y: 50, scale: 0.3 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              className="bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+              className="bg-green-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
             >
               <Check className="h-5 w-5" />
               {isLogin ? "Welcome back, " : "Account created successfully! Welcome, "} {user.firstName}! 🎉
@@ -713,7 +713,7 @@ function LoginPage() {
               initial={{ opacity: 0, y: 50, scale: 0.3 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-              className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+              className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
             >
               <AlertCircle className="h-5 w-5" />
               <span>{response.data.message || "Signup failed"}</span>
@@ -730,7 +730,7 @@ function LoginPage() {
           initial={{ opacity: 0, y: 50, scale: 0.3 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.2 } }}
-          className="bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg flex items-center space-x-2"
+          className="bg-red-500 text-white px-6 py-3 rounded-[20px] shadow-lg flex items-center space-x-2"
         >
           <AlertCircle className="h-5 w-5" />
           <span>{error.response?.data?.message || "An error occurred. Please try again."}</span>

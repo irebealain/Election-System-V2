@@ -460,7 +460,7 @@ function Elections() {
               </CardHeader>
               <CardContent className="pb-2">
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                  <div className="flex items-center justify-between p-3 bg-muted/50 rounded-[20px]">
                     <div className="flex items-center space-x-3">
                       <div className="p-2 bg-primary/10 rounded-full">
                         <Users className="h-5 w-5 text-primary" />
@@ -547,7 +547,7 @@ function Elections() {
       {/* Create Election Dialog */}
       {isManageElectionOpen && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-lg shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Create New Election</h2>
@@ -565,7 +565,7 @@ function Elections() {
                     id="election-title"
                     type="text"
                     placeholder="e.g., Spring 2024 Student Council Election"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                     value={newElection.title}
                     onChange={(e) => setNewElection({ ...newElection, title: e.target.value })}
                   />
@@ -579,7 +579,7 @@ function Elections() {
                     <input
                       id="election-start"
                       type="date"
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                       value={newElection.startDate}
                       onChange={(e) => setNewElection({ ...newElection, startDate: e.target.value })}
                     />
@@ -592,7 +592,7 @@ function Elections() {
                     <input
                       id="election-end"
                       type="date"
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                       value={newElection.endDate}
                       onChange={(e) => setNewElection({ ...newElection, endDate: e.target.value })}
                       min={newElection.startDate}
@@ -654,7 +654,7 @@ function Elections() {
       {/* Add Position Dialog */}
       {isAddPositionOpen && selectedElection && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Add Position</h2>
@@ -672,7 +672,7 @@ function Elections() {
                     id="position-title"
                     type="text"
                     placeholder="e.g., President"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                     value={newPosition.title}
                     onChange={(e) => setNewPosition({ ...newPosition, title: e.target.value })}
                   />
@@ -699,7 +699,7 @@ function Elections() {
       {/* Add Candidate Dialog */}
       {isAddCandidateOpen && selectedElection && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Add Candidate</h2>
@@ -717,7 +717,7 @@ function Elections() {
                     <input
                       id="candidate-firstname"
                       type="text"
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                       value={newCandidate.firstName}
                       onChange={(e) => setNewCandidate({ ...newCandidate, firstName: e.target.value })}
                     />
@@ -730,7 +730,7 @@ function Elections() {
                     <input
                       id="candidate-lastname"
                       type="text"
-                      className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                       value={newCandidate.lastName}
                       onChange={(e) => setNewCandidate({ ...newCandidate, lastName: e.target.value })}
                     />
@@ -743,7 +743,7 @@ function Elections() {
                   </label>
                   <select
                     id="candidate-position"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                     value={newCandidate.positionId}
                     onChange={(e) => setNewCandidate({ ...newCandidate, positionId: e.target.value })}
                   >
@@ -764,7 +764,7 @@ function Elections() {
                   </label>
                   <textarea
                     id="candidate-mandate"
-                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    className="w-full min-h-[100px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
                     value={newCandidate.mandate}
                     onChange={(e) => setNewCandidate({ ...newCandidate, mandate: e.target.value })}
                   />
@@ -840,7 +840,7 @@ function Elections() {
       {/* Delete All Elections Confirmation Dialog */}
       {isDeleteAllConfirmOpen && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-lg shadow-lg max-w-md w-full">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-destructive">Delete All Elections</h2>
@@ -850,7 +850,7 @@ function Elections() {
               </div>
 
               <div className="space-y-4">
-                <div className="bg-destructive/10 p-4 rounded-lg">
+                <div className="bg-destructive/10 p-4 rounded-[20px]">
                   <p className="text-destructive font-medium">Warning: This action cannot be undone!</p>
                   <p className="text-sm text-muted-foreground mt-2">
                     This will permanently delete all elections, including their associated positions and candidates.

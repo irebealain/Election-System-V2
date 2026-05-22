@@ -1,13 +1,18 @@
 import { forwardRef } from "react"
 import { Link } from "react-router-dom"
 import { cn } from "../../utils/cn"
+import { motion } from "framer-motion"
+
+// Create a motion-enabled Link component
+const MotionLink = motion(Link);
 
 const Button = forwardRef(
   ({ children, className, variant = "default", size = "default", asChild = false, href, to, ...props }, ref) => {
-    const Comp = asChild ? "button" : to ? Link : href ? "a" : "button"
+    // Determine the component based on props
+    const Comp = asChild ? motion.button : to ? MotionLink : href ? motion.a : motion.button
 
     const baseStyles =
-      "inline-flex items-center justify-center rounded-none font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
+      "inline-flex items-center justify-center rounded-[20px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:opacity-50 disabled:pointer-events-none ring-offset-background"
 
     const variants = {
       default: "bg-primary text-primary-foreground hover:bg-primary/90",
@@ -28,7 +33,15 @@ const Button = forwardRef(
     const linkProps = to ? { to } : href ? { href } : {}
 
     return (
-      <Comp className={cn(baseStyles, variants[variant], sizes[size], className)} ref={ref} {...linkProps} {...props}>
+      <Comp 
+        className={cn(baseStyles, variants[variant], sizes[size], className)} 
+        ref={ref} 
+        whileHover={{ scale: 1.02 }}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        {...linkProps} 
+        {...props}
+      >
         {children}
       </Comp>
     )

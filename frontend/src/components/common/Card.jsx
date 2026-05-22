@@ -1,8 +1,15 @@
 import { forwardRef } from "react"
 import { cn } from "../../utils/cn"
+import { motion } from "framer-motion"
 
 const Card = forwardRef(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("rounded-none border bg-card text-card-foreground shadow-sm", className)} {...props} />
+  <motion.div 
+    ref={ref} 
+    className={cn("rounded-[20px] border bg-card text-card-foreground shadow-sm", className)} 
+    whileHover={{ y: -4, boxShadow: "0px 10px 30px rgba(0,0,0,0.08)" }}
+    transition={{ duration: 0.2, ease: "easeOut" }}
+    {...props} 
+  />
 ))
 Card.displayName = "Card"
 

@@ -169,7 +169,7 @@ export default function SchoolElectionLanding() {
           <div className="flex items-center justify-between h-20">
             <div className="flex items-center">
               <motion.div className="flex-shrink-0" whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.95 }}>
-                {/* <div className="h-10 w-10 bg-slate-900 rounded-xl flex items-center justify-center text-white font-bold text-lg">
+                {/* <div className="h-10 w-10 bg-slate-900 rounded-[20px] flex items-center justify-center text-white font-bold text-lg">
                   
                 </div> */}
                 <img src= {logo} alt="Logo" />
@@ -193,7 +193,7 @@ export default function SchoolElectionLanding() {
             </div>
             <div className="hidden md:block">
               <motion.button
-                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl transition-all duration-300 font-medium"
+                className="bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-[20px] transition-all duration-300 font-medium"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}              >
                 <Link to="/login">Get Started</Link>
@@ -202,7 +202,7 @@ export default function SchoolElectionLanding() {
             <div className="md:hidden">
               <motion.button
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-xl text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
+                className="inline-flex items-center justify-center p-2 rounded-[20px] text-slate-700 hover:text-slate-900 hover:bg-slate-100 focus:outline-none"
                 whileTap={{ scale: 0.95 }}
               >
                 {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -239,7 +239,7 @@ export default function SchoolElectionLanding() {
                 </MobileNavLink>
                 <div className="pt-4 px-3">
                   <motion.button
-                    className="w-full bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl transition-all duration-300 font-medium"
+                    className="w-full bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-[20px] transition-all duration-300 font-medium"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                   >
@@ -290,14 +290,14 @@ export default function SchoolElectionLanding() {
               transition={{ duration: 0.6, delay: 0.7 }}
             >
               <motion.button
-                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center text-lg"
+                className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 rounded-[20px] font-medium transition-all duration-300 shadow-lg hover:shadow-xl flex items-center justify-center text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
                 <Link to="/login">Start Your Election </Link><ArrowRight className="ml-2 h-5 w-5" />
               </motion.button>
               <motion.button
-                className="bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 px-8 py-4 rounded-xl font-medium transition-all duration-300 shadow-sm hover:shadow flex items-center justify-center text-lg"
+                className="bg-white hover:bg-slate-50 text-slate-800 border-2 border-slate-200 px-8 py-4 rounded-[20px] font-medium transition-all duration-300 shadow-sm hover:shadow flex items-center justify-center text-lg"
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -315,10 +315,10 @@ export default function SchoolElectionLanding() {
             style={{ opacity }}
           >
             <motion.div
-              className="relative z-10 bg-white p-3 rounded-2xl shadow-2xl transition-transform duration-700"
+              className="relative z-10 bg-white p-3 rounded-[20px] shadow-2xl transition-transform duration-700"
               whileHover={{ rotate: 1, scale: 1.02 }}
             >
-              <div className="rounded-xl overflow-hidden">
+              <div className="rounded-[20px] overflow-hidden">
                 <img src= {dashboardImg} alt="Election System Dashboard" className="w-full h-auto" />
               </div>
             </motion.div>
@@ -568,7 +568,7 @@ function NavLink({ children, active, onClick }) {
   return (
     <motion.button
       onClick={onClick}
-      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+      className={`px-4 py-2 rounded-[20px] text-sm font-medium transition-all duration-300 ${
         active ? "text-slate-900 bg-slate-100" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
       }`}
       whileHover={{ scale: 1.05 }}
@@ -583,7 +583,7 @@ function MobileNavLink({ children, active, onClick }) {
   return (
     <motion.button
       onClick={onClick}
-      className={`block px-3 py-3 rounded-lg text-base font-medium w-full text-left transition-all duration-300 ${
+      className={`block px-3 py-3 rounded-[20px] text-base font-medium w-full text-left transition-all duration-300 ${
         active ? "text-slate-900 bg-slate-100" : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
       }`}
       whileHover={{ x: 5 }}
@@ -600,7 +600,7 @@ function FeatureCard({ icon, title, description, delay, accent }) {
 
   return (
     <motion.div
-      className="bg-white rounded-2xl p-8 shadow-sm hover:shadow-lg transition-all duration-500 border border-slate-100"
+      className="bg-white rounded-[20px] p-8 shadow-sm hover:shadow-lg transition-all duration-500 border border-slate-100"
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, delay }}
@@ -608,7 +608,7 @@ function FeatureCard({ icon, title, description, delay, accent }) {
       viewport={{ once: true }}
     >
       <motion.div
-        className={`${bgColor} rounded-xl w-14 h-14 flex items-center justify-center mb-6 backdrop-blur-sm`}
+        className={`${bgColor} rounded-[20px] w-14 h-14 flex items-center justify-center mb-6 backdrop-blur-sm`}
         whileHover={{ rotate: 5, scale: 1.1 }}
         transition={{ duration: 0.3 }}
       >
@@ -633,7 +633,7 @@ function ProcessStep({ number, title, description, delay, accent }) {
       viewport={{ once: true }}
     >
       <motion.div
-        className={`${bgColor} text-white rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 font-bold text-lg shadow-lg`}
+        className={`${bgColor} text-white rounded-[20px] w-16 h-16 flex items-center justify-center mx-auto mb-6 font-bold text-lg shadow-lg`}
         whileHover={{ scale: 1.1, rotate: 5 }}
         transition={{ duration: 0.3 }}
       >
@@ -658,7 +658,7 @@ function VotingStep({ icon, title, description, delay, accent }) {
       viewport={{ once: true }}
     >
       <motion.div
-        className={`${bgColor} rounded-2xl w-16 h-16 flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 backdrop-blur-sm`}
+        className={`${bgColor} rounded-[20px] w-16 h-16 flex items-center justify-center mx-auto mb-6 shadow-sm border border-slate-100 backdrop-blur-sm`}
         whileHover={{ scale: 1.1, rotate: -5 }}
         transition={{ duration: 0.3 }}
       >

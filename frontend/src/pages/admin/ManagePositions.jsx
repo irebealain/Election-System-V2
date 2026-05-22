@@ -341,7 +341,7 @@ function ManagePositions() {
           placeholder="Search positions..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full h-10 pl-10 pr-4 rounded-md border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
+          className="w-full h-10 pl-10 pr-4 rounded-[20px] border border-input bg-background focus:outline-none focus:ring-2 focus:ring-primary"
         />
         <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
           <svg
@@ -442,7 +442,7 @@ function ManagePositions() {
                         {position.candidates.map((candidate) => (
                           <div
                             key={candidate.id}
-                            className="flex items-center justify-between p-3 rounded-md border bg-background hover:bg-accent/10 transition-colors"
+                            className="flex items-center justify-between p-3 rounded-[20px] border bg-background hover:bg-accent/10 transition-colors"
                           >
                             <div className="flex items-center space-x-3">
                               <div className="h-10 w-10 rounded-full overflow-hidden">
@@ -506,7 +506,7 @@ function ManagePositions() {
       {isAddingPosition && (
         <div className="modal-backdrop p-4">
           <motion.div
-            className="bg-background rounded-lg shadow-lg max-w-md w-full"
+            className="bg-background rounded-[20px] shadow-lg max-w-md w-full"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -525,7 +525,7 @@ function ManagePositions() {
                     value={formData.positionTitle}
                     onChange={handleInputChange}
                     placeholder="e.g., President, Treasurer"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
                 </div>
@@ -539,7 +539,7 @@ function ManagePositions() {
                     value={formData.positionDescription}
                     onChange={handleInputChange}
                     placeholder="Describe the responsibilities of this position..."
-                    className="w-full min-h-[100px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full min-h-[100px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="flex justify-end space-x-2 mt-6">
@@ -596,7 +596,7 @@ function ManagePositions() {
       {isAddingCandidate && (
         <div className="modal-backdrop p-4">
           <motion.div
-            className="bg-background rounded-lg shadow-lg max-w-md w-full"
+            className="bg-background rounded-[20px] shadow-lg max-w-md w-full"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -618,7 +618,7 @@ function ManagePositions() {
                     value={formData.candidateName}
                     onChange={handleInputChange}
                     placeholder="Full name"
-                    className="w-full h-10 rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                     required
                   />
                 </div>
@@ -632,7 +632,7 @@ function ManagePositions() {
                     value={formData.candidateBio}
                     onChange={handleInputChange}
                     placeholder="Brief biography of the candidate..."
-                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full min-h-[80px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
@@ -645,14 +645,14 @@ function ManagePositions() {
                     value={formData.candidateMandate}
                     onChange={handleInputChange}
                     placeholder="What does the candidate plan to achieve..."
-                    className="w-full min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                    className="w-full min-h-[80px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
                   />
                 </div>
                 <div className="space-y-2">
                   <label className="block text-sm font-medium">Photo</label>
                   <div
                     {...getRootProps()}
-                    className="border-2 border-dashed border-input rounded-md p-4 text-center cursor-pointer transition-colors hover:bg-accent/10"
+                    className="border-2 border-dashed border-input rounded-[20px] p-4 text-center cursor-pointer transition-colors hover:bg-accent/10"
                   >
                     <input {...getInputProps()} />
                     {formData.candidateImage ? (
@@ -660,7 +660,7 @@ function ManagePositions() {
                         <img
                           src={formData.candidateImage || "/placeholder.svg"}
                           alt="Preview"
-                          className="h-32 w-32 object-cover rounded-md mb-2"
+                          className="h-32 w-32 object-cover rounded-[20px] mb-2"
                         />
                         <p className="text-sm text-muted-foreground">Drag or click to replace</p>
                       </div>

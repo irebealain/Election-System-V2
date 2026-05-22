@@ -483,15 +483,15 @@ function ElectionStats() {
               </CardHeader>
               <CardContent className="pt-4">
                 <div className="grid grid-cols-3 gap-4 mb-6">
-                  <div className="text-center p-3 bg-primary/10 rounded-lg">
+                  <div className="text-center p-3 bg-primary/10 rounded-[20px]">
                     <p className="text-xl font-bold text-primary">{electionPositions.length}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">Positions</p>
                   </div>
-                  <div className="text-center p-3 bg-orange-100 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-center p-3 bg-orange-100 dark:bg-orange-900/20 rounded-[20px]">
                     <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{electionCandidates.length}</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">Candidates</p>
                   </div>
-                  <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
+                  <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/20 rounded-[20px]">
                     <p className="text-xl font-bold text-blue-600 dark:text-blue-400">446</p>
                     <p className="text-xs text-gray-600 dark:text-gray-400">Students Voted</p>
                   </div>
@@ -523,7 +523,7 @@ function ElectionStats() {
       {/* Statistics Modal */}
       {isModalOpen && selectedElection && (
         <div className="modal-backdrop p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
+          <div className="bg-white dark:bg-gray-800 rounded-[20px] shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
             <div className="p-4 flex items-center justify-between border-b">
               <div className="flex items-center gap-2">
                 <Trophy className="h-5 w-5 text-primary" />
@@ -568,7 +568,7 @@ function ElectionStats() {
 
                             {winner ? (<div className="space-y-2">
                                 {/* Winner Card */}
-                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-xl p-2 shadow-lg border border-primary/10 h-[150px]">
+                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-[20px] p-2 shadow-lg border border-primary/10 h-[150px]">
                                   <div className="absolute -top-2 -left-2">
                                     <div className="relative">
                                       <div className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
@@ -600,7 +600,7 @@ function ElectionStats() {
                                 </div>
 
                                 {/* Results Chart */}
-                                <div className="bg-white dark:bg-gray-800 rounded-xl p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
+                                <div className="bg-white dark:bg-gray-800 rounded-[20px] p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
                                   <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
                                   <div className="h-[200px]">
                                     <ResponsiveContainer width="100%" height="100%">
@@ -676,7 +676,7 @@ function ElectionStats() {
                                 </div>
                               </div>
                             ) : (
-                              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+                              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-dashed border-gray-300 dark:border-gray-600">
                                 <Users className="w-12 h-12 mb-3 text-gray-400" />
                                 <p className="text-sm text-gray-500 dark:text-gray-400">No winner data available</p>
                               </div>

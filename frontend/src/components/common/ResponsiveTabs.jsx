@@ -56,7 +56,7 @@ export function ResponsiveTabs({ className, children, defaultValue, ...props }) 
             <button
               onClick={scrollLeft}
               className={cn(
-                "absolute left-0 top-0 z-10 h-10 w-8 flex items-center justify-center bg-muted text-muted-foreground rounded-none",
+                "absolute left-0 top-0 z-10 h-10 w-8 flex items-center justify-center bg-muted text-muted-foreground rounded-[20px]",
                 !canScrollLeft && "opacity-50 cursor-not-allowed",
               )}
               disabled={!canScrollLeft}
@@ -67,7 +67,7 @@ export function ResponsiveTabs({ className, children, defaultValue, ...props }) 
             <button
               onClick={scrollRight}
               className={cn(
-                "absolute right-0 top-0 z-10 h-10 w-8 flex items-center justify-center bg-muted text-muted-foreground rounded-none",
+                "absolute right-0 top-0 z-10 h-10 w-8 flex items-center justify-center bg-muted text-muted-foreground rounded-[20px]",
                 !canScrollRight && "opacity-50 cursor-not-allowed",
               )}
               disabled={!canScrollRight}
