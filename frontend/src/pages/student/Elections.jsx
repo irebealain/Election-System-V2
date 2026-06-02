@@ -21,12 +21,10 @@ function Elections() {
   const [validationError, setValidationError] = useState(false)
   const [loading, setLoading] = useState(true)
   const [hasVoted, setHasVoted] = useState(false)
-  const [votingProgress, setVotingProgress] = useState(0)
 
   useEffect(() => {
     document.title = "Elections | Student Dashboard"
     fetchElectionData()
-    console.log(positions, "Positions fetched")
   }, [])
 
   useEffect(() => {
@@ -34,8 +32,9 @@ function Elections() {
       const checkVotingStatus = async () => {
         try {
           const votesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/votes`)
-          const userVotes = votesResponse.data.data.filter(
-            v => v.studentId === (currentUser._id || currentUser.id) && v.electionId === election._id
+          const allVotes = votesResponse.data.data || []
+          const userVotes = allVotes.filter(
+            v => v != null && v.studentId === (currentUser._id || currentUser.id) && v.electionId === election._id
           )
           setHasVoted(userVotes.length > 0)
         } catch (error) {
@@ -49,16 +48,11 @@ function Elections() {
   const fetchElectionData = async () => {
     try {
       setLoading(true)
-      // Fetch current election
+
       const electionResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`)
-      console.log('Elections API Response:', electionResponse.data)
-      const currentElection = electionResponse.data.data.find(e => e.status === 'ongoing')
-      console.log('Current Election:', currentElection)
-      
-      console.log('Current Election:', currentElection)
-      
+      const currentElection = electionResponse.data.data.find(e => e.status === "ongoing")
+
       if (!currentElection) {
-        console.log('No active election found')
         toast.error("No active election found")
         setElection(null)
         setPositions([])
@@ -67,35 +61,26 @@ function Elections() {
       }
       setElection(currentElection)
 
-      // Fetch positions for the current election
       const positionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/positions`)
-      const electionPositions = positionsResponse.data.data.filter(p => p.electionId === currentElection._id)
-
-      // Fetch candidates for the current election
-      const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
-      const electionCandidates = candidatesResponse.data.data.filter(
-        c => c.electionId === currentElection._id
+      const electionPositions = (positionsResponse.data.data || []).filter(
+        p => p != null && p.electionId === currentElection._id
       )
 
-      // Filter positions based on student level
+      const candidatesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/candidates`)
+      const electionCandidates = (candidatesResponse.data.data || []).filter(
+        c => c != null && c.electionId === currentElection._id
+      )
+
       const filteredPositions = electionPositions.filter(position => {
-        // If student is upper level, show all positions except Junior Minister positions
-        if (currentUser.level === 'upper') {
-          return !position.title.toLowerCase().includes('junior minister')
+        if (currentUser.level === "upper") {
+          return !position.title.toLowerCase().includes("junior minister")
         }
-        return true // Show all positions for any other case
+        return true
       })
 
-      // Filter positions to only include those with candidates
-      const positionsWithCandidates = filteredPositions.filter(position => {
-        const hasCandidates = electionCandidates.some(candidate => candidate.positionId === position._id)
-        console.log(`Checking candidates for position ${position.title}:`, hasCandidates)
-        if (!hasCandidates) {
-          console.log(`Position "${position.title}" has no candidates and will be hidden`)
-        }
-        return hasCandidates
-      })
-      console.log('Final positions with candidates:', positionsWithCandidates)
+      const positionsWithCandidates = filteredPositions.filter(position =>
+        electionCandidates.some(candidate => candidate.positionId === position._id)
+      )
 
       if (positionsWithCandidates.length === 0) {
         toast.error("No positions with candidates found in the current election")
@@ -108,21 +93,21 @@ function Elections() {
       setPositions(positionsWithCandidates)
       setCandidates(electionCandidates)
 
-      // Check if user has already voted in this election
       try {
         const votesResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/votes`)
-        const userVotes = votesResponse.data.data.filter(
-          v => v.studentId === (currentUser._id || currentUser.id) && v.electionId === currentElection._id
+        const allVotes = votesResponse.data.data || []
+        const userVotes = allVotes.filter(
+          v => v != null && v.studentId === (currentUser._id || currentUser.id) && v.electionId === currentElection._id
         )
-        
+
         if (userVotes.length > 0) {
           setHasVoted(true)
-          // Initialize votes state with user's previous votes
           const initialVotes = {}
           userVotes.forEach(vote => {
-            const candidate = electionCandidates.find(c => c._id === vote.candidateId)
+            if (!vote) return
+            const candidate = electionCandidates.find(c => c != null && c._id === vote.candidateId)
             if (candidate) {
-              const position = positionsWithCandidates.find(p => p._id === candidate.positionId)
+              const position = positionsWithCandidates.find(p => p != null && p._id === candidate.positionId)
               if (position) {
                 initialVotes[position.title] = candidate._id
               }
@@ -148,39 +133,23 @@ function Elections() {
       return
     }
 
-    // Reset validation error when user votes
     setValidationError(false)
 
     const position = positions.find(p => p._id === positionId)
     if (!position) return
 
-    // Check if user has already voted for this position
     if (votes[position.title] && votes[position.title] !== candidateId) {
-      // If changing vote, update it
-      setVotes({
-        ...votes,
-        [position.title]: candidateId,
-      })
+      setVotes({ ...votes, [position.title]: candidateId })
       toast.success(`Vote updated for ${position.title}`)
     } else if (!votes[position.title]) {
-      // If not voted for this position yet, add the vote
-      setVotes({
-        ...votes,
-        [position.title]: candidateId,
-      })
+      setVotes({ ...votes, [position.title]: candidateId })
       toast.success(`Vote recorded for ${position.title}`)
     } else {
-      // If clicking on the same candidate, remove the vote
       const newVotes = { ...votes }
       delete newVotes[position.title]
       setVotes(newVotes)
       toast.success(`Vote removed for ${position.title}`)
     }
-
-    // Update voting progress
-    const votedPositions = Object.keys(votes).length
-    const totalPositions = positions.length
-    setVotingProgress((votedPositions / totalPositions) * 100)
   }
 
   const handleSubmitVotes = async () => {
@@ -192,16 +161,14 @@ function Elections() {
     const positionCount = positions.length
     const votedCount = Object.keys(votes).length
 
-    // Check if all positions have votes
     if (votedCount < positionCount) {
       setValidationError(true)
       toast.error("Please vote for all positions before submitting")
       return
     }
 
-    // Validate that all votes are for candidates in the current election
     const invalidVotes = Object.entries(votes).some(([positionName, candidateId]) => {
-      const candidate = candidates.find(c => c._id === candidateId)
+      const candidate = candidates.find(c => c != null && c._id === candidateId)
       return !candidate || candidate.electionId !== election._id
     })
 
@@ -213,31 +180,27 @@ function Elections() {
     setSubmitting(true)
 
     try {
-      // Submit votes for each position
       const votePromises = Object.entries(votes).map(async ([positionName, candidateId]) => {
         const position = positions.find(p => p.title === positionName)
-        const candidate = candidates.find(c => c._id === candidateId)
-        
+        const candidate = candidates.find(c => c != null && c._id === candidateId)
+
         if (!position || !candidate) {
           throw new Error("Invalid position or candidate")
         }
 
-        // Double check that the candidate belongs to the current election
         if (candidate.electionId !== election._id) {
           throw new Error("Candidate does not belong to the current election")
         }
 
-        // Prepare vote data with all required fields
         const voteData = {
           studentId: currentUser._id || currentUser.id,
           candidateId: candidate._id,
           positionId: position._id,
-          electionId: election._id
+          electionId: election._id,
         }
 
-        // Submit the vote
         const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/votes`, voteData)
-        
+
         if (!response.data.success) {
           throw new Error(response.data.message || "Failed to submit vote")
         }
@@ -245,14 +208,9 @@ function Elections() {
         return response.data
       })
 
-      // Wait for all votes to be submitted
       await Promise.all(votePromises)
-      
-      // Update UI state immediately after successful submission
       setHasVoted(true)
       setSubmitted(true)
-      
-      // Show success message
       toast.success("Your votes have been submitted successfully!")
     } catch (error) {
       console.error("Error submitting votes:", error)
@@ -268,16 +226,14 @@ function Elections() {
   }
 
   const getUnvotedPositions = () => {
-    return positions
-      .filter(position => !votes[position.title])
-      .map(position => position.title)
+    return positions.filter(position => !votes[position.title]).map(position => position.title)
   }
 
-  // Group candidates by position
+  // Group candidates by position — skip null candidates
   const groupedCandidates = candidates.reduce((acc, candidate) => {
+    if (!candidate) return acc
     const position = positions.find(p => p._id === candidate.positionId)
     if (!position) return acc
-
     if (!acc[position.title]) {
       acc[position.title] = []
     }
@@ -322,14 +278,14 @@ function Elections() {
             <Clock className="w-4 h-4 text-muted-foreground" />
           </motion.div>
         </div>
-        
+
         <h2 className="text-2xl font-bold mb-2 font-satoshi">No Active Election</h2>
         <p className="text-muted-foreground max-w-md mb-6">
-          {positions.length === 0 
+          {positions.length === 0
             ? "There are no positions with candidates in the current election."
             : "There is currently no ongoing election. Please check back later or wait for the next election period to begin."}
         </p>
-        
+
         <motion.div
           className="flex items-center space-x-2 text-sm text-muted-foreground"
           initial={{ opacity: 0, y: 20 }}
@@ -369,12 +325,12 @@ function Elections() {
             <Award className="w-4 h-4 text-muted-foreground" />
           </motion.div>
         </div>
-        
+
         <h2 className="text-2xl font-bold mb-2 font-satoshi">Thank You for Voting!</h2>
         <p className="text-muted-foreground max-w-md mb-6">
           You have already cast your votes in this election. The results will be announced after the election period ends.
         </p>
-        
+
         <motion.div
           className="flex items-center space-x-2 text-sm text-muted-foreground"
           initial={{ opacity: 0, y: 20 }}
@@ -393,7 +349,7 @@ function Elections() {
         >
           <Button
             variant="outline"
-            onClick={() => window.location.href = "/student/dashboard"}
+            onClick={() => (window.location.href = "/student/dashboard")}
             className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
           >
             Return to Dashboard
@@ -439,8 +395,7 @@ function Elections() {
               <div
                 className={cn(
                   "h-2.5 rounded-full transition-all duration-500",
-                  hasVoted ? "bg-green-500" : 
-                  Object.keys(votes).length === positions.length ? "bg-green-500" : "bg-primary"
+                  hasVoted || Object.keys(votes).length === positions.length ? "bg-green-500" : "bg-primary"
                 )}
                 style={{ width: `${(Object.keys(votes).length / positions.length) * 100}%` }}
               ></div>
@@ -453,7 +408,7 @@ function Elections() {
                   className={cn(
                     "p-4 rounded-[20px] border transition-colors duration-200",
                     hasVoted || votes[position.title]
-                      ? "border-green-500 bg-green-50 dark:bg-green-900/20" 
+                      ? "border-green-500 bg-green-50 dark:bg-green-900/20"
                       : "border-muted hover:border-primary/50"
                   )}
                   whileHover={{ scale: 1.02 }}
@@ -462,8 +417,9 @@ function Elections() {
                   <p className="font-medium mb-1">{position.title}</p>
                   <p className="text-sm text-muted-foreground">
                     {votes[position.title]
-                      ? candidates.find((c) => c._id === votes[position.title])?.firstName + " " +
-                        candidates.find((c) => c._id === votes[position.title])?.lastName
+                      ? (candidates.find(c => c != null && c._id === votes[position.title])?.firstName || "") +
+                      " " +
+                      (candidates.find(c => c != null && c._id === votes[position.title])?.lastName || "")
                       : "Not voted yet"}
                   </p>
                 </motion.div>
@@ -519,40 +475,44 @@ function Elections() {
 
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {positionCandidates.map((candidate) => (
-                <motion.div 
-                  key={candidate._id} 
-                  whileHover={{ y: -5 }} 
+                <motion.div
+                  key={candidate._id}
+                  whileHover={{ y: -5 }}
                   transition={{ duration: 0.2 }}
                   className="h-full"
                 >
-                  <Card className={cn(
-                    "overflow-hidden h-full transition-all duration-200",
-                    hasVoted ? 'opacity-75' : '',
-                    votes[positionName] === candidate._id ? 'border-primary shadow-lg shadow-primary/10' : ''
-                  )}>
+                  <Card
+                    className={cn(
+                      "overflow-hidden h-full transition-all duration-200",
+                      hasVoted ? "opacity-75" : "",
+                      votes[positionName] === candidate._id ? "border-primary shadow-lg shadow-primary/10" : ""
+                    )}
+                  >
                     <CardHeader className="p-0">
                       <div className="relative aspect-[21/9] w-full">
                         <div className="absolute inset-0 z-10 h-[10rem]" />
-                            <img
-                              src={candidate.profilePic || "/placeholder.svg"}
-                              alt={`${candidate.firstName} ${candidate.lastName}`}
-                              className="w-full h-full object-contain p-3 transition-transform duration-300 hover:scale-105"
-                              loading="lazy"
-                            />
-                        {hasVoted && (
+                        <img
+                          src={candidate.profilePic || "/placeholder.svg"}
+                          alt={`${candidate.firstName} ${candidate.lastName}`}
+                          className="w-full h-full object-contain p-3 transition-transform duration-300 hover:scale-105"
+                          loading="lazy"
+                        />
+                        {hasVoted && votes[positionName] === candidate._id && (
                           <div className="absolute top-2 right-2 z-20">
                             <div className="inline-flex items-center rounded-full bg-green-500/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Voted
                             </div>
-      </Modal>
+                          </div>
+                        )}
                         {!hasVoted && votes[positionName] === candidate._id && (
                           <div className="absolute top-2 right-2 z-20">
                             <div className="inline-flex items-center rounded-full bg-primary/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Selected
                             </div>
-      </Modal>
+                          </div>
+                        )}
                       </div>
                     </CardHeader>
                     <CardContent className="p-3 flex-grow relative">
@@ -564,9 +524,9 @@ function Elections() {
                       </CardDescription>
                     </CardContent>
                     <CardFooter className="flex justify-between p-3 pt-0 gap-2">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
+                      <Button
+                        variant="outline"
+                        size="sm"
                         onClick={() => openCandidateDetails(candidate)}
                         className="hover:bg-primary/10 flex-1 h-8"
                       >
@@ -579,8 +539,8 @@ function Elections() {
                         variant={votes[positionName] === candidate._id ? "destructive" : "default"}
                         className={cn(
                           "transition-colors duration-200 flex-1 h-8",
-                          votes[positionName] === candidate._id 
-                            ? "hover:bg-destructive/90" 
+                          votes[positionName] === candidate._id
+                            ? "hover:bg-destructive/90"
                             : "bg-primary hover:bg-primary/90"
                         )}
                         disabled={hasVoted}
@@ -634,14 +594,7 @@ function Elections() {
                 fill="none"
                 viewBox="0 0 24 24"
               >
-                <circle
-                  className="opacity-25"
-                  cx="12"
-                  cy="12"
-                  r="10"
-                  stroke="currentColor"
-                  strokeWidth="4"
-                ></circle>
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path
                   className="opacity-75"
                   fill="currentColor"
@@ -662,7 +615,12 @@ function Elections() {
       {/* Candidate Details Dialog */}
       <AnimatePresence>
         {dialogOpen && selectedCandidate && (
-          <div className="modal-backdrop p-4">
+          <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setDialogOpen(false)
+            }}
+          >
             <motion.div
               className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
               initial={{ opacity: 0, y: 50 }}
@@ -699,8 +657,8 @@ function Elections() {
                 </div>
 
                 <div className="flex justify-between mt-6">
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     onClick={() => setDialogOpen(false)}
                     className="hover:bg-primary/10"
                   >
@@ -739,4 +697,3 @@ function Elections() {
 }
 
 export default Elections
-
