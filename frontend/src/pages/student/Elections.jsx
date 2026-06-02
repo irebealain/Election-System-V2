@@ -7,7 +7,6 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../../context/AuthContext"
 import axios from "../../lib/axios"
 import { cn } from "../../lib/utils"
-import Modal from "../../components/common/Modal"
 
 function Elections() {
   const { currentUser } = useAuth()
@@ -546,16 +545,14 @@ function Elections() {
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Voted
                             </div>
-                          </div>
-                        )}
+      </Modal>
                         {!hasVoted && votes[positionName] === candidate._id && (
                           <div className="absolute top-2 right-2 z-20">
                             <div className="inline-flex items-center rounded-full bg-primary/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
                               <CheckCircle2 className="h-3 w-3 mr-1" />
                               Selected
                             </div>
-                          </div>
-                        )}
+      </Modal>
                       </div>
                     </CardHeader>
                     <CardContent className="p-3 flex-grow relative">
@@ -663,8 +660,16 @@ function Elections() {
       </div>
 
       {/* Candidate Details Dialog */}
-      <Modal isOpen={dialogOpen && !!selectedCandidate} onClose={() => setDialogOpen(false)}>
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto mx-auto">
+      <AnimatePresence>
+        {dialogOpen && selectedCandidate && (
+          <div className="modal-backdrop p-4">
+            <motion.div
+              className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 50 }}
+              transition={{ duration: 0.3 }}
+            >
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-1">
                   {selectedCandidate.firstName} {selectedCandidate.lastName}
@@ -725,10 +730,13 @@ function Elections() {
                   </Button>
                 </div>
               </div>
+            </motion.div>
           </div>
-      </Modal>
+        )}
+      </AnimatePresence>
     </motion.div>
   )
 }
 
 export default Elections
+

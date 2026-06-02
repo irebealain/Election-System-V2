@@ -5,7 +5,6 @@ import { Award, ArrowRight, Users, CheckCircle, TrendingUp } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import confetti from "canvas-confetti"
 import { getAllElections } from "../../services/electionService"
-import Modal from "../../components/common/Modal"
 // Sample data for positions and candidates
 const electionData = {
   President: [
@@ -329,9 +328,9 @@ function Elections() {
       </div>
 
       {/* Position Details Dialog */}
-      <Modal isOpen={isDetailsOpen && !!selectedPosition} onClose={() => setIsDetailsOpen(false)} className="max-w-3xl p-0">
-        {selectedPosition && (
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-h-[90vh] overflow-y-auto">
+      {isDetailsOpen && selectedPosition && (
+        <div className="modal-backdrop p-4">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <TrendingUp className="h-5 w-5 mr-2 text-primary" />
@@ -421,7 +420,6 @@ function Elections() {
               </div>
             </div>
           </div>
-        )}
       </Modal>
     </div>
   )

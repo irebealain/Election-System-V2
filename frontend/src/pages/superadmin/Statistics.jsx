@@ -13,7 +13,6 @@ import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import PDFGenerator from '../../components/PDFGenerator';
-import Modal from '../../components/common/Modal';
 
 // Color palette for charts
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
@@ -456,8 +455,9 @@ function ElectionStats() {
                             )}
                           </ul>
                           
-                          <div className="mt-4 flex items-center justify-center w-full py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 text-sm font-semibold text-primary group-hover:bg-primary group-hover:text-white border border-gray-100 dark:border-gray-700 transition-all duration-300 shadow-sm">
-                            View Results <span className="ml-2 group-hover:translate-x-1 transition-transform">→</span>
+                          <div className="flex items-center text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300">
+                            <BarChart2 className="w-4 h-4 mr-2" />
+                            View Statistics
                           </div>
                         </CardContent>
                       </Card>
@@ -470,9 +470,21 @@ function ElectionStats() {
       </AnimatePresence>
 
       {/* Modern Stats Modal */}
-      <Modal isOpen={isModalOpen && !!selectedPosition} onClose={handleCloseModal} className="max-w-4xl p-0">
-        {selectedPosition && (
-            <div className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl w-full relative overflow-hidden flex flex-col max-h-[90vh]">
+      <AnimatePresence>
+        {isModalOpen && selectedPosition && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm"
+          >
+            <motion.div 
+              initial={{ scale: 0.95, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.95, opacity: 0, y: 20 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+              className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl w-full max-w-4xl relative overflow-hidden flex flex-col max-h-[90vh]"
+            >
               {/* Modal Header */}
               <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
                 <div>
@@ -627,9 +639,10 @@ function ElectionStats() {
                   </motion.div>
                 )}
               </div>
-            </div>
+            </motion.div>
+          </motion.div>
         )}
-      </Modal>
+      </AnimatePresence>
 
       <PDFGenerator
         ref={pdfGeneratorRef}

@@ -2,7 +2,7 @@ import React, { useEffect } from "react"
 import { createPortal } from "react-dom"
 import { motion, AnimatePresence } from "framer-motion"
 
-export default function Modal({ isOpen, onClose, children, className }) {
+export default function Modal({ isOpen, onClose, children }) {
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = "hidden"
@@ -33,7 +33,7 @@ export default function Modal({ isOpen, onClose, children, className }) {
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 10 }}
             transition={{ duration: 0.3, type: "spring", stiffness: 300, damping: 25 }}
-            className={`relative z-10 w-full mx-4 ${className || 'max-w-lg'}`}
+            className="relative z-10 w-full max-w-lg mx-4"
           >
             {children}
           </motion.div>
