@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import { useAuth } from "../../context/AuthContext"
 import axios from "../../lib/axios"
 import { cn } from "../../lib/utils"
+import Modal from "../../components/common/Modal"
 
 function Elections() {
   const { currentUser } = useAuth()
@@ -662,16 +663,8 @@ function Elections() {
       </div>
 
       {/* Candidate Details Dialog */}
-      <AnimatePresence>
-        {dialogOpen && selectedCandidate && (
-          <div className="modal-backdrop p-4">
-            <motion.div
-              className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              transition={{ duration: 0.3 }}
-            >
+      <Modal isOpen={dialogOpen && !!selectedCandidate} onClose={() => setDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto mx-auto">
               <div className="p-6">
                 <h3 className="text-xl font-bold mb-1">
                   {selectedCandidate.firstName} {selectedCandidate.lastName}
@@ -732,13 +725,10 @@ function Elections() {
                   </Button>
                 </div>
               </div>
-            </motion.div>
           </div>
-        )}
-      </AnimatePresence>
+      </Modal>
     </motion.div>
   )
 }
 
 export default Elections
-

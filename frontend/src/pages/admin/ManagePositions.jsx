@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
+import Modal from "../../components/common/Modal"
 import { Plus, Edit, Trash, Users, UserPlus, Save } from "lucide-react"
 import { useDropzone } from "react-dropzone"
 import toast from "react-hot-toast"
@@ -503,9 +504,8 @@ function ManagePositions() {
       )}
 
       {/* Add Position Modal */}
-      {isAddingPosition && (
-        <div className="modal-backdrop p-4">
-          <motion.div
+      <Modal isOpen={isAddingPosition} onClose={() => setIsAddingPosition(false)}>
+        <motion.div
             className="bg-background rounded-[20px] shadow-lg max-w-md w-full"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -593,9 +593,8 @@ function ManagePositions() {
       )}
 
       {/* Add Candidate Modal */}
-      {isAddingCandidate && (
-        <div className="modal-backdrop p-4">
-          <motion.div
+      <Modal isOpen={isAddingCandidate} onClose={() => setIsAddingCandidate(false)}>
+        <motion.div
             className="bg-background rounded-[20px] shadow-lg max-w-md w-full"
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}

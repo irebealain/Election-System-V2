@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import Button from "../../components/common/Button"
 import Tabs from "../../components/common/Tabs"
 import Pagination from "../../components/common/Pagination"
+import Modal from "../../components/common/Modal"
 import {toast} from "react-hot-toast"
 import { Search, UserPlus, Edit, Trash, Eye, Download, Filter, RefreshCw, UserCheck, UserX, Mail } from "lucide-react"
 import { motion } from "framer-motion"
@@ -451,9 +452,8 @@ function StudentManagement() {
       </Card>
 
       {/* Add Student Dialog */}
-      {isAddDialogOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md mb-16 mt-12">
+      <Modal isOpen={isAddDialogOpen} onClose={() => setIsAddDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md mb-16 mt-12 mx-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Add New Student</h2>
               <p className="text-sm text-muted-foreground mb-4">Add a new student to the election system.</p>
@@ -573,9 +573,8 @@ function StudentManagement() {
       )}
 
       {/* Edit Student Dialog */}
-      {selectedStudent && isEditDialogOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
+      <Modal isOpen={!!selectedStudent && isEditDialogOpen} onClose={() => setIsEditDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden mx-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Edit Student</h2>
               <p className="text-sm text-muted-foreground mb-4">Update student information.</p>
@@ -663,9 +662,8 @@ function StudentManagement() {
       )}
 
       {/* View Student Dialog */}
-      {selectedStudent && isViewDialogOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
+      <Modal isOpen={!!selectedStudent && isViewDialogOpen} onClose={() => setIsViewDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden mx-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Student Details</h2>
               <div className="flex flex-col items-center mb-4">
@@ -737,9 +735,8 @@ function StudentManagement() {
       )}
 
       {/* Delete Confirmation Dialog */}
-      {selectedStudent && isDeleteDialogOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
+      <Modal isOpen={!!selectedStudent && isDeleteDialogOpen} onClose={() => setIsDeleteDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden mx-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Delete Student</h2>
               <p className="text-sm text-muted-foreground mb-4">
@@ -771,9 +768,8 @@ function StudentManagement() {
       )}
 
       {/* Filter Dialog */}
-      {isFilterDialogOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden">
+      <Modal isOpen={isFilterDialogOpen} onClose={() => setIsFilterDialogOpen(false)}>
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md overflow-hidden mx-auto">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Filter Students</h2>
               <div className="grid gap-4 py-4">

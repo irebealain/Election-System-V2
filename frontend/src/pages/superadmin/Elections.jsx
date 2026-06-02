@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/common/Card"
 import Button from "../../components/common/Button"
+import Modal from "../../components/common/Modal"
 import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload, User } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "../../lib/axios"

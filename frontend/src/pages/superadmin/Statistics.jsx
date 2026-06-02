@@ -455,9 +455,14 @@ function ElectionStats() {
                             )}
                           </ul>
                           
-                          <div className="flex items-center text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300">
-                            <BarChart2 className="w-4 h-4 mr-2" />
-                            View Statistics
+                          <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <span className="text-sm font-medium text-muted-foreground group-hover:text-gray-900 dark:group-hover:text-white transition-colors">
+                              Click to view results
+                            </span>
+                            <div className="flex items-center text-sm font-bold text-white bg-primary px-4 py-2 rounded-full shadow-sm group-hover:shadow-md group-hover:bg-primary/90 transition-all transform group-hover:scale-105 duration-300">
+                              <BarChart2 className="w-4 h-4 mr-2" />
+                              View Results
+                            </div>
                           </div>
                         </CardContent>
                       </Card>
