@@ -5,6 +5,8 @@ import { Award, ArrowRight, Users, CheckCircle, TrendingUp } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import confetti from "canvas-confetti"
 import { getAllElections } from "../../services/electionService"
+// import Modal from "../../components/common/Modal";
+
 // Sample data for positions and candidates
 const electionData = {
   President: [
@@ -82,7 +84,7 @@ function Elections() {
         const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
       } catch (error) {
         console.error("Error fetching data:", error)
-        
+
       }
       finally {
         setLoading(false)
@@ -113,7 +115,7 @@ function Elections() {
       }
     }
   }, [])
-  
+
   useEffect(() => {
     if (selectedPosition) {
       const data = electionData[selectedPosition].map((candidate) => {
@@ -168,37 +170,37 @@ function Elections() {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Elections</h1>
-              <p className="text-muted-foreground">
-                Current election: {elections && elections.length > 0 ? (
-    elections.find(election => {
-      // Check if election has a date property
-      if (!election.date) return false;
-      
-      // Parse the date safely
-      try {
-        const electionDate = new Date(election.date);
-        const today = new Date();
-        
-        // Check for ongoing election (same day)
-        if (election.status?.toLowerCase() === 'ongoing' && 
-            electionDate.toDateString() === today.toDateString()) {
-          return true;
-        }
-        
-        // Check for incoming election (future date)
-        if (election.status?.toLowerCase() === 'incoming' && 
-            electionDate > today) {
-          return true;
-        }
-        
-        return false;
-      } catch (error) {
-        console.error("Error parsing date:", error);
-        return false;
-      }
-    })?.title || "No current election"
-  ) : "No elections available"}
-              </p>
+        <p className="text-muted-foreground">
+          Current election: {elections && elections.length > 0 ? (
+            elections.find(election => {
+              // Check if election has a date property
+              if (!election.date) return false;
+
+              // Parse the date safely
+              try {
+                const electionDate = new Date(election.date);
+                const today = new Date();
+
+                // Check for ongoing election (same day)
+                if (election.status?.toLowerCase() === 'ongoing' &&
+                  electionDate.toDateString() === today.toDateString()) {
+                  return true;
+                }
+
+                // Check for incoming election (future date)
+                if (election.status?.toLowerCase() === 'incoming' &&
+                  electionDate > today) {
+                  return true;
+                }
+
+                return false;
+              } catch (error) {
+                console.error("Error parsing date:", error);
+                return false;
+              }
+            })?.title || "No current election"
+          ) : "No elections available"}
+        </p>
       </div>
 
       {/* Overall Participation Card */}
@@ -420,7 +422,8 @@ function Elections() {
               </div>
             </div>
           </div>
-      </Modal>
+        </div>
+      )}
     </div>
   )
 }
