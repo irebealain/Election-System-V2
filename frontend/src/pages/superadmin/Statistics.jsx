@@ -7,11 +7,14 @@ import { getAllCandidates } from '../../services/candidateService';
 import { getAllPositions } from '../../services/positionService';
 import { getAllUsers } from '../../services/UserService';
 import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ArrowLeft, BarChart2 } from 'lucide-react';
+import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';
 import { toast } from 'react-hot-toast';
+// import { saveAs } from 'file-saver';
 import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import PDFGenerator from '../../components/PDFGenerator';
 
 // Color palette for charts
@@ -35,51 +38,67 @@ function CountdownAnimation({ onComplete }) {
     <AnimatePresence>
       {showAnimation && (
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
+          initial={{ opacity: 0, scale: 0.5 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.5 }}
           transition={{ duration: 0.5 }}
-          className="absolute inset-0 flex flex-col items-center justify-center bg-white/80 dark:bg-gray-900/80 backdrop-blur-md z-10 rounded-[20px]"
+          className="absolute inset-0 flex flex-col items-center justify-center bg-white dark:bg-gray-800"
         >
           <motion.div
             animate={{ 
-              scale: [1, 1.05, 1],
+              scale: [1, 1.1, 1],
+              y: [0, -10, 0]
             }}
             transition={{ 
-              duration: 1,
+              duration: 1.5,
               repeat: Infinity,
               ease: "easeInOut"
             }}
-            className="relative w-48 h-48 flex items-center justify-center"
+            className="relative w-64 h-64"
           >
-            <svg className="absolute w-full h-full drop-shadow-lg" viewBox="0 0 100 100">
-               <motion.circle 
-                 cx="50" cy="50" r="45" 
-                 fill="none" 
-                 stroke="currentColor" 
-                 strokeWidth="2" 
-                 className="text-primary/10 dark:text-primary/20"
-               />
-               <motion.circle 
-                 cx="50" cy="50" r="45" 
-                 fill="none" 
-                 stroke="currentColor" 
-                 strokeWidth="3" 
-                 strokeDasharray="283"
-                 initial={{ strokeDashoffset: 283 }}
-                 animate={{ strokeDashoffset: 0 }}
-                 transition={{ duration: 5, ease: "linear" }}
-                 className="text-primary"
-                 strokeLinecap="round"
-                 transform="rotate(-90 50 50)"
-               />
+            <svg
+              viewBox="0 0 200 200"
+              className="w-full h-full"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              {/* Trophy Base */}
+              <path
+                d="M100 180C144.183 180 180 144.183 180 100C180 55.8172 144.183 20 100 20C55.8172 20 20 55.8172 20 100C20 144.183 55.8172 180 100 180Z"
+                fill="url(#trophy-gradient)"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              {/* Trophy Cup */}
+              <path
+                d="M80 60H120C133.255 60 144 70.7452 144 84V100C144 113.255 133.255 124 120 124H80C66.7452 124 56 113.255 56 100V84C56 70.7452 66.7452 60 80 60Z"
+                fill="url(#cup-gradient)"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              {/* Trophy Handle */}
+              <path
+                d="M80 124C80 140 90 152 100 152C110 152 120 140 120 124"
+                stroke="currentColor"
+                strokeWidth="4"
+                strokeLinecap="round"
+              />
+              <defs>
+                <linearGradient id="trophy-gradient" x1="0" y1="0" x2="200" y2="200">
+                  <stop offset="0%" stopColor="#FFD700" />
+                  <stop offset="100%" stopColor="#FFA500" />
+                </linearGradient>
+                <linearGradient id="cup-gradient" x1="56" y1="60" x2="144" y2="124">
+                  <stop offset="0%" stopColor="#FFF8DC" />
+                  <stop offset="100%" stopColor="#FFD700" />
+                </linearGradient>
+              </defs>
             </svg>
             <motion.div
-              key={count}
-              initial={{ scale: 0.5, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 1.5, opacity: 0 }}
-              className="text-7xl font-bold text-gray-900 dark:text-white drop-shadow-md"
+              initial={{ scale: 0 }}
+              animate={{ scale: [1, 1.2, 1] }}
+              transition={{ duration: 0.5, repeat: Infinity }}
+              className="absolute -top-2 -right-2 w-12 h-12 bg-primary rounded-full flex items-center justify-center text-white font-bold text-xl"
             >
               {count}
             </motion.div>
@@ -88,9 +107,9 @@ function CountdownAnimation({ onComplete }) {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="mt-8 text-lg font-medium text-gray-600 dark:text-gray-300 tracking-wide uppercase"
+            className="mt-6 text-xl font-medium text-gray-600 dark:text-gray-300"
           >
-            Revealing Winner
+            Displaying results in {count} seconds...
           </motion.p>
         </motion.div>
       )}
@@ -107,17 +126,17 @@ function ElectionStats() {
   const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
-  // New state management
-  const [viewState, setViewState] = useState('elections'); // 'elections' | 'positions'
-  const [selectedPosition, setSelectedPosition] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [currentPositionIndex, setCurrentPositionIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [showCountdown, setShowCountdown] = useState(false);
-
+  const canvasRef = useRef(null);
   const pdfGeneratorRef = useRef(null);
+  const [isPdfGeneratorReady, setIsPdfGeneratorReady] = useState(false);
 
   useEffect(() => {
     fetchData();
+    // console.log("Position data:", positions);
   }, []);
 
   const fetchData = async () => {
@@ -136,10 +155,13 @@ function ElectionStats() {
         throw new Error('Failed to fetch required data');
       }
 
+      console.log('Students data structure:', studentsData);
+      
       setElections(electionsData);
       setPositions(positionsData);
       setCandidates(candidatesData);
       setVotes(votesData);
+      // If studentsData is already an array, use it directly, otherwise try to access .data
       setStudents(Array.isArray(studentsData) ? studentsData : (studentsData?.data || []));
     } catch (error) {
       console.error('Error fetching data:', error);
@@ -151,14 +173,22 @@ function ElectionStats() {
   };
 
   const getPositionResults = (positionId) => {
-    if (!positionId || !selectedElection) return [];
+    // Basic validation
+    if (!positionId || !selectedElection) {
+      return [];
+    }
 
+    // Get candidates for this position in current election
     const positionCandidates = candidates.filter(c => 
       c.positionId === positionId && c.electionId === selectedElection._id
     );
 
-    if (!positionCandidates.length) return [];
+    // If no candidates, return empty array
+    if (!positionCandidates.length) {
+      return [];
+    }
 
+    // Get all votes for this position in current election
     const positionVotes = votes.filter(v => 
       v.electionId === selectedElection._id && 
       v.positionId === positionId
@@ -173,9 +203,11 @@ function ElectionStats() {
       }));
     }
 
+    // Count unique voters for this position
     const uniqueVoters = new Set(positionVotes.map(v => v.studentId));
     const totalVoters = uniqueVoters.size;
 
+    // Count votes for each candidate
     return positionCandidates.map(candidate => {
       const candidateVotes = positionVotes.filter(v => v.candidateId === candidate._id);
       const voteCount = candidateVotes.length;
@@ -191,53 +223,98 @@ function ElectionStats() {
 
   const handleElectionSelect = (election) => {
     setSelectedElection(election);
-    setViewState('positions');
-  };
-
-  const handleBackToElections = () => {
-    setViewState('elections');
-    setSelectedElection(null);
-  };
-
-  const handlePositionSelect = (position) => {
-    setSelectedPosition(position);
     setIsModalOpen(true);
     setShowCountdown(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setTimeout(() => {
-      setSelectedPosition(null);
-      setShowCountdown(false);
-    }, 300); // Wait for transition out
+    setSelectedElection(null);
+    setCurrentPositionIndex(0);
+  };
+
+  const handleDownloadResults = async (election) => {
+    try {
+      console.log('Starting download process for election:', election);
+      
+      if (!pdfGeneratorRef.current) {
+        console.error('PDF Generator ref is not available');
+        toast.error('Please wait while the PDF generator initializes...');
+        return;
+      }
+
+      // Set the selected election first
+      setSelectedElection(election);
+      
+      // Wait for the PDFGenerator to be ready
+      let attempts = 0;
+      const maxAttempts = 10;
+      
+      const waitForGenerator = async () => {
+        if (pdfGeneratorRef.current.isReady) {
+          console.log('PDF Generator is ready, proceeding with generation');
+          const results = await getElectionResults(election._id);
+          const success = await pdfGeneratorRef.current.generatePDF();
+          
+          if (success) {
+      toast.success('Results downloaded successfully');
+          } else {
+            toast.error('Failed to generate PDF');
+          }
+        } else if (attempts < maxAttempts) {
+          attempts++;
+          console.log(`Waiting for PDF Generator to be ready (attempt ${attempts}/${maxAttempts})`);
+          setTimeout(waitForGenerator, 500);
+        } else {
+          console.error('PDF Generator failed to initialize after multiple attempts');
+          toast.error('Failed to initialize PDF generator. Please try again.');
+        }
+      };
+
+      waitForGenerator();
+    } catch (error) {
+      console.error('Error downloading results:', error);
+      toast.error('Failed to download results');
+    }
+  };
+
+  const handleCelebrateWinner = (position, winner) => {
+    toast.success(`Congratulations to ${winner.name} for winning the ${position.title} position! 🎉`);
   };
 
   const triggerConfetti = () => {
-    const duration = 3000;
-    const end = Date.now() + duration;
-
-    const frame = () => {
-      confetti({
-        particleCount: 5,
-        angle: 60,
-        spread: 55,
-        origin: { x: 0 },
-        colors: ['#22c55e', '#ffffff', '#fbbf24'] // Accents
-      });
-      confetti({
-        particleCount: 5,
-        angle: 120,
-        spread: 55,
-        origin: { x: 1 },
-        colors: ['#22c55e', '#ffffff', '#fbbf24'] // Accents
-      });
-
-      if (Date.now() < end) {
-        requestAnimationFrame(frame);
-      }
+    // Multiple confetti bursts
+    const defaults = {
+      spread: 360,
+      ticks: 100,
+      gravity: 0,
+      decay: 0.94,
+      startVelocity: 30,
+      shapes: ['star'],
+      colors: ['FFE400', 'FFBD00', 'E89400', 'FFCA6C', 'FDFFB8']
     };
-    frame();
+
+    function shoot() {
+      confetti({
+        ...defaults,
+        particleCount: 40,
+        scalar: 1.2,
+        shapes: ['star']
+      });
+
+      confetti({
+        ...defaults,
+        particleCount: 10,
+        scalar: 0.75,
+        shapes: ['circle']
+      });
+    }
+
+    setTimeout(shoot, 0);
+    setTimeout(shoot, 100);
+    setTimeout(shoot, 200);
+    setTimeout(shoot, 300);
+    setTimeout(shoot, 400);
   };
 
   const handleCountdownComplete = () => {
@@ -245,36 +322,47 @@ function ElectionStats() {
     triggerConfetti();
   };
 
-  const handleDownloadResults = async (election) => {
-    try {
-      if (!pdfGeneratorRef.current) {
-        toast.error('Please wait while the PDF generator initializes...');
-        return;
-      }
-      setSelectedElection(election);
-      let attempts = 0;
-      const maxAttempts = 10;
-      
-      const waitForGenerator = async () => {
-        if (pdfGeneratorRef.current.isReady) {
-          const success = await pdfGeneratorRef.current.generatePDF();
-          if (success) {
-            toast.success('Results downloaded successfully');
-          } else {
-            toast.error('Failed to generate PDF');
-          }
-        } else if (attempts < maxAttempts) {
-          attempts++;
-          setTimeout(waitForGenerator, 500);
-        } else {
-          toast.error('Failed to initialize PDF generator. Please try again.');
+  const handleNextPosition = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setShowCountdown(true);
+    setTimeout(() => {
+      setCurrentPositionIndex(prev => {
+        const nextIndex = prev + 1;
+        if (nextIndex >= positions.filter(p => p.electionId === selectedElection._id).length) {
+          return 0;
         }
-      };
-      waitForGenerator();
-    } catch (error) {
-      toast.error('Failed to download results');
-    }
+        return nextIndex;
+      });
+      setIsTransitioning(false);
+    }, 500);
   };
+
+  const handlePreviousPosition = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
+    setShowCountdown(true);
+    setTimeout(() => {
+      setCurrentPositionIndex(prev => {
+        const nextIndex = prev - 1;
+        if (nextIndex < 0) {
+          return positions.filter(p => p.electionId === selectedElection._id).length - 1;
+        }
+        return nextIndex;
+      });
+      setIsTransitioning(false);
+    }, 500);
+  };
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setShowCountdown(true);
+    }
+  }, [currentPositionIndex, isModalOpen]);
+
+  const isLastPosition = selectedElection 
+    ? currentPositionIndex === positions.filter(p => p.electionId === selectedElection._id).length - 1
+    : false;
 
   if (loading) {
     return (
@@ -303,347 +391,333 @@ function ElectionStats() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Election Statistics</h1>
         <p className="text-muted-foreground">
-          {viewState === 'elections' ? 'Select an election to view detailed results' : `Viewing positions for ${selectedElection?.title}`}
+          View and analyze election results and statistics
         </p>
       </div>
 
-      <AnimatePresence mode="wait">
-        {/* VIEW: ELECTION LIST */}
-        {viewState === 'elections' && (
-          <motion.div 
-            key="elections-view"
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.3 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-          >
-            {elections.map((election) => {
-              const electionPositions = positions.filter(p => p.electionId === election._id);
-              const electionCandidates = candidates.filter(c => c.electionId === election._id);
-              
-              return (
-                <Card key={election._id} className="hover:shadow-xl transition-all duration-300 overflow-hidden border border-gray-100 dark:border-gray-800">
-                  <CardHeader className="border-b border-gray-50 dark:border-gray-800/50 pb-4 bg-gray-50/50 dark:bg-gray-800/20">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="space-y-1">
-                        <CardTitle className="text-lg font-bold">{election.title}</CardTitle>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {format(new Date(election.startDate), 'MMM d')} - {format(new Date(election.endDate), 'MMM d, yyyy')}
-                        </p>
-                      </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${
-                        election.status === 'ongoing' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
-                          : election.status === 'completed' 
-                          ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
-                          : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
-                          election.status === 'ongoing' 
-                            ? 'bg-green-500 dark:bg-green-400' 
-                            : election.status === 'completed' 
-                            ? 'bg-blue-500 dark:bg-blue-400'
-                            : 'bg-yellow-500 dark:bg-yellow-400'
-                        }`} />
-                        {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
-                      </span>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-2 gap-4 mb-6">
-                      <div className="text-center p-4 bg-primary/5 rounded-[16px]">
-                        <p className="text-2xl font-bold text-primary">{electionPositions.length}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mt-1">Positions</p>
-                      </div>
-                      <div className="text-center p-4 bg-accent/5 dark:bg-accent/10 rounded-[16px]">
-                        <p className="text-2xl font-bold text-accent dark:text-accent-foreground">{electionCandidates.length}</p>
-                        <p className="text-xs text-gray-600 dark:text-gray-400 font-medium mt-1">Candidates</p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex flex-col gap-3">
-                      <Button
-                        onClick={() => handleElectionSelect(election)}
-                        className="w-full bg-primary hover:bg-primary/90 text-white shadow-md hover:shadow-lg transition-all"
-                      >
-                        <Trophy className="w-4 h-4 mr-2" />
-                        View All Positions
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => handleDownloadResults(election)}
-                        className="w-full hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        Download Report
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </motion.div>
-        )}
-
-        {/* VIEW: POSITION LIST */}
-        {viewState === 'positions' && selectedElection && (
-          <motion.div 
-            key="positions-view"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 20 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <div className="flex items-center gap-4">
-              <Button variant="outline" size="sm" onClick={handleBackToElections} className="rounded-full shadow-sm hover:shadow">
-                <ArrowLeft className="w-4 h-4 mr-2" /> Back
-              </Button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-              {positions
-                .filter(p => p.electionId === selectedElection._id)
-                .map((position) => {
-                  const posCandidates = candidates.filter(c => c.positionId === position._id && c.electionId === selectedElection._id);
-                  
-                  return (
-                    <motion.div
-                      key={position._id}
-                      whileHover={{ y: -4 }}
-                      transition={{ duration: 0.2 }}
-                      className="group cursor-pointer"
-                      onClick={() => handlePositionSelect(position)}
-                    >
-                      <Card className="h-full border border-gray-200 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-primary/30 transition-all duration-300 bg-white dark:bg-gray-900 rounded-[24px] overflow-hidden">
-                        <CardHeader className="bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-900 border-b border-gray-100 dark:border-gray-800 pb-4 pt-5 px-6">
-                          <div className="flex items-center justify-between">
-                            <CardTitle className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">
-                              {position.title}
-                            </CardTitle>
-                            <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
-                              {posCandidates.length} Contestants
-                            </span>
-                          </div>
-                        </CardHeader>
-                        <CardContent className="p-6">
-                          <ul className="space-y-3 mb-6">
-                            {posCandidates.slice(0, 4).map(candidate => (
-                              <li key={candidate._id} className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
-                                <div className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-200 dark:border-gray-700">
-                                  {candidate.profilePic ? (
-                                    <img src={candidate.profilePic} alt={candidate.firstName} className="w-full h-full object-cover" />
-                                  ) : (
-                                    <Users className="w-4 h-4 text-gray-400" />
-                                  )}
-                                </div>
-                                <span className="font-medium">{candidate.firstName} {candidate.lastName}</span>
-                              </li>
-                            ))}
-                            {posCandidates.length > 4 && (
-                              <li className="text-sm text-gray-500 font-medium pl-11">
-                                +{posCandidates.length - 4} more
-                              </li>
-                            )}
-                            {posCandidates.length === 0 && (
-                              <li className="text-sm text-gray-400 italic">No contestants</li>
-                            )}
-                          </ul>
-                          
-                          <div className="flex items-center text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity transform translate-y-2 group-hover:translate-y-0 duration-300">
-                            <BarChart2 className="w-4 h-4 mr-2" />
-                            View Statistics
-                          </div>
-                        </CardContent>
-                      </Card>
-                    </motion.div>
-                  );
-                })}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Modern Stats Modal */}
-      <AnimatePresence>
-        {isModalOpen && selectedPosition && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/40 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0, y: 20 }}
-              animate={{ scale: 1, opacity: 1, y: 0 }}
-              exit={{ scale: 0.95, opacity: 0, y: 20 }}
-              transition={{ type: "spring", damping: 25, stiffness: 300 }}
-              className="bg-white dark:bg-gray-900 rounded-[32px] shadow-2xl w-full max-w-4xl relative overflow-hidden flex flex-col max-h-[90vh]"
-            >
-              {/* Modal Header */}
-              <div className="flex items-center justify-between p-6 border-b border-gray-100 dark:border-gray-800">
-                <div>
-                  <h2 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
-                    <Trophy className="w-6 h-6 text-primary" />
-                    {selectedPosition.title} Results
-                  </h2>
-                  <p className="text-sm text-gray-500 mt-1">{selectedElection.title}</p>
+      {/* Elections List */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {elections.map((election) => {
+          const electionPositions = positions.filter(p => p.electionId === election._id);
+          const electionCandidates = candidates.filter(c => c.electionId === election._id);
+          
+          // Get all votes for this election
+          const allElectionVotes = votes.filter(v => v.electionId === election._id);
+          
+          // Group votes by student
+          const studentVotesMap = new Map();
+          allElectionVotes.forEach(vote => {
+            if (!studentVotesMap.has(vote.studentId)) {
+              studentVotesMap.set(vote.studentId, new Set());
+            }
+            studentVotesMap.get(vote.studentId).add(vote.positionId);
+          });
+          
+          console.log('Total votes for this election:', allElectionVotes.length);
+          
+          // Get all unique students who voted in this election
+          const electionVoters = new Set();
+          
+          // First pass to get students who have voted
+          for (const student of students) {
+            const studentVotedPositions = studentVotesMap.get(student._id);
+            if (!studentVotedPositions) {
+              console.log('No votes found for student:', student.firstName, student.lastName);
+              continue;
+            }
+            
+            // Get positions this student is eligible for
+            const eligiblePositions = electionPositions.filter(pos => {
+              const isJuniorMinister = pos.title.toLowerCase().includes('junior minister');
+              return (student.level === 'lower' && isJuniorMinister) || 
+                    (student.level === 'upper' && !isJuniorMinister);
+            });
+            
+            console.log('Student:', student.firstName, student.lastName);
+            console.log('Level:', student.level);
+            console.log('Eligible positions:', eligiblePositions.length);
+            console.log('Voted positions:', studentVotedPositions.size);
+            
+            // Check if student has voted for all their eligible positions
+            const hasVotedAll = eligiblePositions.every(pos => studentVotedPositions.has(pos._id));
+            if (hasVotedAll) {
+              electionVoters.add(student._id);
+            } else {
+              console.log('Student has not voted for all eligible positions');
+            }
+          }
+          
+          // Filter votes to only include those from students who voted for all their positions
+          const electionVotes = allElectionVotes.filter(vote => electionVoters.has(vote.studentId));
+          
+          return (
+            <Card key={election._id} className="hover:shadow-lg transition-shadow overflow-hidden">
+              <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4">
+                <div className="flex justify-between items-start mb-2">
+                  <div className="space-y-1">
+                    <CardTitle className="text-lg font-bold">{election.title}</CardTitle>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      {format(new Date(election.startDate), 'MMM d')} - {format(new Date(election.endDate), 'MMM d, yyyy')}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${
+                    election.status === 'ongoing' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
+                      : election.status === 'completed' 
+                      ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      election.status === 'ongoing' 
+                        ? 'bg-green-500 dark:bg-green-400' 
+                        : election.status === 'completed' 
+                        ? 'bg-blue-500 dark:bg-blue-400'
+                        : 'bg-yellow-500 dark:bg-yellow-400'
+                    }`} />
+                    {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
+                  </span>
                 </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="p-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full transition-colors"
-                >
-                  <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
-                </button>
-              </div>
-
-              {/* Modal Body */}
-              <div className="flex-1 overflow-y-auto p-6 sm:p-8 relative min-h-[400px]">
-                {showCountdown ? (
-                  <CountdownAnimation onComplete={handleCountdownComplete} />
-                ) : (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2 }}
-                    className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center"
+              </CardHeader>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="text-center p-3 bg-primary/10 rounded-[20px]">
+                    <p className="text-xl font-bold text-primary">{electionPositions.length}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Positions</p>
+                  </div>
+                  <div className="text-center p-3 bg-orange-100 dark:bg-orange-900/20 rounded-[20px]">
+                    <p className="text-xl font-bold text-orange-600 dark:text-orange-400">{electionCandidates.length}</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Candidates</p>
+                  </div>
+                  <div className="text-center p-3 bg-blue-100 dark:bg-blue-900/20 rounded-[20px]">
+                    <p className="text-xl font-bold text-blue-600 dark:text-blue-400">446</p>
+                    <p className="text-xs text-gray-600 dark:text-gray-400">Students Voted</p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col gap-3">
+                  <Button
+                    onClick={() => handleElectionSelect(election)}
+                    className="w-full bg-primary hover:bg-primary/90 text-white"
                   >
-                    {(() => {
-                      const results = getPositionResults(selectedPosition._id);
-                      const winner = results[0];
-                      const totalVotes = results.reduce((sum, item) => sum + item.value, 0);
+                    <Trophy className="w-4 h-4 mr-2" />
+                    View Results
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => handleDownloadResults(election)}
+                    className="w-full"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Download Report
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
-                      if (!winner || totalVotes === 0) {
-                         return (
-                           <div className="col-span-full py-12 flex flex-col items-center justify-center text-gray-400">
-                             <Users className="w-16 h-16 mb-4 opacity-50" />
-                             <p className="text-lg">No votes recorded yet.</p>
-                           </div>
-                         );
-                      }
-
-                      return (
-                        <>
-                          {/* Winner Reveal Side */}
-                          <div className="flex flex-col items-center justify-center space-y-6">
-                            <motion.div 
-                              initial={{ scale: 0 }}
-                              animate={{ scale: 1 }}
-                              transition={{ type: "spring", bounce: 0.5, delay: 0.4 }}
-                              className="relative"
-                            >
-                              <div className="absolute -inset-4 bg-gradient-to-r from-primary/30 to-accent/30 blur-2xl rounded-full opacity-50 animate-pulse"></div>
-                              <div className="relative w-48 h-48 rounded-full border-4 border-white dark:border-gray-800 shadow-2xl overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                {winner.profile ? (
-                                  <img src={winner.profile} alt={winner.name} className="w-full h-full object-cover" />
-                                ) : (
-                                  <div className="w-full h-full flex items-center justify-center text-gray-400">
-                                    <Users className="w-20 h-20" />
-                                  </div>
-                                )}
-                              </div>
-                              <motion.div 
-                                initial={{ y: -20, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                transition={{ delay: 0.8 }}
-                                className="absolute -top-6 -right-6 w-16 h-16 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full flex items-center justify-center shadow-lg border-4 border-white dark:border-gray-900"
-                              >
-                                <Crown className="w-8 h-8 text-white" />
-                              </motion.div>
-                            </motion.div>
-
-                            <motion.div 
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.6 }}
-                              className="text-center"
-                            >
-                              <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold text-sm mb-3 tracking-wide uppercase">
-                                Winner
-                              </div>
-                              <h3 className="text-3xl font-extrabold text-gray-900 dark:text-white mb-2">{winner.name}</h3>
-                              <p className="text-lg font-medium text-gray-600 dark:text-gray-400">
-                                {winner.value} Votes <span className="mx-2">•</span> <span className="text-primary font-bold">{winner.percentage.toFixed(1)}%</span>
-                              </p>
-                            </motion.div>
-                          </div>
-
-                          {/* Pie Chart Side */}
-                          <motion.div 
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.8 }}
-                            className="bg-gray-50 dark:bg-gray-800/50 rounded-[24px] p-6 h-full flex flex-col justify-center border border-gray-100 dark:border-gray-700/50"
-                          >
-                            <h4 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-6 text-center">Vote Distribution</h4>
-                            <div className="h-[280px] w-full">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    data={results}
-                                    cx="50%"
-                                    cy="50%"
-                                    innerRadius={70}
-                                    outerRadius={100}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
-                                    cornerRadius={8}
-                                  >
-                                    {results.map((entry, index) => (
-                                      <Cell 
-                                        key={`cell-${index}`} 
-                                        fill={COLORS[index % COLORS.length]} 
-                                        className="hover:opacity-80 transition-opacity duration-300 cursor-pointer"
-                                      />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip 
-                                    contentStyle={{ 
-                                      backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                                      backdropFilter: 'blur(8px)',
-                                      borderRadius: '16px',
-                                      padding: '12px 20px',
-                                      boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
-                                      border: 'none',
-                                      color: '#1f2937'
-                                    }}
-                                    itemStyle={{ fontWeight: 600 }}
-                                    formatter={(value, name) => {
-                                      const percentage = ((value / totalVotes) * 100).toFixed(1);
-                                      return [`${value} votes (${percentage}%)`, name];
-                                    }}
-                                  />
-                                  <Legend 
-                                    verticalAlign="bottom" 
-                                    height={36}
-                                    iconType="circle"
-                                    formatter={(value) => (
-                                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
-                                        {value}
-                                      </span>
-                                    )}
-                                  />
-                                </PieChart>
-                              </ResponsiveContainer>
-                            </div>
-                          </motion.div>
-                        </>
-                      );
-                    })()}
-                  </motion.div>
-                )}
+      {/* Statistics Modal */}
+      {isModalOpen && selectedElection && (
+        <div className="modal-backdrop p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-[20px] shadow-xl w-full max-w-2xl h-[80vh] flex flex-col">
+            <div className="p-4 flex items-center justify-between border-b">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-5 w-5 text-primary" />
+                <h2 className="text-xl font-bold">{selectedElection.title} Winners</h2>
               </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <button
+                onClick={handleCloseModal}
+                className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full transition-colors"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
 
+            <div className="flex-1 relative overflow-hidden">
+              {showCountdown && (
+                <CountdownAnimation onComplete={handleCountdownComplete} />
+              )}
+              
+              <AnimatePresence mode="wait">
+                {!showCountdown && positions
+                  .filter(p => p.electionId === selectedElection._id)
+                  .map((position, index) => {
+                    if (index !== currentPositionIndex) return null;
+                    
+                    const results = getPositionResults(position._id);
+                    const winner = results[0];
+                    
+                    return (
+                      <motion.div
+                        key={position._id}
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        transition={{ duration: 0.5 }}
+                        className="absolute inset-0 flex flex-col items-center justify-center p-2"
+                      >                          
+                      <div className="w-full max-w-2xl mx-auto space-y-6">
+                            <div className="text-center relative">
+                              <div className="absolute left-0 right-0 h-1 bg-gradient-to-r from-transparent via-primary/30 to-transparent top-1/2 -translate-y-1/2 -z-10" />
+                              
+                            </div>
+
+                            {winner ? (<div className="space-y-2">
+                                {/* Winner Card */}
+                                <div className="relative bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-[20px] p-2 shadow-lg border border-primary/10 h-[150px]">
+                                  <div className="absolute -top-2 -left-2">
+                                    <div className="relative">
+                                      <div className="w-9 h-9 bg-primary text-white rounded-full flex items-center justify-center shadow-lg mt-4">
+                                        <Crown className="w-6 h-6" />
+                                      </div>
+                                      <div className="absolute -right-1 -bottom-1 w-6 h-6 bg-yellow-400 text-white rounded-full flex items-center justify-center text-[12px] font-bold">
+                                        1st
+                                      </div>
+                                    </div>
+                                  </div>
+                                  
+                                  <div className="text-center mt-1 flex flex-row items-center justify-around gap-4">
+                                    <div>
+                                    <h3 className="text-sm font-bold text-primary inline-block px-2 dark:bg-gray-800">
+                                    {position?.title || 'Unknown Position'}
+                                    </h3>
+                                    <h4 className="text-base font-bold text-gray-900 dark:text-white my-0.5">{winner.name}</h4>
+                                    <div className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/20 rounded-full">
+                                      <Trophy className="w-3 h-3 text-primary" />
+                                      <span className="font-semibold text-primary text-xs">
+                                        VOTES ({winner.percentage.toFixed(1)}%)
+                                      </span>
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <img src={winner.profile} alt="Profile" className='w-[8rem] h-[8rem] rounded-full' />
+                                  </div>
+                                  </div>
+                                </div>
+
+                                {/* Results Chart */}
+                                <div className="bg-white dark:bg-gray-800 rounded-[20px] p-2 shadow-lg border border-gray-200 dark:border-gray-700 mt-2">
+                                  <h4 className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-1 text-center">Vote Distribution</h4>
+                                  <div className="h-[200px]">
+                                    <ResponsiveContainer width="100%" height="100%">
+                                      <PieChart>
+                                        <Pie
+                                          data={results}
+                                          cx="50%"
+                                          cy="50%"
+                                          outerRadius={60}
+                                          innerRadius={50}
+                                          fill="#8884d8"
+                                          dataKey="value"
+                                          paddingAngle={3}
+                                          // label={({ name, value, percent }) => {
+                                          //   if (percent < 0.08) return null; // Only show labels for segments > 8%
+                                          //   return `${name.split(' ')[0]} (${(percent * 100).toFixed(0)}%)`;
+                                          // }}
+                                          // labelLine={{ 
+                                          //   stroke: 'rgba(156, 163, 175, 0.5)', 
+                                          //   strokeWidth: 1,
+                                          //   strokeDasharray: "2 2"
+                                          // }}
+                                        >
+                                          {results.map((entry, index) => (
+                                            <Cell 
+                                              key={`cell-${index}`} 
+                                              fill={COLORS[index % COLORS.length]}
+                                              className="hover:opacity-85"
+                                              strokeWidth={1.5}
+                                              stroke="rgba(255, 255, 255, 0.8)"
+                                            />
+                                          ))}
+                                        </Pie>
+                                        <Tooltip 
+                                          contentStyle={{ 
+                                            backgroundColor: 'rgba(255, 255, 255, 0.98)',
+                                            backdropFilter: 'blur(12px)',
+                                            borderRadius: '12px',
+                                            padding: '10px 14px',
+                                            boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.1), 0 4px 8px -4px rgba(0, 0, 0, 0.06)',
+                                            border: '1px solid rgba(229, 231, 235, 0.7)'
+                                          }}
+                                          formatter={(value, name, props) => {
+                                            const total = results.reduce((a, b) => a + b.value, 0);
+                                            const percentage = ((value / total) * 100).toFixed(1);
+                                            return [
+                                              <div className="flex flex-col gap-1">
+                                                <span className="text-sm font-medium text-gray-900">{value} votes</span>
+                                                <span className="text-xs text-gray-500">{percentage}% of total</span>
+                                              </div>,
+                                              <span className="text-xs font-medium text-gray-600">{name}</span>
+                                            ];
+                                          }}
+                                        />
+                                        <Legend 
+                                          verticalAlign="bottom"
+                                          height={30}
+                                          iconType="circle"
+                                          iconSize={8}
+                                          formatter={(value) => (
+                                            <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
+                                              {value.length > 20 ? `${value.substring(0, 20)}...` : value}
+                                            </span>
+                                          )}
+                                          wrapperStyle={{
+                                            paddingTop: '10px',
+                                            fontSize: '12px'
+                                          }}
+                                        />
+                                      </PieChart>
+                                    </ResponsiveContainer>
+                                  </div>
+                                </div>
+                              </div>
+                            ) : (
+                              <div className="h-[300px] flex flex-col items-center justify-center text-muted-foreground bg-gray-50 dark:bg-gray-800/50 rounded-[20px] border border-dashed border-gray-300 dark:border-gray-600">
+                                <Users className="w-12 h-12 mb-3 text-gray-400" />
+                                <p className="text-sm text-gray-500 dark:text-gray-400">No winner data available</p>
+                              </div>
+                            )}
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+              </AnimatePresence>
+            </div>
+
+            <div className="p-4 border-t flex items-center justify-between">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handlePreviousPosition}
+                className="flex items-center gap-1"
+              >
+                <ChevronUp className="w-3 h-3" />
+                Previous
+              </Button>
+              <div className="text-xs text-gray-600">
+                Position {currentPositionIndex + 1} of {positions.filter(p => p.electionId === selectedElection._id).length}
+              </div>
+              {!isLastPosition && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleNextPosition}
+                  className="flex items-center gap-1"
+                >
+                  Next
+                  <ChevronDown className="w-3 h-3" />
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add PDF Generator */}
       <PDFGenerator
         ref={pdfGeneratorRef}
         election={selectedElection}
