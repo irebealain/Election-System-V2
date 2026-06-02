@@ -546,9 +546,8 @@ function Elections() {
       </div>
 
       {/* Create Election Dialog */}
-      {isManageElectionOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+      <Modal isOpen={isManageElectionOpen} onClose={() => setIsManageElectionOpen(false)} className="max-w-2xl p-0">
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Create New Election</h2>
@@ -649,13 +648,11 @@ function Elections() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Add Position Dialog */}
-      {isAddPositionOpen && selectedElection && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
+      <Modal isOpen={isAddPositionOpen && !!selectedElection} onClose={() => setIsAddPositionOpen(false)} className="max-w-md p-0">
+          <div className="bg-background rounded-[20px] shadow-lg w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Add Position</h2>
@@ -694,13 +691,11 @@ function Elections() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Add Candidate Dialog */}
-      {isAddCandidateOpen && selectedElection && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
+      <Modal isOpen={isAddCandidateOpen && !!selectedElection} onClose={() => setIsAddCandidateOpen(false)} className="max-w-md p-0">
+          <div className="bg-background rounded-[20px] shadow-lg w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">Add Candidate</h2>
@@ -835,13 +830,11 @@ function Elections() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
 
       {/* Delete All Elections Confirmation Dialog */}
-      {isDeleteAllConfirmOpen && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
+      <Modal isOpen={isDeleteAllConfirmOpen} onClose={() => setIsDeleteAllConfirmOpen(false)} className="max-w-md p-0">
+          <div className="bg-background rounded-[20px] shadow-lg w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold text-destructive">Delete All Elections</h2>
@@ -905,8 +898,7 @@ function Elections() {
               </div>
             </div>
           </div>
-        </div>
-      )}
+      </Modal>
     </div>
   )
 }
