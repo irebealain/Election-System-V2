@@ -5,7 +5,6 @@ import { Award, ArrowRight, Users, CheckCircle, TrendingUp } from "lucide-react"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Cell } from "recharts"
 import confetti from "canvas-confetti"
 import { getAllElections } from "../../services/electionService"
-// import Modal from "../../components/common/Modal";
 
 // Sample data for positions and candidates
 const electionData = {
@@ -72,25 +71,23 @@ function Elections() {
   const canvasRef = useRef(null)
   const [elections, setElections] = useState([])
   const [loading, setLoading] = useState(true)
+
   useEffect(() => {
     document.title = "Elections | Admin Dashboard"
+
     // Fetch elections data from the backend API
     const fetchData = async () => {
       try {
-        const [electionsData] = await Promise.all([
-          getAllElections(),
-        ])
+        const electionsData = await getAllElections()
         setElections(electionsData || [])
-        const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
       } catch (error) {
         console.error("Error fetching data:", error)
-
-      }
-      finally {
+      } finally {
         setLoading(false)
       }
     }
     fetchData()
+
     // Create canvas for confetti
     if (!canvasRef.current) {
       const canvas = document.createElement("canvas")
@@ -108,7 +105,6 @@ function Elections() {
     }
 
     return () => {
-      // Clean up canvas on unmount
       if (canvasRef.current) {
         document.body.removeChild(canvasRef.current)
         canvasRef.current = null
@@ -142,8 +138,6 @@ function Elections() {
   const handleViewDetails = (position) => {
     setSelectedPosition(position)
     setIsDetailsOpen(true)
-
-    // Trigger confetti after a short delay
     setTimeout(() => {
       triggerConfetti()
     }, 500)
@@ -166,40 +160,38 @@ function Elections() {
     return null
   }
 
+  const currentElection = elections.find((election) => {
+    if (!election.date) return false
+    try {
+      const electionDate = new Date(election.date)
+      const today = new Date()
+      if (
+        election.status?.toLowerCase() === "ongoing" &&
+        electionDate.toDateString() === today.toDateString()
+      ) {
+        return true
+      }
+      if (election.status?.toLowerCase() === "incoming" && electionDate > today) {
+        return true
+      }
+      return false
+    } catch (error) {
+      console.error("Error parsing date:", error)
+      return false
+    }
+  })
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Elections</h1>
         <p className="text-muted-foreground">
-          Current election: {elections && elections.length > 0 ? (
-            elections.find(election => {
-              // Check if election has a date property
-              if (!election.date) return false;
-
-              // Parse the date safely
-              try {
-                const electionDate = new Date(election.date);
-                const today = new Date();
-
-                // Check for ongoing election (same day)
-                if (election.status?.toLowerCase() === 'ongoing' &&
-                  electionDate.toDateString() === today.toDateString()) {
-                  return true;
-                }
-
-                // Check for incoming election (future date)
-                if (election.status?.toLowerCase() === 'incoming' &&
-                  electionDate > today) {
-                  return true;
-                }
-
-                return false;
-              } catch (error) {
-                console.error("Error parsing date:", error);
-                return false;
-              }
-            })?.title || "No current election"
-          ) : "No elections available"}
+          Current election:{" "}
+          {loading
+            ? "Loading..."
+            : elections.length > 0
+              ? currentElection?.title || "No current election"
+              : "No elections available"}
         </p>
       </div>
 
@@ -230,7 +222,10 @@ function Elections() {
 
           <div className="h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={overallParticipationData} margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
+              <BarChart
+                data={overallParticipationData}
+                margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -321,7 +316,12 @@ function Elections() {
               </div>
             </CardContent>
             <CardFooter className="pt-0">
-              <Button variant="ghost" size="sm" className="ml-auto" onClick={() => handleViewDetails(card.position)}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto"
+                onClick={() => handleViewDetails(card.position)}
+              >
                 View Details <ArrowRight className="ml-1 h-4 w-4" />
               </Button>
             </CardFooter>
@@ -329,9 +329,14 @@ function Elections() {
         ))}
       </div>
 
-      {/* Position Details Dialog */}
+      {/* Position Details Modal */}
       {isDetailsOpen && selectedPosition && (
-        <div className="modal-backdrop p-4">
+        <div
+          className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsDetailsOpen(false)
+          }}
+        >
           <div className="bg-background rounded-[20px] shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex items-center mb-4">
@@ -386,7 +391,10 @@ function Elections() {
               {/* Candidate Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 {chartData.map((candidate, index) => (
-                  <Card key={index} className={`bg-muted/30 ${index === 0 ? "ring-2 ring-primary" : ""} pt-4`}>
+                  <Card
+                    key={index}
+                    className={`bg-muted/30 ${index === 0 ? "ring-2 ring-primary" : ""} pt-4`}
+                  >
                     <CardContent className="p-4">
                       <div className="flex justify-between items-center">
                         <div className="flex items-center">
