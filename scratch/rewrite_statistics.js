@@ -1,33 +1,62 @@
-import { useState, useEffect, useRef } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/common/Card';
-import Button from '../../components/common/Button';
-import { getAllElections, getElectionResults } from '../../services/electionService';
-import { getAllVotes } from '../../services/voteService';
-import { getAllCandidates } from '../../services/candidateService';
-import { getAllPositions } from '../../services/positionService';
-import { getAllUsers } from '../../services/UserService';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recharts';
-import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';
-import { toast } from 'react-hot-toast';
-// import { saveAs } from 'file-saver';
-import { format } from 'date-fns';
-import confetti from 'canvas-confetti';
-import { motion, AnimatePresence } from 'framer-motion';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-import PDFGenerator from '../../components/PDFGenerator';
+const fs = require('fs');
 
-// Color palette for charts
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
+const path = './frontend/src/pages/superadmin/Statistics.jsx';
+let content = fs.readFileSync(path, 'utf8');
 
-function CountdownAnimation({ onComplete }) {
-  const [count, setCount] = useState(5);
-  const [showAnimation, setShowAnimation] = useState(true);
+// 1. Update Imports
+content = content.replace(
+  "import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp } from 'lucide-react';",
+  "import { Download, Trophy, Calendar, Users, XCircle, Clock, X, Crown, ChevronDown, ChevronUp, ArrowLeft } from 'lucide-react';"
+);
 
-  useEffect(() => {
-    if (count > 0) {
-      const timer = setTimeout(() => setCount(count - 1), 1000);
-      return (
+// 2. Update States
+content = content.replace(
+  /const \[selectedElection, setSelectedElection\] = useState\(null\);[\s\S]*?const \[showCountdown, setShowCountdown\] = useState\(false\);/,
+  `const [selectedElection, setSelectedElection] = useState(null);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+  const [positions, setPositions] = useState([]);
+  const [candidates, setCandidates] = useState([]);
+  const [votes, setVotes] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [showCountdown, setShowCountdown] = useState(false);`
+);
+
+// 3. Update Handlers
+content = content.replace(
+  /const handleElectionSelect = \(election\) => \{[\s\S]*?setCurrentPositionIndex\(0\);\n  \};/,
+  `const handleElectionSelect = (election) => {
+    setSelectedElection(election);
+  };
+
+  const handleBackToElections = () => {
+    setSelectedElection(null);
+    setSelectedPosition(null);
+  };
+
+  const handlePositionSelect = (position) => {
+    setSelectedPosition(position);
+    setShowCountdown(true);
+  };
+
+  const handleCloseModal = () => {
+    setSelectedPosition(null);
+    setShowCountdown(false);
+  };`
+);
+
+// 4. Remove Next/Previous handlers and useEffect
+content = content.replace(
+  /const handleNextPosition = \(\) => \{[\s\S]*?const isLastPosition = selectedElection [\s\S]*?: false;/m,
+  `// Position modal and navigation logic refactored`
+);
+
+// 5. Replace render block
+const renderIndex = content.indexOf('  return (');
+const pdfGeneratorIndex = content.indexOf('      {/* Add PDF Generator */}');
+
+const newRender = `  return (
     <div className="space-y-6">
       {!selectedElection ? (
         <>
@@ -90,20 +119,20 @@ function CountdownAnimation({ onComplete }) {
                           {format(new Date(election.startDate), 'MMM d')} - {format(new Date(election.endDate), 'MMM d, yyyy')}
                         </p>
                       </div>
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 ${
+                      <span className={\`px-3 py-1 rounded-full text-xs font-medium flex items-center gap-1.5 \${
                         election.status === 'ongoing' 
                           ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' 
                           : election.status === 'completed' 
                           ? 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
                           : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400'
-                      }`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${
+                      }\`}>
+                        <span className={\`w-1.5 h-1.5 rounded-full \${
                           election.status === 'ongoing' 
                             ? 'bg-green-500 dark:bg-green-400' 
                             : election.status === 'completed' 
                             ? 'bg-blue-500 dark:bg-blue-400'
                             : 'bg-yellow-500 dark:bg-yellow-400'
-                        }`} />
+                        }\`} />
                         {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
                       </span>
                     </div>
@@ -374,7 +403,7 @@ function CountdownAnimation({ onComplete }) {
                                   >
                                     {results.map((entry, index) => (
                                       <Cell 
-                                        key={`cell-${index}`} 
+                                        key={\`cell-\${index}\`} 
                                         fill={COLORS[index % COLORS.length]}
                                         className="hover:opacity-80 transition-opacity duration-300 cursor-pointer"
                                         style={{ filter: 'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))' }}
@@ -414,7 +443,7 @@ function CountdownAnimation({ onComplete }) {
                                       const data = results[index];
                                       return (
                                         <div className="flex flex-col ml-2">
-                                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value.length > 15 ? `${value.substring(0, 15)}...` : value}</span>
+                                          <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value.length > 15 ? \`\${value.substring(0, 15)}...\` : value}</span>
                                           <span className="text-xs text-gray-500">{data.percentage.toFixed(1)}%</span>
                                         </div>
                                       );
@@ -435,16 +464,11 @@ function CountdownAnimation({ onComplete }) {
           </motion.div>
         )}
       </AnimatePresence>
+`;
 
-      {/* Add PDF Generator */}
-      <PDFGenerator
-        ref={pdfGeneratorRef}
-        election={selectedElection}
-        positions={positions}
-        getPositionResults={getPositionResults}
-      />
-    </div>
-  );
-}
+const pdfGeneratorCode = content.substring(pdfGeneratorIndex);
 
-export default ElectionStats;
+content = content.substring(0, renderIndex) + newRender + "\n" + pdfGeneratorCode;
+
+fs.writeFileSync(path, content);
+console.log("Successfully rewritten Statistics.jsx");
