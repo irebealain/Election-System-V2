@@ -2,16 +2,18 @@ import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "../../components/common/Card"
 import Button from "../../components/common/Button"
 import Modal from "../../components/common/Modal"
-import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload, User } from "lucide-react"
+import { Award, Users, Plus, Edit, Trash, Calendar, X, Clock, Upload, User, BarChart2 } from "lucide-react"
 import toast from "react-hot-toast"
 import axios from "../../lib/axios"
 import { useAuth } from "../../context/AuthContext"
 import { uploadStudentIdsExcel } from '../../services/studentIdService'
 import { uploadImage } from "../../services/uploadService"
+import ElectionStatsView from "./ElectionStatsView"
 
 function Elections() {
   const { currentUser } = useAuth()
   const [elections, setElections] = useState([])
+  const [activeElection, setActiveElection] = useState(null)
   const [isManageElectionOpen, setIsManageElectionOpen] = useState(false)
   const [isAddPositionOpen, setIsAddPositionOpen] = useState(false)
   const [isAddCandidateOpen, setIsAddCandidateOpen] = useState(false)
@@ -380,8 +382,19 @@ function Elections() {
     }
   };
 
+  if (activeElection) {
+    return (
+      <ElectionStatsView 
+        election={activeElection} 
+        positions={positions} 
+        candidates={candidates} 
+        onBack={() => setActiveElection(null)} 
+      />
+    );
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold tracking-tight font-satoshi">Election Management</h1>
@@ -427,7 +440,11 @@ function Elections() {
           </div>
         ) : (
           elections.map((election) => (
-            <Card key={election._id} className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] duration-200 overflow-hidden">
+            <Card 
+              key={election._id} 
+              className="cursor-pointer transition-all hover:shadow-xl hover:-translate-y-1 duration-300 overflow-hidden border-0 bg-white dark:bg-gray-900 shadow-md"
+              onClick={() => setActiveElection(election)}
+            >
               <CardHeader className="pb-2">
                 <div className="flex justify-between items-start">
                   <div className="space-y-1">
@@ -491,13 +508,14 @@ function Elections() {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between pt-2 border-t">
+              <CardFooter className="flex justify-between pt-4 border-t border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20" onClick={(e) => e.stopPropagation()}>
                 <div className="flex gap-2">
                   <Button 
                     variant="outline" 
                     size="sm" 
-                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
-                    onClick={() => {
+                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs rounded-full px-3"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setSelectedElection(election)
                       setIsAddPositionOpen(true)
                     }}
@@ -512,8 +530,9 @@ function Elections() {
                   <Button 
                     variant="outline" 
                     size="sm"
-                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
-                    onClick={() => {
+                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs rounded-full px-3"
+                    onClick={(e) => {
+                      e.stopPropagation()
                       setSelectedElection(election)
                       setIsAddCandidateOpen(true)
                     }}
@@ -529,8 +548,11 @@ function Elections() {
                 <Button 
                   variant="destructive" 
                   size="sm"
-                  className="bg-destructive/90 hover:bg-destructive text-destructive-foreground transition-colors duration-200 text-xs"
-                  onClick={() => handleDeleteElection(election._id)}
+                  className="bg-destructive/10 text-destructive hover:bg-destructive hover:text-destructive-foreground transition-colors duration-200 text-xs rounded-full px-3 shadow-none"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleDeleteElection(election._id)
+                  }}
                 >
                   <div className="flex items-center gap-1.5">
                     <div className="p-1 bg-destructive-foreground/10 rounded-full">
