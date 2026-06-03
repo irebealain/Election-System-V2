@@ -692,7 +692,8 @@ function Elections() {
               </div>
             </div>
           </div>
-      </Modal>
+        </div>
+      )}
 
       {/* Add Candidate Dialog */}
       {isAddCandidateOpen && selectedElection && (
@@ -788,7 +789,8 @@ function Elections() {
                       {isUploading && (
                         <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
                           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
-      </Modal>
+                        </div>
+                      )}
                     </div>
                     <div className="flex-1">
                       <Button
@@ -831,7 +833,8 @@ function Elections() {
               </div>
             </div>
           </div>
-      </Modal>
+        </div>
+      )}
 
       {/* Delete All Elections Confirmation Dialog */}
       <Modal isOpen={isDeleteAllConfirmOpen} onClose={() => setIsDeleteAllConfirmOpen(false)}>
