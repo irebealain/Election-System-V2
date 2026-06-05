@@ -18,6 +18,7 @@ import {
 } from "recharts"
 import { getAllUsers } from "../../services/UserService"
 import { getAllElections } from "../../services/electionService"
+import PieChartWrapper from "../../components/common/PieChartWrapper"
 import { getAllAdmins } from "../../services/adminService"
 
 function AdminDashboard() {
@@ -158,43 +159,36 @@ function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="h-[200px]">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
+              {(() => {
+                const votedCount = students.filter(student => student.voted).length;
+                const notVotedCount = students.filter(student => !student.voted).length;
+                const total = votedCount + notVotedCount;
+                return (
+                  <PieChartWrapper
                     data={[
-                      { name: 'Voted', value: students.filter(student => student.voted).length },
-                      { name: 'Not Voted', value: students.filter(student => !student.voted).length }
+                      { 
+                        name: 'Voted', 
+                        value: votedCount,
+                        percentage: total > 0 ? ((votedCount / total) * 100).toFixed(1) : 0,
+                        total: total
+                      },
+                      { 
+                        name: 'Not Voted', 
+                        value: notVotedCount,
+                        percentage: total > 0 ? ((notVotedCount / total) * 100).toFixed(1) : 0,
+                        total: total
+                      }
                     ]}
-                    cx="50%"
-                    cy="50%"
+                    colors={['#10B981', '#FFA600']}
                     innerRadius={60}
                     outerRadius={80}
-                    fill="#8884d8"
-                    paddingAngle={9}
-                    dataKey="value"
-                    label={false}
-                    labelLine={false}
-                    animationBegin={0}
-                    animationDuration={1500}
-                  >
-                    <Cell fill="#46A977" />
-                    <Cell fill="#FF6B6B" />
-                  </Pie>
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #e0e0e0',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                      fontSize: '12px',
-                      fontWeight: '500',
-                      color: '#46A977'
-                    }}
-                    wrapperStyle={{ outline: 'none' }}
+                    paddingAngle={2}
+                    height="100%"
+                    showLegend={true}
+                    showTooltip={true}
                   />
-                </PieChart>              
-                </ResponsiveContainer>
+                );
+              })()}
             </div>
           </CardContent>
         </Card>              

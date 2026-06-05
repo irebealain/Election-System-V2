@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from 'recha
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { format } from 'date-fns';
+import PieChartWrapper from './common/PieChartWrapper';
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
 
@@ -33,25 +34,20 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
                 boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
               }}
             >
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={results}
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={80}
-                    fill="#8884d8"
-                    dataKey="value"
-                    label={({ name, percentage }) => `${name}: ${percentage.toFixed(1)}%`}
-                  >
-                    {results.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip />
-                  <Legend />
-                </PieChart>
-              </ResponsiveContainer>
+              <PieChartWrapper
+                data={results.map(result => ({
+                  ...result,
+                  total: results.reduce((a, b) => a + b.value, 0),
+                  percentage: ((result.value / results.reduce((a, b) => a + b.value, 0)) * 100).toFixed(1)
+                }))}
+                colors={COLORS}
+                innerRadius={50}
+                outerRadius={80}
+                paddingAngle={2}
+                height="100%"
+                showLegend={true}
+                showTooltip={true}
+              />
             </div>
           );
         });

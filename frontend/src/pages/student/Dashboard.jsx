@@ -8,6 +8,7 @@ import { getAllElections } from "../../services/electionService"
 import { getAllVotes } from "../../services/voteService"
 import { motion } from "framer-motion"
 import { Users, Vote, Award, Clock, BarChart2, PieChart as PieChartIcon } from "lucide-react"
+import PieChartWrapper from "../../components/common/PieChartWrapper"
 
 function StudentDashboard() {
   const [students, setStudents] = useState([])
@@ -291,90 +292,31 @@ function StudentDashboard() {
           <CardContent>
             <div className="h-[150px]">
               {totalStudents > 0 ? (
-                <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { 
-                            name: 'All Positions Voted',
-                            value: votedCount,
-                            color: '#10B981',
-                            percentage: votedPercentage.toFixed(1)
-                          },
-                          // { 
-                          //   name: 'Partially Voted', 
-                          //   value: students.filter(student => {
-                          //     const studentVoteSet = studentVotes.get(student._id)
-                          //     if (!studentVoteSet) return false
-                          //     const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
-                          //     return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
-                          //   }).length,
-                          //   color: '#F59E0B',
-                          //   percentage: ((students.filter(student => {
-                          //     const studentVoteSet = studentVotes.get(student._id)
-                          //     if (!studentVoteSet) return false
-                          //     const requiredPositions = student.level === 'lower' ? juniorMinisterPositions : regularPositions
-                          //     return studentVoteSet.size > 0 && !requiredPositions.every(pos => studentVoteSet.has(pos._id))
-                          //   }).length / totalStudents) * 100).toFixed(1)
-                          // },
-                          { 
-                            name: 'Not Voted',
-                            value: students.filter(student => !studentVotes.has(student._id)).length,
-                            color: '#F59E0B',
-                            percentage: ((students.filter(student => !studentVotes.has(student._id)).length / totalStudents) * 100).toFixed(1)
-                          }
-                        ]}
-                        cx="50%"
-                        cy="48%"
-                        innerRadius={40}
-                        outerRadius={50}
-                        paddingAngle={2}
-                        dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        {/* Use explicit colors for each segment */}
-                        <Cell fill="#10B981" className="transition-opacity" strokeWidth={2} />
-                        <Cell fill="#F59E0B" className="transition-opacity" strokeWidth={2} />
-                        <Cell fill="#6B7280" className="transition-opacity" strokeWidth={2} />
-                      </Pie>
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload
-                            return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
-                                <div className="mt-1 space-y-0.5">
-                                  <p className="text-xs font-medium">
-                                    <span className="text-gray-500 dark:text-gray-400">Count:</span>{' '}
-                                    <span className="text-gray-900 dark:text-gray-100">{data.value}</span>
-                                  </p>
-                                  <p className="text-xs font-medium">
-                                    <span className="text-gray-500 dark:text-gray-400">Percentage:</span>{' '}
-                                    <span className="text-gray-900 dark:text-gray-100">{data.percentage}%</span>
-                                  </p>
-                                </div>
-                              </div>
-                            )
-                          }
-                          return null
-                        }}
-                        wrapperStyle={{ outline: 'none' }}
-                      />
-                      <Legend 
-                        verticalAlign="bottom"
-                        height={36}
-                        iconSize={8}
-                        iconType="circle"
-                        formatter={(value, entry) => (
-                          <span className="mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {value} ({entry.payload.percentage}%)
-                          </span>
-                        )}
-                      />
-                  </PieChart>
-                </ResponsiveContainer>
+                <PieChartWrapper
+                  data={[
+                    { 
+                      name: 'All Positions Voted',
+                      value: votedCount,
+                      percentage: votedPercentage.toFixed(1),
+                      total: totalStudents
+                    },
+                    { 
+                      name: 'Not Voted',
+                      value: students.filter(student => !studentVotes.has(student._id)).length,
+                      percentage: ((students.filter(student => !studentVotes.has(student._id)).length / totalStudents) * 100).toFixed(1),
+                      total: totalStudents
+                    }
+                  ]}
+                  colors={['#10B981', '#FFA600']}
+                  innerRadius={40}
+                  outerRadius={50}
+                  paddingAngle={2}
+                  height="100%"
+                  showLegend={true}
+                  showTooltip={true}
+                  startAngle={90}
+                  endAngle={-270}
+                />
               ) : (
                 <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
                   <PieChartIcon className="w-8 h-8 mb-2" />

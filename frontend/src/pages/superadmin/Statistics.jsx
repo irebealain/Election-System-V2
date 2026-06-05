@@ -15,6 +15,7 @@ import { format } from 'date-fns';
 import confetti from 'canvas-confetti';
 import { motion, AnimatePresence } from 'framer-motion';
 import PDFGenerator from '../../components/PDFGenerator';
+import PieChartWrapper from '../../components/common/PieChartWrapper';
 
 // ─── Color palette for charts ────────────────────────────────────────────────
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D'];
@@ -597,77 +598,40 @@ function ElectionStats() {
                             </h4>
 
                             <div className="h-[300px]">
-                              <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                  <Pie
-                                    data={results}
-                                    cx="50%"
-                                    cy="50%"
-                                    outerRadius={100}
-                                    innerRadius={70}
-                                    paddingAngle={5}
-                                    dataKey="value"
-                                    stroke="none"
-                                  >
-                                    {results.map((_, index) => (
-                                      <Cell
-                                        key={`cell-${index}`}
-                                        fill={COLORS[index % COLORS.length]}
-                                        style={{
-                                          filter:
-                                            'drop-shadow(0px 4px 10px rgba(0,0,0,0.1))',
-                                          cursor: 'pointer',
-                                        }}
-                                      />
-                                    ))}
-                                  </Pie>
-                                  <Tooltip
-                                    contentStyle={{
-                                      backgroundColor: 'rgba(255,255,255,0.95)',
-                                      backdropFilter: 'blur(12px)',
-                                      borderRadius: '16px',
-                                      padding: '12px 20px',
-                                      boxShadow:
-                                        '0 20px 40px -10px rgba(0,0,0,0.1)',
-                                      border: 'none',
-                                      color: '#111827',
-                                    }}
-                                    formatter={(value) => {
-                                      const total = results.reduce(
-                                        (a, b) => a + b.value,
-                                        0
-                                      );
-                                      const pct = total > 0
-                                        ? ((value / total) * 100).toFixed(1)
-                                        : '0.0';
-                                      return [`${value} votes (${pct}%)`];
-                                    }}
-                                  />
-                                  <Legend
-                                    layout="vertical"
-                                    verticalAlign="middle"
-                                    align="right"
-                                    iconType="circle"
-                                    iconSize={10}
-                                    formatter={(value, _entry, index) => {
-                                      const data = results[index];
-                                      const label =
-                                        value.length > 15
-                                          ? `${value.substring(0, 15)}…`
-                                          : value;
+                              {results && results.length > 0 ? (
+                                <PieChartWrapper
+                                  data={results.map((item, index) => ({
+                                    ...item,
+                                    total: results.reduce((a, b) => a + b.value, 0),
+                                    percentage: ((item.value / results.reduce((a, b) => a + b.value, 0)) * 100).toFixed(1)
+                                  }))}
+                                  colors={COLORS}
+                                  innerRadius={70}
+                                  outerRadius={100}
+                                  paddingAngle={5}
+                                  height="100%"
+                                  showLegend={true}
+                                  showTooltip={true}
+                                  customTooltip={({ active, payload }) => {
+                                    if (active && payload && payload.length) {
+                                      const data = payload[0].payload;
+                                      const total = results.reduce((a, b) => a + b.value, 0);
+                                      const pct = total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
                                       return (
-                                        <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 ml-2">
-                                          {label}{' '}
-                                          <span className="text-xs text-gray-500 font-normal">
-                                            {data?.percentage.toFixed(1)}%
-                                          </span>
-                                        </span>
+                                        <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
+                                          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
+                                          <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{data.value} votes ({pct}%)</p>
+                                        </div>
                                       );
-                                    }}
-                                    wrapperStyle={{ paddingLeft: '20px' }}
-                                  />
-                                </PieChart>
-                              </ResponsiveContainer>
+                                    }
+                                    return null;
+                                  }}
+                                />
+                              ) : (
+                                <div className="h-full flex items-center justify-center text-muted-foreground">
+                                  <p className="text-sm">No data available</p>
+                                </div>
+                              )}
                             </div>
                           </motion.div>
                         </div>

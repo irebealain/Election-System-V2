@@ -27,6 +27,7 @@ import { getAllPositions } from "../../services/positionService"
 import { getAllCandidates } from "../../services/candidateService"
 import { ArrowUp, ArrowDown, Users, Award, Calendar, Filter, TrendingUp, TrendingDown, AlertCircle, Clock, ExternalLink } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/common/Select"
+import PieChartWrapper from "../../components/common/PieChartWrapper"
 
 function SuperAdminDashboard() {
   const [elections, setElections] = useState([])
@@ -510,70 +511,31 @@ function SuperAdminDashboard() {
                   </div>
                 </div>
                 <div className="h-[8.3rem]">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={[
-                          { 
-                            name: 'Voted', 
-                            value: studentStats.votedStudents,
-                            percentage: studentStats.votedPercentage 
-                          },
-                          { 
-                            name: 'Not Voted', 
-                            value: studentStats.notVotedStudents,
-                            percentage: studentStats.notVotedPercentage 
-                          }
-                        ]}
-                        cx="50%"
-                        cy="48%"
-                        innerRadius={40}
-                        outerRadius={50}
-                        paddingAngle={2}
-                        dataKey="value"
-                        startAngle={90}
-                        endAngle={-270}
-                      >
-                        <Cell fill="#10B981" className="transition-opacity" strokeWidth={2} />
-                        <Cell fill="#FFA600" className="transition-opacity" strokeWidth={2} />
-                      </Pie>
-                      <Tooltip
-                        content={({ active, payload }) => {
-                          if (active && payload && payload.length) {
-                            const data = payload[0].payload
-                            return (
-                              <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
-                                <div className="mt-1 space-y-0.5">
-                                  <p className="text-xs font-medium">
-                                    <span className="text-gray-500 dark:text-gray-400">Count:</span>{' '}
-                                    <span className="text-gray-900 dark:text-gray-100">{data.value}</span>
-                                  </p>
-                                  <p className="text-xs font-medium">
-                                    <span className="text-gray-500 dark:text-gray-400">Percentage:</span>{' '}
-                                    <span className="text-gray-900 dark:text-gray-100">{data.percentage}%</span>
-                                  </p>
-                                </div>
-                              </div>
-                            )
-                          }
-                          return null
-                        }}
-                        wrapperStyle={{ outline: 'none' }}
-                      />
-                      <Legend 
-                        verticalAlign="top"
-                        height={36}
-                        iconSize={8}
-                        iconType="circle"
-                        formatter={(value, entry) => (
-                          <span className="mt-4 text-xs font-medium text-gray-600 dark:text-gray-300">
-                            {value} ({entry.payload.percentage}%)
-                          </span>
-                        )}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                  <PieChartWrapper
+                    data={[
+                      { 
+                        name: 'Voted', 
+                        value: studentStats.votedStudents,
+                        percentage: studentStats.votedPercentage,
+                        total: studentStats.totalStudents
+                      },
+                      { 
+                        name: 'Not Voted', 
+                        value: studentStats.notVotedStudents,
+                        percentage: studentStats.notVotedPercentage,
+                        total: studentStats.totalStudents
+                      }
+                    ]}
+                    colors={['#10B981', '#FFA600']}
+                    innerRadius={40}
+                    outerRadius={50}
+                    paddingAngle={2}
+                    height="100%"
+                    showLegend={true}
+                    showTooltip={true}
+                    startAngle={90}
+                    endAngle={-270}
+                  />
                 </div>
                 <div className="grid grid-cols-3 gap-3 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-[20px]">
                   <div className="text-center">
