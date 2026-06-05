@@ -17,7 +17,7 @@ export default function Modal({ isOpen, onClose, children }) {
   return createPortal(
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center w-screen h-screen">
           {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
@@ -25,7 +25,7 @@ export default function Modal({ isOpen, onClose, children }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/40 backdrop-blur-sm"
+            className="fixed inset-0 w-screen h-screen bg-black/40 backdrop-blur-sm"
           />
           {/* Modal Content */}
           <motion.div

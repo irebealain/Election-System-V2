@@ -38,7 +38,7 @@ function StudentDashboard() {
           getAllElections(),
           getAllVotes()
         ])
-        
+
         // Find the current ongoing election first
         const electionsArray = Array.isArray(electionsData) ? electionsData : [electionsData]
         const ongoingElection = electionsArray.find(election => election && election.status === 'ongoing')
@@ -413,10 +413,6 @@ function StudentDashboard() {
                                   <div className="flex items-center justify-between text-xs">
                                     <span className="text-gray-500 dark:text-gray-400">Completed All:</span>
                                     <span className="font-medium text-green-600 dark:text-green-400">{data.voted}</span>
-                                  </div>
-                                  <div className="flex items-center justify-between text-xs">
-                                    <span className="text-gray-500 dark:text-gray-400">Partial Votes:</span>
-                                    <span className="font-medium text-amber-600 dark:text-amber-400">{data.partiallyVoted}</span>
                                   </div>
                                   <div className="flex items-center justify-between text-xs">
                                     <span className="text-gray-500 dark:text-gray-400">No Votes:</span>

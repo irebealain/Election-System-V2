@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../..
 import Button from "../../components/common/Button"
 import Tabs from "../../components/common/Tabs"
 import Pagination from "../../components/common/Pagination"
-import {toast} from "react-hot-toast"
+import { toast } from "react-hot-toast"
 import { Search, UserPlus, Edit, Trash, Eye, Download, Filter, RefreshCw, UserCheck, UserX, Mail } from "lucide-react"
 import { motion } from "framer-motion"
 import { getAllUsers } from "../../services/UserService"
@@ -37,7 +37,7 @@ function StudentManagement() {
     email: "",
     password: "",
     level: "Upper"
-  }) 
+  })
   const navigate = useNavigate()
   const handleInputChange = (e) => {
     const { id, value } = e.target
@@ -51,28 +51,28 @@ function StudentManagement() {
   useEffect(() => {
     let result = students
     // Fetch data from the backend API
-        const fetchData = async () => {
-          try {
-    
-            const [usersData] = await Promise.all([
-              getAllUsers(),
-            ])
-            setStudents(usersData || [])
-            
-          } catch (error) {
-            console.error("Error fetching data:", error);
-          }
-          finally {
-            setIsLoading(false);
-          }
-        }
-        fetchData()
+    const fetchData = async () => {
+      try {
+
+        const [usersData] = await Promise.all([
+          getAllUsers(),
+        ])
+        setStudents(usersData || [])
+
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+      finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData()
     // Apply search filter
     result = result.filter(
       (student) => {
         return student.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
           student.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          student.email.toLowerCase().includes(searchTerm.toLowerCase())||
+          student.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
           student.level.toLowerCase().includes(searchTerm.toLowerCase())
       },
     )
@@ -113,18 +113,18 @@ function StudentManagement() {
 
     try {
       const response = await instance.post('/api/users/signup', {
-          firstName: formData.firstName,
-          lastName: formData.lastName,
-          email: formData.email,
-          password: formData.password,
-          level: formData.level,
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        password: formData.password,
+        level: formData.level,
       })
 
       const newStudent = await response.data.data
       console.log("New student added:", newStudent)
       toast.success("Student added successfully!")
       setIsAddDialogOpen(false)
-      
+
       // Update the students list with the new student
       setStudents([...students, newStudent])
       //Reset form data
@@ -233,7 +233,7 @@ function StudentManagement() {
           Showing {indexOfFirstStudent + 1} to {Math.min(indexOfLastStudent, filteredStudents.length)} of{" "}
           {filteredStudents.length} students
         </div>
-        <Pagination 
+        <Pagination
           currentPage={currentPage}
           totalPages={totalPages}
           onPageChange={setCurrentPage}
@@ -244,7 +244,7 @@ function StudentManagement() {
   }
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
@@ -343,24 +343,22 @@ function StudentManagement() {
                       <td className="p-2">{student.level}</td>
                       <td className="p-2">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            student.status === "Active"
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${student.status === "Active"
                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                               : student.status === "Inactive"
                                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
                                 : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                          }`}
+                            }`}
                         >
                           {student.status}
                         </span>
                       </td>
                       <td className="p-2">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            student.voted
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${student.voted
                               ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                               : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-                          }`}
+                            }`}
                         >
                           {student.voted ? "Yes" : "No"}
                         </span>
@@ -453,7 +451,7 @@ function StudentManagement() {
       {/* Add Student Dialog */}
       {isAddDialogOpen && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md mb-16 mt-12">
+          <div className="bg-background rounded-[20px] shadow-lg w-full max-w-md">
             <div className="p-6">
               <h2 className="text-xl font-semibold mb-4">Add New Student</h2>
               <p className="text-sm text-muted-foreground mb-4">Add a new student to the election system.</p>
@@ -531,7 +529,7 @@ function StudentManagement() {
                         )}
                       </button>
                     </div>
-                  </div>                  
+                  </div>
                   <div className="space-y-2">
                     <label htmlFor="level" className="text-sm font-medium">
                       Level
@@ -604,7 +602,7 @@ function StudentManagement() {
                       className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="edit-level" className="text-sm font-medium">
                       Level
@@ -619,7 +617,7 @@ function StudentManagement() {
                       <option value="Lower">Lower</option>
                     </select>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label htmlFor="edit-status" className="text-sm font-medium">
                       Status
@@ -676,22 +674,21 @@ function StudentManagement() {
                 <p className="text-sm text-muted-foreground">{selectedStudent.email}</p>
               </div>
               <div className="grid grid-cols-2 gap-4">
-                
+
                 <div>
                   <p className="text-sm font-medium">Level</p>
                   <p className="text-sm text-muted-foreground">{selectedStudent.level}</p>
                 </div>
-                
+
                 <div>
                   <p className="text-sm font-medium">Status</p>
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      selectedStudent.status === "Active"
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedStudent.status === "Active"
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                         : selectedStudent.status === "Inactive"
                           ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100"
                           : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100"
-                    }`}
+                      }`}
                   >
                     {selectedStudent.status}
                   </span>
@@ -699,11 +696,10 @@ function StudentManagement() {
                 <div>
                   <p className="text-sm font-medium">Voted</p>
                   <span
-                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      selectedStudent.voted
+                    className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${selectedStudent.voted
                         ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
                         : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-100"
-                    }`}
+                      }`}
                   >
                     {selectedStudent.voted ? "Voted" : "Not Voted"}
                   </span>
