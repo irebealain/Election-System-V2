@@ -101,6 +101,15 @@ function ElectionStats() {
     const end = Date.now() + 2000;
     const colors = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8'];
 
+    // Lift the confetti canvas above the modal overlay (canvas-confetti uses z-index 100 by default)
+    const liftCanvas = () => {
+      const canvas = document.querySelector('canvas[style*="position: fixed"]');
+      if (canvas) {
+        canvas.style.zIndex = '99999';
+        canvas.style.pointerEvents = 'none';
+      }
+    };
+
     (function frame() {
       confetti({
         particleCount: 5,
@@ -116,6 +125,7 @@ function ElectionStats() {
         origin: { x: 1 },
         colors,
       });
+      liftCanvas();
       if (Date.now() < end) requestAnimationFrame(frame);
     })();
   }, []);
