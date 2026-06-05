@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/common/Card';
 import Button from '../../components/common/Button';
 import { getAllElections } from '../../services/electionService';
@@ -479,211 +480,213 @@ function ElectionStats() {
         </div>
       )}
 
-      {/* ── Stats Modal ─────────────────────────────────────────────────────── */}
-      <AnimatePresence>
-        {selectedPosition && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '1rem',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Backdrop — fixed, full-viewport, scroll-proof */}
-            <div
+      {/* ── Stats Modal — rendered via portal to escape parent stacking contexts ── */}
+      {createPortal(
+        <AnimatePresence>
+          {selectedPosition && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               style={{
                 position: 'fixed',
                 inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
-              }}
-              onClick={handleCloseModal}
-            />
-
-            <motion.div
-              initial={{ scale: 0.95, y: 20, opacity: 0 }}
-              animate={{ scale: 1, y: 0, opacity: 1 }}
-              exit={{ scale: 0.95, y: 20, opacity: 0 }}
-              transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                width: '100%',
-                maxWidth: '56rem',
-                maxHeight: '90vh',
-                backgroundColor: 'rgba(255,255,255,0.97)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: '2rem',
-                boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.2)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem',
                 overflow: 'hidden',
               }}
-              className="dark:bg-gray-900/97 dark:border-gray-700/50"
             >
-              {/* Modal header */}
-              <div className="flex items-center justify-between p-4 border-b sm:p-6 border-gray-100/50 dark:border-gray-800/50">
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
-                    <Trophy className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <h2 className="text-xl font-bold">
-                      {selectedPosition.title} Results
-                    </h2>
-                    <p className="text-xs text-muted-foreground">
-                      {selectedElection.title}
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={handleCloseModal}
-                  className="flex items-center justify-center w-10 h-10 text-gray-500 transition-colors bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
-                  aria-label="Close"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Modal body */}
+              {/* Backdrop — fixed, full-viewport, scroll-proof */}
               <div
-                className="p-6 overflow-y-auto min-h-[500px] flex items-center justify-center"
-                style={{ maxHeight: 'calc(90vh - 88px)' }}
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                }}
+                onClick={handleCloseModal}
+              />
+
+              <motion.div
+                initial={{ scale: 0.95, y: 20, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.95, y: 20, opacity: 0 }}
+                transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: '100%',
+                  maxWidth: '56rem',
+                  maxHeight: '90vh',
+                  backgroundColor: 'rgba(255,255,255,0.97)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  borderRadius: '2rem',
+                  boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  overflow: 'hidden',
+                }}
+                className="dark:bg-gray-900/97 dark:border-gray-700/50"
               >
-                {showCountdown ? (
-                  <CountdownAnimation onComplete={handleCountdownComplete} />
-                ) : (
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6 }}
-                    className="w-full"
+                {/* Modal header */}
+                <div className="flex items-center justify-between p-4 border-b sm:p-6 border-gray-100/50 dark:border-gray-800/50">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                      <Trophy className="w-5 h-5 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold">
+                        {selectedPosition.title} Results
+                      </h2>
+                      <p className="text-xs text-muted-foreground">
+                        {selectedElection.title}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleCloseModal}
+                    className="flex items-center justify-center w-10 h-10 text-gray-500 transition-colors bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+                    aria-label="Close"
                   >
-                    {(() => {
-                      const results = getPositionResults(selectedPosition._id);
-                      const winner = results[0];
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
 
-                      if (!winner || winner.value === 0) {
+                {/* Modal body */}
+                <div
+                  className="p-6 overflow-y-auto min-h-[500px] flex items-center justify-center"
+                  style={{ maxHeight: 'calc(90vh - 88px)' }}
+                >
+                  {showCountdown ? (
+                    <CountdownAnimation onComplete={handleCountdownComplete} />
+                  ) : (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.6 }}
+                      className="w-full"
+                    >
+                      {(() => {
+                        const results = getPositionResults(selectedPosition._id);
+                        const winner = results[0];
+
+                        if (!winner || winner.value === 0) {
+                          return (
+                            <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
+                              <Users className="w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" />
+                              <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
+                                No votes recorded yet
+                              </p>
+                            </div>
+                          );
+                        }
+
                         return (
-                          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-                            <Users className="w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" />
-                            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
-                              No votes recorded yet
-                            </p>
-                          </div>
-                        );
-                      }
+                          <div className="grid items-center max-w-5xl grid-cols-1 gap-8 mx-auto lg:grid-cols-2">
+                            {/* Winner Spotlight */}
+                            <div className="flex flex-col items-center">
+                              <div className="relative group">
+                                <div className="absolute transition duration-1000 rounded-full opacity-25 -inset-1 bg-gradient-to-r from-yellow-400 via-primary to-yellow-400 blur group-hover:opacity-50 animate-pulse" />
+                                <img
+                                  src={winner.profile}
+                                  alt={winner.name}
+                                  className="relative z-10 object-cover w-48 h-48 border-4 border-white rounded-full shadow-2xl sm:w-64 sm:h-64 dark:border-gray-800"
+                                />
+                                <motion.div
+                                  initial={{ scale: 0 }}
+                                  animate={{ scale: 1 }}
+                                  transition={{ delay: 0.5, type: 'spring' }}
+                                  className="absolute z-20 flex items-center justify-center w-16 h-16 border-2 border-white rounded-full shadow-lg -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 dark:border-gray-900"
+                                >
+                                  <Crown className="w-8 h-8 text-white drop-shadow-md" />
+                                </motion.div>
+                              </div>
 
-                      return (
-                        <div className="grid items-center max-w-5xl grid-cols-1 gap-8 mx-auto lg:grid-cols-2">
-                          {/* Winner Spotlight */}
-                          <div className="flex flex-col items-center">
-                            <div className="relative group">
-                              <div className="absolute transition duration-1000 rounded-full opacity-25 -inset-1 bg-gradient-to-r from-yellow-400 via-primary to-yellow-400 blur group-hover:opacity-50 animate-pulse" />
-                              <img
-                                src={winner.profile}
-                                alt={winner.name}
-                                className="relative z-10 object-cover w-48 h-48 border-4 border-white rounded-full shadow-2xl sm:w-64 sm:h-64 dark:border-gray-800"
-                              />
                               <motion.div
-                                initial={{ scale: 0 }}
-                                animate={{ scale: 1 }}
-                                transition={{ delay: 0.5, type: 'spring' }}
-                                className="absolute z-20 flex items-center justify-center w-16 h-16 border-2 border-white rounded-full shadow-lg -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 dark:border-gray-900"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 0.3 }}
+                                className="mt-8 space-y-2 text-center"
                               >
-                                <Crown className="w-8 h-8 text-white drop-shadow-md" />
+                                <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold tracking-widest text-sm uppercase mb-2">
+                                  WINNER
+                                </div>
+                                <h3 className="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-white">
+                                  {winner.name}
+                                </h3>
+                                <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
+                                  With{' '}
+                                  <span className="font-bold text-primary">
+                                    {winner.value}
+                                  </span>{' '}
+                                  vote{winner.value !== 1 ? 's' : ''}
+                                </p>
                               </motion.div>
                             </div>
 
+                            {/* Vote Distribution Chart */}
                             <motion.div
-                              initial={{ opacity: 0, y: 20 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ delay: 0.3 }}
-                              className="mt-8 space-y-2 text-center"
+                              initial={{ opacity: 0, x: 20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: 0.6 }}
+                              className="bg-gray-50/50 dark:bg-gray-800/30 rounded-[32px] p-6 sm:p-8"
                             >
-                              <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold tracking-widest text-sm uppercase mb-2">
-                                WINNER
+                              <h4 className="mb-6 text-sm font-bold tracking-widest text-gray-500 uppercase">
+                                Vote Distribution
+                              </h4>
+
+                              <div className="h-[300px]">
+                                {results && results.length > 0 ? (
+                                  <PieChartWrapper
+                                    data={results.map((item, index) => ({
+                                      ...item,
+                                      total: results.reduce((a, b) => a + b.value, 0),
+                                      percentage: ((item.value / results.reduce((a, b) => a + b.value, 0)) * 100).toFixed(1)
+                                    }))}
+                                    colors={COLORS}
+                                    innerRadius={70}
+                                    outerRadius={100}
+                                    paddingAngle={5}
+                                    height="100%"
+                                    showLegend={true}
+                                    showTooltip={true}
+                                    customTooltip={({ active, payload }) => {
+                                      if (active && payload && payload.length) {
+                                        const data = payload[0].payload;
+                                        const total = results.reduce((a, b) => a + b.value, 0);
+                                        const pct = total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
+                                        return (
+                                          <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
+                                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{data.name}</p>
+                                            <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{data.value} votes ({pct}%)</p>
+                                          </div>
+                                        );
+                                      }
+                                      return null;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                                    <p className="text-sm">No data available</p>
+                                  </div>
+                                )}
                               </div>
-                              <h3 className="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-white">
-                                {winner.name}
-                              </h3>
-                              <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
-                                With{' '}
-                                <span className="font-bold text-primary">
-                                  {winner.value}
-                                </span>{' '}
-                                vote{winner.value !== 1 ? 's' : ''}
-                              </p>
                             </motion.div>
                           </div>
-
-                          {/* Vote Distribution Chart */}
-                          <motion.div
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: 0.6 }}
-                            className="bg-gray-50/50 dark:bg-gray-800/30 rounded-[32px] p-6 sm:p-8"
-                          >
-                            <h4 className="mb-6 text-sm font-bold tracking-widest text-gray-500 uppercase">
-                              Vote Distribution
-                            </h4>
-
-                            <div className="h-[300px]">
-                              {results && results.length > 0 ? (
-                                <PieChartWrapper
-                                  data={results.map((item, index) => ({
-                                    ...item,
-                                    total: results.reduce((a, b) => a + b.value, 0),
-                                    percentage: ((item.value / results.reduce((a, b) => a + b.value, 0)) * 100).toFixed(1)
-                                  }))}
-                                  colors={COLORS}
-                                  innerRadius={70}
-                                  outerRadius={100}
-                                  paddingAngle={5}
-                                  height="100%"
-                                  showLegend={true}
-                                  showTooltip={true}
-                                  customTooltip={({ active, payload }) => {
-                                    if (active && payload && payload.length) {
-                                      const data = payload[0].payload;
-                                      const total = results.reduce((a, b) => a + b.value, 0);
-                                      const pct = total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
-                                      return (
-                                        <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{data.name}</p>
-                                          <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{data.value} votes ({pct}%)</p>
-                                        </div>
-                                      );
-                                    }
-                                    return null;
-                                  }}
-                                />
-                              ) : (
-                                <div className="flex items-center justify-center h-full text-muted-foreground">
-                                  <p className="text-sm">No data available</p>
-                                </div>
-                              )}
-                            </div>
-                          </motion.div>
-                        </div>
-                      );
-                    })()}
-                  </motion.div>
-                )}
-              </div>
+                        );
+                      })()}
+                    </motion.div>
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+        , document.body)}
 
       {/* PDF Generator (hidden) */}
       <PDFGenerator
