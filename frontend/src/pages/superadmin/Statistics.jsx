@@ -35,7 +35,7 @@ function CountdownAnimation({ onComplete }) {
 
   return (
     <div className="flex flex-col items-center justify-center py-20 select-none">
-      <p className="text-sm font-bold uppercase tracking-widest text-gray-400 mb-6">
+      <p className="mb-6 text-sm font-bold tracking-widest text-gray-400 uppercase">
         Revealing results in…
       </p>
       <motion.div
@@ -213,6 +213,18 @@ function ElectionStats() {
     fireConfetti();
   }, [fireConfetti]);
 
+  // ── Lock body scroll while modal is open ─────────────────────────────────────
+  useEffect(() => {
+    if (selectedPosition) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [selectedPosition]);
+
   const handleDownloadResults = (election) => {
     if (pdfGeneratorRef.current) {
       pdfGeneratorRef.current.generate(election);
@@ -240,7 +252,7 @@ function ElectionStats() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center gap-4 text-muted-foreground">
-          <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <div className="w-10 h-10 border-4 rounded-full border-primary border-t-transparent animate-spin" />
           <p className="text-sm font-medium">Loading elections…</p>
         </div>
       </div>
@@ -266,7 +278,7 @@ function ElectionStats() {
               <p className="text-lg font-medium">No elections found</p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
               {elections.map((election) => {
                 const electionPositions = positions.filter(
                   (p) => p.electionId === election._id
@@ -281,10 +293,10 @@ function ElectionStats() {
                 return (
                   <Card
                     key={election._id}
-                    className="hover:shadow-lg transition-shadow overflow-hidden border-0 shadow-sm ring-1 ring-gray-100 dark:ring-gray-800"
+                    className="overflow-hidden transition-shadow border-0 shadow-sm hover:shadow-lg ring-1 ring-gray-100 dark:ring-gray-800"
                   >
-                    <CardHeader className="border-b border-gray-100 dark:border-gray-800 pb-4 bg-gray-50/50 dark:bg-gray-800/20">
-                      <div className="flex justify-between items-start mb-2">
+                    <CardHeader className="pb-4 border-b border-gray-100 dark:border-gray-800 bg-gray-50/50 dark:bg-gray-800/20">
+                      <div className="flex items-start justify-between mb-2">
                         <div className="space-y-1">
                           <CardTitle className="text-lg font-bold">
                             {election.title}
@@ -334,7 +346,7 @@ function ElectionStats() {
                       <div className="flex flex-col gap-3">
                         <Button
                           onClick={() => handleElectionSelect(election)}
-                          className="w-full bg-primary hover:bg-primary/90 text-white shadow-sm"
+                          className="w-full text-white shadow-sm bg-primary hover:bg-primary/90"
                         >
                           <Trophy className="w-4 h-4 mr-2" />
                           View Results
@@ -357,12 +369,12 @@ function ElectionStats() {
         </>
       ) : (
         /* ── Election Details View ───────────────────────────────────────────── */
-        <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-6 duration-500 animate-in fade-in slide-in-from-bottom-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={handleBackToElections}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors group"
+                className="p-2 transition-colors rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 group"
                 aria-label="Back to elections"
               >
                 <ArrowLeft className="w-5 h-5 text-gray-500 group-hover:text-gray-900 dark:group-hover:text-white" />
@@ -376,7 +388,7 @@ function ElectionStats() {
                     Results
                   </span>
                 </div>
-                <p className="text-muted-foreground mt-1">
+                <p className="mt-1 text-muted-foreground">
                   Select a position to view the winner and vote distribution
                 </p>
               </div>
@@ -393,7 +405,7 @@ function ElectionStats() {
           </div>
 
           {/* Position Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-3">
             {positions
               .filter((p) => p.electionId === selectedElection._id)
               .map((position) => {
@@ -410,14 +422,14 @@ function ElectionStats() {
                     className="group relative bg-white dark:bg-gray-900 rounded-[24px] p-6 border border-gray-100 dark:border-gray-800 shadow-sm hover:shadow-xl hover:border-primary/20 transition-all duration-300 cursor-pointer overflow-hidden"
                   >
                     {/* Decorative background icon */}
-                    <div className="absolute top-0 right-0 p-6 opacity-5 group-hover:opacity-10 transition-opacity transform group-hover:scale-110 group-hover:rotate-12 duration-500 pointer-events-none">
+                    <div className="absolute top-0 right-0 p-6 transition-opacity duration-500 transform pointer-events-none opacity-5 group-hover:opacity-10 group-hover:scale-110 group-hover:rotate-12">
                       <Trophy className="w-24 h-24" />
                     </div>
 
                     <div className="relative z-10 flex flex-col h-full">
                       <div className="flex items-start justify-between mb-6">
                         <div>
-                          <h3 className="text-xl font-bold text-gray-900 dark:text-white group-hover:text-primary transition-colors">
+                          <h3 className="text-xl font-bold text-gray-900 transition-colors dark:text-white group-hover:text-primary">
                             {position.title}
                           </h3>
                           <div className="flex items-center gap-2 mt-2">
@@ -428,8 +440,8 @@ function ElectionStats() {
                             </span>
                           </div>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-primary/5 group-hover:bg-primary/10 flex items-center justify-center transition-colors flex-shrink-0">
-                          <ChevronDown className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 -rotate-90 transition-all" />
+                        <div className="flex items-center justify-center flex-shrink-0 w-10 h-10 transition-colors rounded-full bg-primary/5 group-hover:bg-primary/10">
+                          <ChevronDown className="w-5 h-5 transition-all -rotate-90 opacity-0 text-primary group-hover:opacity-100" />
                         </div>
                       </div>
 
@@ -439,9 +451,9 @@ function ElectionStats() {
                             <img
                               src={c.profilePic || 'https://via.placeholder.com/40'}
                               alt={`${c.firstName} ${c.lastName}`}
-                              className="w-8 h-8 rounded-full object-cover border border-gray-100 dark:border-gray-700 shadow-sm flex-shrink-0"
+                              className="flex-shrink-0 object-cover w-8 h-8 border border-gray-100 rounded-full shadow-sm dark:border-gray-700"
                             />
-                            <span className="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                            <span className="text-sm font-medium text-gray-700 truncate dark:text-gray-300">
                               {c.firstName} {c.lastName}
                             </span>
                           </div>
@@ -454,7 +466,7 @@ function ElectionStats() {
                         )}
 
                         {positionCandidates.length === 0 && (
-                          <div className="text-sm text-gray-400 italic">
+                          <div className="text-sm italic text-gray-400">
                             No contestants yet
                           </div>
                         )}
@@ -474,11 +486,26 @@ function ElectionStats() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6"
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+              overflow: 'hidden',
+            }}
           >
-            {/* Backdrop */}
+            {/* Backdrop — fixed, full-viewport, scroll-proof */}
             <div
-              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+              }}
               onClick={handleCloseModal}
             />
 
@@ -487,14 +514,27 @@ function ElectionStats() {
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.95, y: 20, opacity: 0 }}
               transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-              className="relative w-full max-w-4xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-xl rounded-[32px] shadow-2xl border border-white/20 dark:border-gray-700/50 overflow-hidden"
-              style={{ maxHeight: '90vh' }}
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                width: '100%',
+                maxWidth: '56rem',
+                maxHeight: '90vh',
+                backgroundColor: 'rgba(255,255,255,0.97)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                borderRadius: '2rem',
+                boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.2)',
+                overflow: 'hidden',
+              }}
+              className="dark:bg-gray-900/97 dark:border-gray-700/50"
             >
               {/* Modal header */}
-              <div className="p-4 sm:p-6 flex items-center justify-between border-b border-gray-100/50 dark:border-gray-800/50">
+              <div className="flex items-center justify-between p-4 border-b sm:p-6 border-gray-100/50 dark:border-gray-800/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Trophy className="h-5 w-5 text-primary" />
+                  <div className="flex items-center justify-center w-10 h-10 rounded-full bg-primary/10">
+                    <Trophy className="w-5 h-5 text-primary" />
                   </div>
                   <div>
                     <h2 className="text-xl font-bold">
@@ -507,10 +547,10 @@ function ElectionStats() {
                 </div>
                 <button
                   onClick={handleCloseModal}
-                  className="w-10 h-10 flex items-center justify-center bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700 rounded-full transition-colors text-gray-500"
+                  className="flex items-center justify-center w-10 h-10 text-gray-500 transition-colors bg-gray-100 rounded-full hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
                   aria-label="Close"
                 >
-                  <X className="h-5 w-5" />
+                  <X className="w-5 h-5" />
                 </button>
               </div>
 
@@ -534,9 +574,9 @@ function ElectionStats() {
 
                       if (!winner || winner.value === 0) {
                         return (
-                          <div className="flex flex-col items-center justify-center text-muted-foreground py-20">
+                          <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
                             <Users className="w-16 h-16 mb-4 text-gray-300 dark:text-gray-600" />
-                            <p className="text-lg text-gray-500 dark:text-gray-400 font-medium">
+                            <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
                               No votes recorded yet
                             </p>
                           </div>
@@ -544,21 +584,21 @@ function ElectionStats() {
                       }
 
                       return (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center max-w-5xl mx-auto">
+                        <div className="grid items-center max-w-5xl grid-cols-1 gap-8 mx-auto lg:grid-cols-2">
                           {/* Winner Spotlight */}
                           <div className="flex flex-col items-center">
                             <div className="relative group">
-                              <div className="absolute -inset-1 bg-gradient-to-r from-yellow-400 via-primary to-yellow-400 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 animate-pulse" />
+                              <div className="absolute transition duration-1000 rounded-full opacity-25 -inset-1 bg-gradient-to-r from-yellow-400 via-primary to-yellow-400 blur group-hover:opacity-50 animate-pulse" />
                               <img
                                 src={winner.profile}
                                 alt={winner.name}
-                                className="relative w-48 h-48 sm:w-64 sm:h-64 rounded-full object-cover border-4 border-white dark:border-gray-800 shadow-2xl z-10"
+                                className="relative z-10 object-cover w-48 h-48 border-4 border-white rounded-full shadow-2xl sm:w-64 sm:h-64 dark:border-gray-800"
                               />
                               <motion.div
                                 initial={{ scale: 0 }}
                                 animate={{ scale: 1 }}
                                 transition={{ delay: 0.5, type: 'spring' }}
-                                className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-to-br from-yellow-300 to-yellow-500 rounded-full flex items-center justify-center shadow-lg border-2 border-white dark:border-gray-900 z-20"
+                                className="absolute z-20 flex items-center justify-center w-16 h-16 border-2 border-white rounded-full shadow-lg -top-4 -right-4 bg-gradient-to-br from-yellow-300 to-yellow-500 dark:border-gray-900"
                               >
                                 <Crown className="w-8 h-8 text-white drop-shadow-md" />
                               </motion.div>
@@ -568,17 +608,17 @@ function ElectionStats() {
                               initial={{ opacity: 0, y: 20 }}
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ delay: 0.3 }}
-                              className="text-center mt-8 space-y-2"
+                              className="mt-8 space-y-2 text-center"
                             >
                               <div className="inline-block px-4 py-1.5 rounded-full bg-primary/10 text-primary font-bold tracking-widest text-sm uppercase mb-2">
                                 WINNER
                               </div>
-                              <h3 className="text-3xl sm:text-4xl font-extrabold text-gray-900 dark:text-white">
+                              <h3 className="text-3xl font-extrabold text-gray-900 sm:text-4xl dark:text-white">
                                 {winner.name}
                               </h3>
-                              <p className="text-lg text-gray-500 dark:text-gray-400 font-medium">
+                              <p className="text-lg font-medium text-gray-500 dark:text-gray-400">
                                 With{' '}
-                                <span className="text-primary font-bold">
+                                <span className="font-bold text-primary">
                                   {winner.value}
                                 </span>{' '}
                                 vote{winner.value !== 1 ? 's' : ''}
@@ -593,7 +633,7 @@ function ElectionStats() {
                             transition={{ delay: 0.6 }}
                             className="bg-gray-50/50 dark:bg-gray-800/30 rounded-[32px] p-6 sm:p-8"
                           >
-                            <h4 className="text-sm font-bold text-gray-500 uppercase tracking-widest mb-6">
+                            <h4 className="mb-6 text-sm font-bold tracking-widest text-gray-500 uppercase">
                               Vote Distribution
                             </h4>
 
@@ -619,7 +659,7 @@ function ElectionStats() {
                                       const pct = total > 0 ? ((data.value / total) * 100).toFixed(1) : '0.0';
                                       return (
                                         <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                          <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">{data.name}</p>
+                                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{data.name}</p>
                                           <p className="text-xs font-medium text-gray-900 dark:text-gray-100">{data.value} votes ({pct}%)</p>
                                         </div>
                                       );
@@ -628,7 +668,7 @@ function ElectionStats() {
                                   }}
                                 />
                               ) : (
-                                <div className="h-full flex items-center justify-center text-muted-foreground">
+                                <div className="flex items-center justify-center h-full text-muted-foreground">
                                   <p className="text-sm">No data available</p>
                                 </div>
                               )}
