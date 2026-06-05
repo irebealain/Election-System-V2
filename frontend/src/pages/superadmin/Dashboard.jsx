@@ -57,7 +57,18 @@ function SuperAdminDashboard() {
         ])
 
         setElections(electionsData || [])
-        setStudents(usersData || [])
+        
+        // Find active elections (ongoing or upcoming)
+        const activeElectionIds = electionsData
+          ?.filter(e => e.status === 'ongoing' || e.status === 'upcoming')
+          .map(e => e._id) || [];
+
+        // Filter students to only those in active elections
+        const activeStudents = (usersData || []).filter(student => 
+          student.electionId && activeElectionIds.includes(student.electionId)
+        );
+
+        setStudents(activeStudents)
         setAdmins(adminsData || [])
         setVotes(votesData || [])
         setPositions(positionsData || [])
