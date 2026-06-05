@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react"
+import { createPortal } from "react-dom"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "../../components/common/Card"
 import Button from "../../components/common/Button"
 import { Info, ThumbsUp, ChevronRight, AlertTriangle, CalendarX, Clock, Award, CheckCircle2, XCircle } from "lucide-react"
@@ -224,6 +225,18 @@ function Elections() {
     setSelectedCandidate(candidate)
     setDialogOpen(true)
   }
+
+  // ── Lock body scroll while dialog is open ────────────────────────────────────
+  useEffect(() => {
+    if (dialogOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [dialogOpen])
 
   const getUnvotedPositions = () => {
     return positions.filter(position => !votes[position.title]).map(position => position.title)
@@ -612,17 +625,52 @@ function Elections() {
         </Button>
       </div>
 
-      {/* Candidate Details Dialog */}
+      {/* Candidate Details Dialog — portal to escape parent stacking contexts */}
+      {createPortal(
       <AnimatePresence>
         {dialogOpen && selectedCandidate && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setDialogOpen(false)
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9999,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '1rem',
+              overflow: 'hidden',
             }}
           >
+            {/* Backdrop — fixed, full-viewport, scroll-proof */}
+            <div
+              style={{
+                position: 'fixed',
+                inset: 0,
+                backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+              }}
+              onClick={() => setDialogOpen(false)}
+            />
             <motion.div
-              className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto"
+              style={{
+                position: 'relative',
+                zIndex: 1,
+                width: '100%',
+                maxWidth: '28rem',
+                maxHeight: '90vh',
+                overflowY: 'auto',
+                backgroundColor: 'rgba(255,255,255,0.97)',
+                backdropFilter: 'blur(24px)',
+                WebkitBackdropFilter: 'blur(24px)',
+                borderRadius: '1.25rem',
+                boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
+                border: '1px solid rgba(255,255,255,0.2)',
+              }}
+              className="dark:bg-gray-900/97 dark:border-gray-700/50"
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 50 }}
@@ -689,9 +737,10 @@ function Elections() {
                 </div>
               </div>
             </motion.div>
-          </div>
+          </motion.div>
         )}
       </AnimatePresence>
+      , document.body)}
     </motion.div>
   )
 }
