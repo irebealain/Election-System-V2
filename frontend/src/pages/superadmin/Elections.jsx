@@ -23,6 +23,8 @@ function Elections() {
     startDate: "",
     endDate: "",
   })
+  const [isEditingElection, setIsEditingElection] = useState(false)
+  const [editingElectionData, setEditingElectionData] = useState(null)
   const [newPosition, setNewPosition] = useState({
     title: "",
     electionId: ""
@@ -119,7 +121,7 @@ function Elections() {
       if (response.data.success) {
         // Store the newly created election ID
         const newElectionId = response.data.data._id;
-        
+
         // If there's a file selected, upload it
         const fileInput = document.getElementById('studentIdsUpload');
         if (fileInput && fileInput.files.length > 0) {
@@ -143,6 +145,67 @@ function Elections() {
     }
   }
 
+  const handleUpdateElection = async () => {
+    try {
+      if (!editingElectionData || !editingElectionData._id) {
+        toast.error("No election selected for editing")
+        return
+      }
+
+      // Check if user is authenticated and has required role
+      if (!currentUser) {
+        toast.error("Please log in to update an election")
+        return
+      }
+
+      if (currentUser.role !== "superAdmin" && currentUser.role !== "admin") {
+        toast.error("Only admins and super admins can update elections")
+        return
+      }
+
+      const response = await axios.put(`/api/elections/${editingElectionData._id}`, {
+        title: editingElectionData.title,
+        startDate: editingElectionData.startDate,
+        endDate: editingElectionData.endDate
+      })
+
+      if (response.data.success) {
+        toast.success("Election updated successfully")
+        setIsEditingElection(false)
+        setEditingElectionData(null)
+        setIsManageElectionOpen(false)
+        fetchElections()
+      } else {
+        toast.error(response.data.message || "Failed to update election")
+      }
+    } catch (error) {
+      console.error("Error updating election:", error)
+      toast.error(error.response?.data?.message || "Failed to update election")
+    }
+  }
+
+  const handleOpenEditElection = (election) => {
+    setEditingElectionData({
+      _id: election._id,
+      title: election.title,
+      startDate: election.startDate.split('T')[0], // Format date for input
+      endDate: election.endDate.split('T')[0] // Format date for input
+    })
+    setIsEditingElection(true)
+    setIsManageElectionOpen(true)
+  }
+
+  const handleCloseEditModal = () => {
+    setIsManageElectionOpen(false)
+    setIsEditingElection(false)
+    setEditingElectionData(null)
+    setNewElection({
+      title: "",
+      startDate: "",
+      endDate: "",
+    })
+  }
+
   const handleExcelUpload = async (file, electionId) => {
     if (!file) return;
 
@@ -154,7 +217,7 @@ function Elections() {
 
     try {
       setIsUploading(true);
-      
+
       // Create FormData object
       const formData = new FormData();
       formData.append('file', file);
@@ -251,6 +314,8 @@ function Elections() {
     }
   }
 
+
+
   const handleAddCandidate = async () => {
     try {
       // Check if user is authenticated and has required role
@@ -279,6 +344,7 @@ function Elections() {
           positionId: "",
           electionId: ""
         })
+        setUploadedImage(null)
         setIsAddCandidateOpen(false)
         fetchCandidates()
       } else {
@@ -290,6 +356,8 @@ function Elections() {
       toast.error(error.response?.data?.message || "Failed to add candidate")
     }
   }
+
+
 
   const handleDeleteElection = async (electionId) => {
     // Check if user is authenticated and has required role
@@ -328,7 +396,7 @@ function Elections() {
       const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/elections/delete-all`, {
         data: { role: currentUser.role }
       })
-      
+
       if (response.data.success) {
         toast.success("All elections have been deleted successfully")
         fetchElections() // Refresh the elections list
@@ -363,7 +431,7 @@ function Elections() {
     try {
       setIsUploading(true);
       const response = await uploadImage(file);
-      
+
       if (response.success) {
         setUploadedImage(response.data.url);
         setNewCandidate(prev => ({
@@ -382,46 +450,55 @@ function Elections() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight font-satoshi">Election Management</h1>
           <p className="text-muted-foreground">Create and manage elections, positions, and candidates</p>
         </div>
         <div className="flex gap-4">
           {currentUser?.role === "superAdmin" && (
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               className="bg-destructive hover:bg-destructive/90"
               onClick={() => setIsDeleteAllConfirmOpen(true)}
               disabled={elections.length === 0 || isDeletingAll}
             >
-              <Trash className="mr-2 h-4 w-4" />
+              <Trash className="w-4 h-4 mr-2" />
               Delete All Elections
             </Button>
           )}
           <Button className="bg-primary hover:bg-primary/90" onClick={() => setIsManageElectionOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+            <Plus className="w-4 h-4 mr-2" />
             Create Election
           </Button>
+          {selectedElection && (
+            <Button
+              variant="outline"
+              onClick={() => setSelectedElection(null)}
+              className="text-muted-foreground hover:text-foreground"
+            >
+              Clear Selection
+            </Button>
+          )}
         </div>
       </div>
 
       {/* Election Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
         {elections.length === 0 ? (
-          <div className="col-span-full flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="w-24 h-24 bg-primary/10 rounded-full flex items-center justify-center mb-4">
+          <div className="flex flex-col items-center justify-center px-4 py-12 text-center col-span-full">
+            <div className="flex items-center justify-center w-24 h-24 mb-4 rounded-full bg-primary/10">
               <Award className="w-12 h-12 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">No Elections Yet</h3>
-            <p className="text-muted-foreground max-w-md mb-6">
+            <h3 className="mb-2 text-xl font-semibold">No Elections Yet</h3>
+            <p className="max-w-md mb-6 text-muted-foreground">
               Start by creating your first election. You can add positions and candidates once the election is created.
             </p>
-            <Button 
+            <Button
               className="bg-primary hover:bg-primary/90"
               onClick={() => setIsManageElectionOpen(true)}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               Create First Election
             </Button>
           </div>
@@ -429,11 +506,11 @@ function Elections() {
           elections.map((election) => (
             <Card key={election._id} className="cursor-pointer transition-all hover:shadow-lg hover:scale-[1.02] duration-200 overflow-hidden">
               <CardHeader className="pb-2">
-                <div className="flex justify-between items-start">
+                <div className="flex items-start justify-between">
                   <div className="space-y-1">
                     <CardTitle className="text-xl font-bold tracking-tight">{election.title}</CardTitle>
                     <div className="flex items-center text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4 mr-1" />
+                      <Calendar className="w-4 h-4 mr-1" />
                       {new Date(election.startDate).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -441,7 +518,7 @@ function Elections() {
                       })}
                     </div>
                     <div className="flex items-center text-sm text-muted-foreground">
-                      <Clock className="h-4 w-4 mr-1" />
+                      <Clock className="w-4 h-4 mr-1" />
                       Ends: {new Date(election.endDate).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
@@ -449,12 +526,11 @@ function Elections() {
                       })}
                     </div>
                   </div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    election.status === "ongoing" ? "bg-green-100 text-green-800" :
-                    election.status === "upcoming" ? "bg-blue-100 text-blue-800" :
-                    election.status === "completed" ? "bg-purple-100 text-purple-800" :
-                    "bg-gray-100 text-gray-800"
-                  }`}>
+                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${election.status === "ongoing" ? "bg-green-100 text-green-800" :
+                      election.status === "upcoming" ? "bg-blue-100 text-blue-800" :
+                        election.status === "completed" ? "bg-purple-100 text-purple-800" :
+                          "bg-gray-100 text-gray-800"
+                    }`}>
                     {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
                   </div>
                 </div>
@@ -463,8 +539,8 @@ function Elections() {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between p-3 bg-muted/50 rounded-[20px]">
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <Users className="h-5 w-5 text-primary" />
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <Users className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Positions</p>
@@ -474,8 +550,8 @@ function Elections() {
                       </div>
                     </div>
                     <div className="flex items-center space-x-3">
-                      <div className="p-2 bg-primary/10 rounded-full">
-                        <Award className="h-5 w-5 text-primary" />
+                      <div className="p-2 rounded-full bg-primary/10">
+                        <Award className="w-5 h-5 text-primary" />
                       </div>
                       <div>
                         <p className="text-sm font-medium">Candidates</p>
@@ -486,55 +562,68 @@ function Elections() {
                     </div>
                   </div>
                   <div className="flex items-center text-sm text-muted-foreground">
-                    <Clock className="h-4 w-4 mr-1" />
+                    <Clock className="w-4 h-4 mr-1" />
                     <span>Created {new Date(election.createdAt).toLocaleDateString()}</span>
                   </div>
                 </div>
               </CardContent>
               <CardFooter className="flex justify-between pt-2 border-t">
                 <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs transition-colors duration-200 border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30"
+                    onClick={() => handleOpenEditElection(election)}
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <div className="p-1 rounded-full bg-primary/10">
+                        <Edit className="w-3 h-3" />
+                      </div>
+                      <span>Edit</span>
+                    </div>
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-xs transition-colors duration-200 border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                     onClick={() => {
                       setSelectedElection(election)
                       setIsAddPositionOpen(true)
                     }}
                   >
                     <div className="flex items-center gap-1.5">
-                      <div className="p-1 bg-primary/10 rounded-full">
-                        <Plus className="h-3 w-3" />
+                      <div className="p-1 rounded-full bg-primary/10">
+                        <Plus className="w-3 h-3" />
                       </div>
                       <span>Add Position</span>
                     </div>
                   </Button>
-                  <Button 
-                    variant="outline" 
+                  <Button
+                    variant="outline"
                     size="sm"
-                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
+                    className="text-xs transition-colors duration-200 border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30"
                     onClick={() => {
                       setSelectedElection(election)
                       setIsAddCandidateOpen(true)
                     }}
                   >
                     <div className="flex items-center gap-1.5">
-                      <div className="p-1 bg-primary/10 rounded-full">
-                        <Plus className="h-3 w-3" />
+                      <div className="p-1 rounded-full bg-primary/10">
+                        <Plus className="w-3 h-3" />
                       </div>
                       <span>Add Candidate</span>
                     </div>
                   </Button>
                 </div>
-                <Button 
-                  variant="destructive" 
+                <Button
+                  variant="destructive"
                   size="sm"
-                  className="bg-destructive/90 hover:bg-destructive text-destructive-foreground transition-colors duration-200 text-xs"
+                  className="text-xs transition-colors duration-200 bg-destructive/90 hover:bg-destructive text-destructive-foreground"
                   onClick={() => handleDeleteElection(election._id)}
                 >
                   <div className="flex items-center gap-1.5">
-                    <div className="p-1 bg-destructive-foreground/10 rounded-full">
-                      <Trash className="h-3 w-3" />
+                    <div className="p-1 rounded-full bg-destructive-foreground/10">
+                      <Trash className="w-3 h-3" />
                     </div>
                     <span>Delete</span>
                   </div>
@@ -545,61 +634,82 @@ function Elections() {
         )}
       </div>
 
-      {/* Create Election Dialog */}
-      <Modal isOpen={isManageElectionOpen} onClose={() => setIsManageElectionOpen(false)}>
+      {/* Create/Edit Election Dialog */}
+      <Modal isOpen={isManageElectionOpen} onClose={handleCloseEditModal}>
         <div className="bg-background rounded-[20px] shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">Create New Election</h2>
-                <Button variant="ghost" size="sm" onClick={() => setIsManageElectionOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold">
+                {isEditingElection ? 'Edit Election' : 'Create New Election'}
+              </h2>
+              <Button variant="ghost" size="sm" onClick={handleCloseEditModal}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="election-title" className="block text-sm font-medium">
+                  Election Title
+                </label>
+                <input
+                  id="election-title"
+                  type="text"
+                  placeholder="e.g., Spring 2024 Student Council Election"
+                  className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
+                  value={isEditingElection ? editingElectionData?.title || '' : newElection.title}
+                  onChange={(e) => {
+                    if (isEditingElection) {
+                      setEditingElectionData({ ...editingElectionData, title: e.target.value })
+                    } else {
+                      setNewElection({ ...newElection, title: e.target.value })
+                    }
+                  }}
+                />
               </div>
 
-              <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <label htmlFor="election-title" className="block text-sm font-medium">
-                    Election Title
+                  <label htmlFor="election-start" className="block text-sm font-medium">
+                    Start Date
                   </label>
                   <input
-                    id="election-title"
-                    type="text"
-                    placeholder="e.g., Spring 2024 Student Council Election"
+                    id="election-start"
+                    type="date"
                     className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                    value={newElection.title}
-                    onChange={(e) => setNewElection({ ...newElection, title: e.target.value })}
+                    value={isEditingElection ? editingElectionData?.startDate || '' : newElection.startDate}
+                    onChange={(e) => {
+                      if (isEditingElection) {
+                        setEditingElectionData({ ...editingElectionData, startDate: e.target.value })
+                      } else {
+                        setNewElection({ ...newElection, startDate: e.target.value })
+                      }
+                    }}
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="election-start" className="block text-sm font-medium">
-                      Start Date
-                    </label>
-                    <input
-                      id="election-start"
-                      type="date"
-                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={newElection.startDate}
-                      onChange={(e) => setNewElection({ ...newElection, startDate: e.target.value })}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <label htmlFor="election-end" className="block text-sm font-medium">
-                      End Date
-                    </label>
-                    <input
-                      id="election-end"
-                      type="date"
-                      className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={newElection.endDate}
-                      onChange={(e) => setNewElection({ ...newElection, endDate: e.target.value })}
-                      min={newElection.startDate}
-                    />
-                  </div>
+                <div className="space-y-2">
+                  <label htmlFor="election-end" className="block text-sm font-medium">
+                    End Date
+                  </label>
+                  <input
+                    id="election-end"
+                    type="date"
+                    className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
+                    value={isEditingElection ? editingElectionData?.endDate || '' : newElection.endDate}
+                    onChange={(e) => {
+                      if (isEditingElection) {
+                        setEditingElectionData({ ...editingElectionData, endDate: e.target.value })
+                      } else {
+                        setNewElection({ ...newElection, endDate: e.target.value })
+                      }
+                    }}
+                    min={isEditingElection ? editingElectionData?.startDate || '' : newElection.startDate}
+                  />
                 </div>
+              </div>
 
+              {!isEditingElection && (
                 <div className="space-y-2">
                   <label className="block text-sm font-medium">
                     Upload Student IDs (Excel)
@@ -612,7 +722,7 @@ function Elections() {
                       disabled={isUploading}
                       className="w-full"
                     >
-                      <Upload className="h-4 w-4 mr-2" />
+                      <Upload className="w-4 h-4 mr-2" />
                       {isUploading ? 'Uploading...' : 'Select Student IDs File'}
                     </Button>
                     <input
@@ -632,33 +742,40 @@ function Elections() {
                     )}
                   </p>
                 </div>
-              </div>
+              )}
+            </div>
 
-              <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => setIsManageElectionOpen(false)}>
-                  Cancel
-                </Button>
-                <Button 
-                  className="bg-primary hover:bg-primary/90"
-                  onClick={handleCreateElection}
-                  disabled={!newElection.title || !newElection.startDate || !newElection.endDate}
-                >
-                  Create Election
-                </Button>
-              </div>
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={handleCloseEditModal}>
+                Cancel
+              </Button>
+              <Button
+                className="bg-primary hover:bg-primary/90"
+                onClick={isEditingElection ? handleUpdateElection : handleCreateElection}
+                disabled={isEditingElection ?
+                  !editingElectionData?.title || !editingElectionData?.startDate || !editingElectionData?.endDate
+                  : !newElection.title || !newElection.startDate || !newElection.endDate
+                }
+              >
+                {isEditingElection ? 'Update Election' : 'Create Election'}
+              </Button>
             </div>
           </div>
+        </div>
       </Modal>
 
       {/* Add Position Dialog */}
       {isAddPositionOpen && selectedElection && (
-        <div className="modal-backdrop p-4">
+        <div className="p-4 modal-backdrop">
           <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">Add Position</h2>
-                <Button variant="ghost" size="sm" onClick={() => setIsAddPositionOpen(false)}>
-                  <X className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={() => {
+                  setIsAddPositionOpen(false)
+                  setNewPosition({ title: "", electionId: "" })
+                }}>
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
 
@@ -679,10 +796,13 @@ function Elections() {
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => setIsAddPositionOpen(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsAddPositionOpen(false)
+                  setNewPosition({ title: "", electionId: "" })
+                }}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   className="bg-primary hover:bg-primary/90"
                   onClick={handleAddPosition}
                   disabled={!newPosition.title}
@@ -697,13 +817,17 @@ function Elections() {
 
       {/* Add Candidate Dialog */}
       {isAddCandidateOpen && selectedElection && (
-        <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
+        <div className="p-4 modal-backdrop">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex items-center justify-between mb-4">
                 <h2 className="text-2xl font-bold">Add Candidate</h2>
-                <Button variant="ghost" size="sm" onClick={() => setIsAddCandidateOpen(false)}>
-                  <X className="h-4 w-4" />
+                <Button variant="ghost" size="sm" onClick={() => {
+                  setIsAddCandidateOpen(false)
+                  setUploadedImage(null)
+                  setNewCandidate({ firstName: "", lastName: "", profilePic: "", mandate: "", positionId: "", electionId: "" })
+                }}>
+                  <X className="w-4 h-4" />
                 </Button>
               </div>
 
@@ -775,20 +899,20 @@ function Elections() {
                   </label>
                   <div className="flex items-center gap-4">
                     <div className="relative">
-                      <div className="w-24 h-24 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center">
+                      <div className="flex items-center justify-center w-24 h-24 overflow-hidden bg-gray-100 rounded-full">
                         {uploadedImage ? (
                           <img
                             src={uploadedImage}
                             alt="Profile preview"
-                            className="w-full h-full object-cover"
+                            className="object-cover w-full h-full"
                           />
                         ) : (
                           <User className="w-12 h-12 text-gray-400" />
                         )}
                       </div>
                       {isUploading && (
-                        <div className="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+                        <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/50">
+                          <div className="w-8 h-8 border-b-2 border-white rounded-full animate-spin"></div>
                         </div>
                       )}
                     </div>
@@ -801,8 +925,8 @@ function Elections() {
                         disabled={isUploading}
                         className="w-full"
                       >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Upload Image'}
+                        <Upload className="w-4 h-4 mr-2" />
+                        {isUploading ? 'Uploading...' : 'Change Image'}
                       </Button>
                       <input
                         id="profile-upload"
@@ -811,7 +935,7 @@ function Elections() {
                         className="hidden"
                         onChange={handleImageUpload}
                       />
-                      <p className="text-xs text-muted-foreground mt-1">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Upload a profile picture (max 5MB, JPEG/PNG)
                       </p>
                     </div>
@@ -820,10 +944,14 @@ function Elections() {
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={() => setIsAddCandidateOpen(false)}>
+                <Button variant="outline" onClick={() => {
+                  setIsAddCandidateOpen(false)
+                  setUploadedImage(null)
+                  setNewCandidate({ firstName: "", lastName: "", profilePic: "", mandate: "", positionId: "", electionId: "" })
+                }}>
                   Cancel
                 </Button>
-                <Button 
+                <Button
                   className="bg-primary hover:bg-primary/90"
                   onClick={handleAddCandidate}
                   disabled={!newCandidate.firstName || !newCandidate.lastName || !newCandidate.positionId || !newCandidate.mandate || !newCandidate.profilePic}
@@ -836,72 +964,158 @@ function Elections() {
         </div>
       )}
 
+      {/* Positions and Candidates Management Section */}
+      {selectedElection && (
+        <div className="space-y-6 mt-8 p-6 bg-muted/30 rounded-[20px]">
+          <h2 className="text-2xl font-bold">Manage: {selectedElection.title}</h2>
+
+          {/* Positions Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Positions</h3>
+              <Button
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  setIsAddPositionOpen(true)
+                  setIsEditingPosition(false)
+                  setNewPosition({ title: "", electionId: selectedElection._id })
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Position
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {positions.filter(p => p.electionId === selectedElection._id).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No positions added yet</p>
+              ) : (
+                positions.filter(p => p.electionId === selectedElection._id).map(position => (
+                  <div key={position._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
+                    <div>
+                      <p className="font-medium">{position.title}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {candidates.filter(c => c.positionId === position._id).length} candidate(s)
+                      </p>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Candidates Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-semibold">Candidates</h3>
+              <Button
+                size="sm"
+                className="bg-primary hover:bg-primary/90"
+                onClick={() => {
+                  setIsAddCandidateOpen(true)
+                  setIsEditingCandidate(false)
+                  setUploadedImage(null)
+                  setNewCandidate({ firstName: "", lastName: "", profilePic: "", mandate: "", positionId: "", electionId: selectedElection._id })
+                }}
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Candidate
+              </Button>
+            </div>
+            <div className="grid gap-3">
+              {candidates.filter(c => c.electionId === selectedElection._id).length === 0 ? (
+                <p className="text-sm text-muted-foreground">No candidates added yet</p>
+              ) : (
+                candidates.filter(c => c.electionId === selectedElection._id).map(candidate => {
+                  const position = positions.find(p => p._id === candidate.positionId)
+                  return (
+                    <div key={candidate._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
+                      <div className="flex items-center flex-1 gap-3">
+                        <img
+                          src={candidate.profilePic}
+                          alt={`${candidate.firstName} ${candidate.lastName}`}
+                          className="object-cover w-10 h-10 rounded-full"
+                        />
+                        <div>
+                          <p className="font-medium">{candidate.firstName} {candidate.lastName}</p>
+                          <p className="text-xs text-muted-foreground">{position?.title || 'Unknown Position'}</p>
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Delete All Elections Confirmation Dialog */}
       <Modal isOpen={isDeleteAllConfirmOpen} onClose={() => setIsDeleteAllConfirmOpen(false)}>
         <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold text-destructive">Delete All Elections</h2>
-                <Button variant="ghost" size="sm" onClick={() => setIsDeleteAllConfirmOpen(false)}>
-                  <X className="h-4 w-4" />
-                </Button>
+          <div className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-2xl font-bold text-destructive">Delete All Elections</h2>
+              <Button variant="ghost" size="sm" onClick={() => setIsDeleteAllConfirmOpen(false)}>
+                <X className="w-4 h-4" />
+              </Button>
+            </div>
+
+            <div className="space-y-4">
+              <div className="bg-destructive/10 p-4 rounded-[20px]">
+                <p className="font-medium text-destructive">Warning: This action cannot be undone!</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  This will permanently delete all elections, including their associated positions and candidates.
+                  Please make sure you have backed up any important data before proceeding.
+                </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="bg-destructive/10 p-4 rounded-[20px]">
-                  <p className="text-destructive font-medium">Warning: This action cannot be undone!</p>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    This will permanently delete all elections, including their associated positions and candidates.
-                    Please make sure you have backed up any important data before proceeding.
-                  </p>
-                </div>
-
-                <div className="flex justify-between mt-6">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => setIsDeleteAllConfirmOpen(false)}
-                    disabled={isDeletingAll}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    variant="destructive"
-                    className="bg-destructive hover:bg-destructive/90"
-                    onClick={handleDeleteAllElections}
-                    disabled={isDeletingAll}
-                  >
-                    {isDeletingAll ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        Deleting...
-                      </span>
-                    ) : (
-                      "Yes, Delete All Elections"
-                    )}
-                  </Button>
-                </div>
+              <div className="flex justify-between mt-6">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsDeleteAllConfirmOpen(false)}
+                  disabled={isDeletingAll}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  variant="destructive"
+                  className="bg-destructive hover:bg-destructive/90"
+                  onClick={handleDeleteAllElections}
+                  disabled={isDeletingAll}
+                >
+                  {isDeletingAll ? (
+                    <span className="flex items-center">
+                      <svg
+                        className="w-4 h-4 mr-2 -ml-1 text-white animate-spin"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Deleting...
+                    </span>
+                  ) : (
+                    "Yes, Delete All Elections"
+                  )}
+                </Button>
               </div>
             </div>
           </div>
+        </div>
       </Modal>
     </div>
   )
