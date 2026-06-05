@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema({
-  firstName:{
+  firstName: {
     type: String,
     required: true
   },
@@ -27,27 +27,15 @@ const userSchema = new mongoose.Schema({
   password: {
     type: String,
   },
-  // googleId: {
-  //   type: String,
-  // },
-  // profilePic: {
-  //   type: String,
-  //   default: ""
-  // },
   electionId: {
     type: mongoose.Schema.Types.ObjectId,  // Reference to Election model
     ref: "Election",
     required: true
-  },  
+  },
   studentId: {
     type: String,
-    required: false, // Changed to false to make it optional
+    required: false,
     trim: true
-  },
-  level: {
-    type: String,
-    enum: ["lower", "upper"],  // Restricting values
-    required: true
   }
 }, {
   timestamps: true

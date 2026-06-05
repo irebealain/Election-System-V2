@@ -72,14 +72,8 @@ function Elections() {
         c => c != null && c.electionId === currentElection._id
       )
 
-      const filteredPositions = electionPositions.filter(position => {
-        if (currentUser.level === "upper") {
-          return !position.title.toLowerCase().includes("junior minister")
-        }
-        return true
-      })
-
-      const positionsWithCandidates = filteredPositions.filter(position =>
+      // All students see all positions — no level-based filtering
+      const positionsWithCandidates = electionPositions.filter(position =>
         electionCandidates.some(candidate => candidate.positionId === position._id)
       )
 
@@ -226,7 +220,6 @@ function Elections() {
     setDialogOpen(true)
   }
 
-  // ── Lock body scroll while dialog is open ────────────────────────────────────
   useEffect(() => {
     if (dialogOpen) {
       document.body.style.overflow = 'hidden'
@@ -627,120 +620,119 @@ function Elections() {
 
       {/* Candidate Details Dialog — portal to escape parent stacking contexts */}
       {createPortal(
-      <AnimatePresence>
-        {dialogOpen && selectedCandidate && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9999,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              padding: '1rem',
-              overflow: 'hidden',
-            }}
-          >
-            {/* Backdrop — fixed, full-viewport, scroll-proof */}
-            <div
+        <AnimatePresence>
+          {dialogOpen && selectedCandidate && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
               style={{
                 position: 'fixed',
                 inset: 0,
-                backgroundColor: 'rgba(0, 0, 0, 0.55)',
-                backdropFilter: 'blur(8px)',
-                WebkitBackdropFilter: 'blur(8px)',
+                zIndex: 9999,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '1rem',
+                overflow: 'hidden',
               }}
-              onClick={() => setDialogOpen(false)}
-            />
-            <motion.div
-              style={{
-                position: 'relative',
-                zIndex: 1,
-                width: '100%',
-                maxWidth: '28rem',
-                maxHeight: '90vh',
-                overflowY: 'auto',
-                backgroundColor: 'rgba(255,255,255,0.97)',
-                backdropFilter: 'blur(24px)',
-                WebkitBackdropFilter: 'blur(24px)',
-                borderRadius: '1.25rem',
-                boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
-                border: '1px solid rgba(255,255,255,0.2)',
-              }}
-              className="dark:bg-gray-900/97 dark:border-gray-700/50"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 50 }}
-              transition={{ duration: 0.3 }}
             >
-              <div className="p-6">
-                <h3 className="mb-1 text-xl font-bold">
-                  {selectedCandidate.firstName} {selectedCandidate.lastName}
-                </h3>
-                <p className="mb-4 text-muted-foreground">
-                  Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.title}
-                </p>
+              <div
+                style={{
+                  position: 'fixed',
+                  inset: 0,
+                  backgroundColor: 'rgba(0, 0, 0, 0.55)',
+                  backdropFilter: 'blur(8px)',
+                  WebkitBackdropFilter: 'blur(8px)',
+                }}
+                onClick={() => setDialogOpen(false)}
+              />
+              <motion.div
+                style={{
+                  position: 'relative',
+                  zIndex: 1,
+                  width: '100%',
+                  maxWidth: '28rem',
+                  maxHeight: '90vh',
+                  overflowY: 'auto',
+                  backgroundColor: 'rgba(255,255,255,0.97)',
+                  backdropFilter: 'blur(24px)',
+                  WebkitBackdropFilter: 'blur(24px)',
+                  borderRadius: '1.25rem',
+                  boxShadow: '0 32px 64px -12px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.15)',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                }}
+                className="dark:bg-gray-900/97 dark:border-gray-700/50"
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 50 }}
+                transition={{ duration: 0.3 }}
+              >
+                <div className="p-6">
+                  <h3 className="mb-1 text-xl font-bold">
+                    {selectedCandidate.firstName} {selectedCandidate.lastName}
+                  </h3>
+                  <p className="mb-4 text-muted-foreground">
+                    Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.title}
+                  </p>
 
-                <div className="grid gap-4 py-4">
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center justify-center w-16 h-16 text-lg font-bold rounded-full bg-muted">
-                      {selectedCandidate.firstName.charAt(0)}
+                  <div className="grid gap-4 py-4">
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center justify-center w-16 h-16 text-lg font-bold rounded-full bg-muted">
+                        {selectedCandidate.firstName.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">
+                          {selectedCandidate.firstName} {selectedCandidate.lastName}
+                        </h4>
+                        <p className="text-sm text-muted-foreground">
+                          {positions.find(p => p._id === selectedCandidate.positionId)?.title}
+                        </p>
+                      </div>
                     </div>
                     <div>
-                      <h4 className="font-medium">
-                        {selectedCandidate.firstName} {selectedCandidate.lastName}
-                      </h4>
-                      <p className="text-sm text-muted-foreground">
-                        {positions.find(p => p._id === selectedCandidate.positionId)?.title}
-                      </p>
+                      <h4 className="mb-2 font-medium">Mandate:</h4>
+                      <p className="text-sm">{selectedCandidate.mandate}</p>
                     </div>
                   </div>
-                  <div>
-                    <h4 className="mb-2 font-medium">Mandate:</h4>
-                    <p className="text-sm">{selectedCandidate.mandate}</p>
+
+                  <div className="flex justify-between mt-6">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDialogOpen(false)}
+                      className="hover:bg-primary/10"
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        handleVote(selectedCandidate._id, selectedCandidate.positionId)
+                        setDialogOpen(false)
+                      }}
+                      variant={
+                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
+                          ? "destructive"
+                          : "default"
+                      }
+                      className={cn(
+                        "transition-colors duration-200",
+                        votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
+                          ? ""
+                          : "bg-primary hover:bg-primary/90"
+                      )}
+                      disabled={hasVoted}
+                    >
+                      {votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
+                        ? "Remove Vote"
+                        : "Vote"}
+                    </Button>
                   </div>
                 </div>
-
-                <div className="flex justify-between mt-6">
-                  <Button
-                    variant="outline"
-                    onClick={() => setDialogOpen(false)}
-                    className="hover:bg-primary/10"
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    onClick={() => {
-                      handleVote(selectedCandidate._id, selectedCandidate.positionId)
-                      setDialogOpen(false)
-                    }}
-                    variant={
-                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
-                        ? "destructive"
-                        : "default"
-                    }
-                    className={cn(
-                      "transition-colors duration-200",
-                      votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
-                        ? ""
-                        : "bg-primary hover:bg-primary/90"
-                    )}
-                    disabled={hasVoted}
-                  >
-                    {votes[positions.find(p => p._id === selectedCandidate.positionId)?.title] === selectedCandidate._id
-                      ? "Remove Vote"
-                      : "Vote"}
-                  </Button>
-                </div>
-              </div>
+              </motion.div>
             </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-      , document.body)}
+          )}
+        </AnimatePresence>
+        , document.body)}
     </motion.div>
   )
 }

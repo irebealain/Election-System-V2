@@ -24,7 +24,7 @@ export const getUsers = async (req, res) => {
 // Signup as new user
 export const userSignup = async (req, res) => {
   const user = req.body;
-  if (!user.firstName || !user.lastName || !user.email || !user.password || !user.electionId || !user.level || !user.studentId) {
+  if (!user.firstName || !user.lastName || !user.email || !user.password || !user.electionId || !user.studentId) {
     return res.status(400).json({ success: false, message: "Please provide all required fields" });
   }
 
@@ -47,9 +47,9 @@ export const userSignup = async (req, res) => {
     });
 
     if (!validStudentId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid student ID or already registered for this election." 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student ID or already registered for this election."
       });
     }
 
@@ -70,7 +70,6 @@ export const userSignup = async (req, res) => {
       email: user.email,
       password: hashedPassword,
       electionId: user.electionId,
-      level: user.level,
       studentId: user.studentId,
       role: 'student'
     });
@@ -96,7 +95,6 @@ export const userSignup = async (req, res) => {
           firstName: newUser.firstName,
           lastName: newUser.lastName,
           email: newUser.email,
-          level: newUser.level,
           role: newUser.role,
           electionId: newUser.electionId,
           studentId: newUser.studentId
@@ -134,16 +132,16 @@ export const userLogin = async (req, res) => {
       });
 
       if (!studentIdRecord) {
-        return res.status(400).json({ 
-          success: false, 
-          message: "Student ID not found for this election." 
+        return res.status(400).json({
+          success: false,
+          message: "Student ID not found for this election."
         });
       }
 
       // If student ID is already registered, find the user who registered it
       if (studentIdRecord.status === 'used' && studentIdRecord.usedBy) {
         const registeredUser = await User.findById(studentIdRecord.usedBy);
-        
+
         if (!registeredUser) {
           return res.status(400).json({
             success: false,
@@ -153,7 +151,6 @@ export const userLogin = async (req, res) => {
 
         // If the email matches the registered user's email, proceed with login
         if (registeredUser.email === email) {
-          // Generate JWT token
           const token = jwt.sign({ id: user._id, role: user.role }, JWT_SECRET, { expiresIn: "4d" });
 
           return res.status(200).json({
@@ -166,7 +163,6 @@ export const userLogin = async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 email: user.email,
-                level: user.level,
                 role: user.role,
                 electionId: user.electionId,
                 studentId: user.studentId
@@ -174,7 +170,6 @@ export const userLogin = async (req, res) => {
             }
           });
         } else {
-          // If email doesn't match, this is a different user trying to use the same student ID
           return res.status(400).json({
             success: false,
             message: "This student ID is registered to a different account. Please use your own student ID."
@@ -206,7 +201,6 @@ export const userLogin = async (req, res) => {
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          level: user.level,
           role: user.role,
           electionId: user.electionId,
           studentId: user.studentId
@@ -247,11 +241,11 @@ export const deleteUser = async (req, res) => {
 
 // Sign up the user using Google Auth
 export const googleUserSignup = async (req, res) => {
-  const { token, level, studentId } = req.body;
-  if (!token || !level || !studentId) {
+  const { token, studentId } = req.body;
+  if (!token || !studentId) {
     return res.status(400).json({
       success: false,
-      message: "Token, level, and student ID are required.",
+      message: "Token and student ID are required.",
     });
   }
   try {
@@ -271,9 +265,9 @@ export const googleUserSignup = async (req, res) => {
     });
 
     if (!validStudentId) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Invalid student ID or already registered for this election." 
+      return res.status(400).json({
+        success: false,
+        message: "Invalid student ID or already registered for this election."
       });
     }
 
@@ -297,7 +291,6 @@ export const googleUserSignup = async (req, res) => {
       lastName,
       email,
       googleId: payload.sub,
-      level,
       role: "student",
       electionId: currentElection._id,
       picture: payload.picture || "",
@@ -316,12 +309,11 @@ export const googleUserSignup = async (req, res) => {
       success: true,
       message: "Logged in successfully",
       token: jwtToken,
-      user: { 
+      user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        level: user.level,
         electionId: currentElection._id,
         picture: user.picture,
         role: user.role,
@@ -367,16 +359,16 @@ export const googleUserLogin = async (req, res) => {
     });
 
     if (!studentIdRecord) {
-      return res.status(400).json({ 
-        success: false, 
-        message: "Student ID not found for this election." 
+      return res.status(400).json({
+        success: false,
+        message: "Student ID not found for this election."
       });
     }
 
     // If student ID is already registered, find the user who registered it
     if (studentIdRecord.status === 'used' && studentIdRecord.usedBy) {
       const registeredUser = await User.findById(studentIdRecord.usedBy);
-      
+
       if (!registeredUser) {
         return res.status(400).json({
           success: false,
@@ -391,12 +383,11 @@ export const googleUserLogin = async (req, res) => {
           success: true,
           message: "Logged in successfully",
           token: appToken,
-          user: { 
+          user: {
             id: registeredUser._id,
             firstName: registeredUser.firstName,
             lastName: registeredUser.lastName,
             email: registeredUser.email,
-            level: registeredUser.level,
             electionId: currentElection._id,
             picture: picture,
             role: registeredUser.role,
@@ -404,7 +395,6 @@ export const googleUserLogin = async (req, res) => {
           },
         });
       } else {
-        // If email doesn't match, this is a different user trying to use the same student ID
         return res.status(400).json({
           success: false,
           message: "This student ID is registered to a different account. Please use your own student ID."
@@ -426,12 +416,11 @@ export const googleUserLogin = async (req, res) => {
         success: true,
         message: "Logged in successfully",
         token: appToken,
-        user: { 
+        user: {
           id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
           email: user.email,
-          level: user.level,
           electionId: currentElection._id,
           picture: picture,
           role: user.role,
@@ -456,12 +445,11 @@ export const googleUserLogin = async (req, res) => {
       success: true,
       message: "Logged in successfully",
       token: appToken,
-      user: { 
+      user: {
         id: user._id,
         firstName: user.firstName,
         lastName: user.lastName,
         email: user.email,
-        level: user.level,
         electionId: currentElection._id,
         picture: picture,
         role: user.role,
@@ -481,7 +469,7 @@ export const googleUserLogin = async (req, res) => {
 export const exportStudents = async (req, res) => {
   try {
     const students = await User.find({ role: 'student' })
-      .select('firstName lastName email studentId level createdAt')
+      .select('firstName lastName email studentId createdAt')
       .lean();
     const workbook = new ExcelJS.Workbook();
     const worksheet = workbook.addWorksheet('Students');
@@ -490,7 +478,6 @@ export const exportStudents = async (req, res) => {
       { header: 'Last Name', key: 'lastName', width: 15 },
       { header: 'Email', key: 'email', width: 30 },
       { header: 'Student ID', key: 'studentId', width: 15 },
-      { header: 'Level', key: 'level', width: 10 },
       { header: 'Registration Date', key: 'createdAt', width: 20 }
     ];
     worksheet.addRows(students);
@@ -508,7 +495,7 @@ export const exportStudents = async (req, res) => {
 // Register new user
 export const registerUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, password, studentId, level } = req.body;
+    const { firstName, lastName, email, password, studentId } = req.body;
     if (studentId) {
       const validation = await validateStudentId(studentId);
       if (!validation.isValid) {
@@ -521,7 +508,6 @@ export const registerUser = async (req, res) => {
       email,
       password,
       studentId,
-      level,
       role: 'student'
     });
     await user.save();
@@ -539,15 +525,15 @@ export const registerUser = async (req, res) => {
 export const deleteAllStudents = async (req, res) => {
   try {
     const result = await User.deleteMany({ role: 'student' });
-    res.status(200).json({ 
-      success: true, 
-      message: `${result.deletedCount} students deleted successfully.` 
+    res.status(200).json({
+      success: true,
+      message: `${result.deletedCount} students deleted successfully.`
     });
   } catch (error) {
     console.error('Error deleting all students:', error);
-    res.status(500).json({ 
-      success: false, 
-      message: 'Failed to delete students.' 
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete students.'
     });
   }
 };
