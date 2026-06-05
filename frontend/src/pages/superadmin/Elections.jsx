@@ -23,12 +23,6 @@ function Elections() {
     startDate: "",
     endDate: "",
   })
-  const [isEditingElection, setIsEditingElection] = useState(false)
-  const [editingElectionData, setEditingElectionData] = useState(null)
-  const [isEditingPosition, setIsEditingPosition] = useState(false)
-  const [editingPositionData, setEditingPositionData] = useState(null)
-  const [isEditingCandidate, setIsEditingCandidate] = useState(false)
-  const [editingCandidateData, setEditingCandidateData] = useState(null)
   const [newPosition, setNewPosition] = useState({
     title: "",
     electionId: ""
@@ -149,67 +143,6 @@ function Elections() {
     }
   }
 
-  const handleUpdateElection = async () => {
-    try {
-      if (!editingElectionData || !editingElectionData._id) {
-        toast.error("No election selected for editing")
-        return
-      }
-
-      // Check if user is authenticated and has required role
-      if (!currentUser) {
-        toast.error("Please log in to update an election")
-        return
-      }
-
-      if (currentUser.role !== "superAdmin" && currentUser.role !== "admin") {
-        toast.error("Only admins and super admins can update elections")
-        return
-      }
-
-      const response = await axios.put(`/api/elections/${editingElectionData._id}`, {
-        title: editingElectionData.title,
-        startDate: editingElectionData.startDate,
-        endDate: editingElectionData.endDate
-      })
-
-      if (response.data.success) {
-        toast.success("Election updated successfully")
-        setIsEditingElection(false)
-        setEditingElectionData(null)
-        setIsManageElectionOpen(false)
-        fetchElections()
-      } else {
-        toast.error(response.data.message || "Failed to update election")
-      }
-    } catch (error) {
-      console.error("Error updating election:", error)
-      toast.error(error.response?.data?.message || "Failed to update election")
-    }
-  }
-
-  const handleOpenEditElection = (election) => {
-    setEditingElectionData({
-      _id: election._id,
-      title: election.title,
-      startDate: election.startDate.split('T')[0], // Format date for input
-      endDate: election.endDate.split('T')[0] // Format date for input
-    })
-    setIsEditingElection(true)
-    setIsManageElectionOpen(true)
-  }
-
-  const handleCloseEditModal = () => {
-    setIsManageElectionOpen(false)
-    setIsEditingElection(false)
-    setEditingElectionData(null)
-    setNewElection({
-      title: "",
-      startDate: "",
-      endDate: "",
-    })
-  }
-
   const handleExcelUpload = async (file, electionId) => {
     if (!file) return;
 
@@ -318,82 +251,6 @@ function Elections() {
     }
   }
 
-  const handleUpdatePosition = async () => {
-    try {
-      if (!editingPositionData || !editingPositionData._id) {
-        toast.error("No position selected for editing")
-        return
-      }
-
-      if (!currentUser) {
-        toast.error("Please log in to update a position")
-        return
-      }
-
-      if (currentUser.role !== "superAdmin" && currentUser.role !== "admin") {
-        toast.error("Only admins and super admins can update positions")
-        return
-      }
-
-      const response = await axios.put(`/api/positions/${editingPositionData._id}`, {
-        title: editingPositionData.title
-      })
-
-      if (response.data.success) {
-        toast.success("Position updated successfully")
-        setIsEditingPosition(false)
-        setEditingPositionData(null)
-        setIsAddPositionOpen(false)
-        fetchPositions()
-      } else {
-        toast.error(response.data.message || "Failed to update position")
-      }
-    } catch (error) {
-      console.error("Error updating position:", error)
-      toast.error(error.response?.data?.message || "Failed to update position")
-    }
-  }
-
-  const handleDeletePosition = async (positionId) => {
-    if (!window.confirm("Are you sure you want to delete this position? Associated candidates will also be removed.")) {
-      return
-    }
-
-    try {
-      if (!currentUser) {
-        toast.error("Please log in to delete a position")
-        return
-      }
-
-      await axios.delete(`/api/positions/${positionId}`)
-      toast.success("Position deleted successfully")
-      fetchPositions()
-      fetchCandidates()
-    } catch (error) {
-      console.error("Error deleting position:", error)
-      toast.error(error.response?.data?.message || "Failed to delete position")
-    }
-  }
-
-  const handleOpenEditPosition = (position) => {
-    setEditingPositionData({
-      _id: position._id,
-      title: position.title
-    })
-    setIsEditingPosition(true)
-    setIsAddPositionOpen(true)
-  }
-
-  const handleClosePositionModal = () => {
-    setIsAddPositionOpen(false)
-    setIsEditingPosition(false)
-    setEditingPositionData(null)
-    setNewPosition({
-      title: "",
-      electionId: ""
-    })
-  }
-
   const handleAddCandidate = async () => {
     try {
       // Check if user is authenticated and has required role
@@ -422,7 +279,6 @@ function Elections() {
           positionId: "",
           electionId: ""
         })
-        setUploadedImage(null)
         setIsAddCandidateOpen(false)
         fetchCandidates()
       } else {
@@ -433,96 +289,6 @@ function Elections() {
       console.error("Error adding candidate:", error)
       toast.error(error.response?.data?.message || "Failed to add candidate")
     }
-  }
-
-  const handleUpdateCandidate = async () => {
-    try {
-      if (!editingCandidateData || !editingCandidateData._id) {
-        toast.error("No candidate selected for editing")
-        return
-      }
-
-      if (!currentUser) {
-        toast.error("Please log in to update a candidate")
-        return
-      }
-
-      if (currentUser.role !== "superAdmin" && currentUser.role !== "admin") {
-        toast.error("Only admins and super admins can update candidates")
-        return
-      }
-
-      const response = await axios.put(`/api/candidates/${editingCandidateData._id}`, {
-        firstName: editingCandidateData.firstName,
-        lastName: editingCandidateData.lastName,
-        mandate: editingCandidateData.mandate,
-        profilePic: editingCandidateData.profilePic,
-        positionId: editingCandidateData.positionId
-      })
-
-      if (response.data.success) {
-        toast.success("Candidate updated successfully")
-        setIsEditingCandidate(false)
-        setEditingCandidateData(null)
-        setIsAddCandidateOpen(false)
-        setUploadedImage(null)
-        fetchCandidates()
-      } else {
-        toast.error(response.data.message || "Failed to update candidate")
-      }
-    } catch (error) {
-      console.error("Error updating candidate:", error)
-      toast.error(error.response?.data?.message || "Failed to update candidate")
-    }
-  }
-
-  const handleDeleteCandidate = async (candidateId) => {
-    if (!window.confirm("Are you sure you want to delete this candidate?")) {
-      return
-    }
-
-    try {
-      if (!currentUser) {
-        toast.error("Please log in to delete a candidate")
-        return
-      }
-
-      await axios.delete(`/api/candidates/${candidateId}`)
-      toast.success("Candidate deleted successfully")
-      fetchCandidates()
-    } catch (error) {
-      console.error("Error deleting candidate:", error)
-      toast.error(error.response?.data?.message || "Failed to delete candidate")
-    }
-  }
-
-  const handleOpenEditCandidate = (candidate) => {
-    setEditingCandidateData({
-      _id: candidate._id,
-      firstName: candidate.firstName,
-      lastName: candidate.lastName,
-      profilePic: candidate.profilePic,
-      mandate: candidate.mandate,
-      positionId: candidate.positionId
-    })
-    setUploadedImage(candidate.profilePic)
-    setIsEditingCandidate(true)
-    setIsAddCandidateOpen(true)
-  }
-
-  const handleCloseCandidateModal = () => {
-    setIsAddCandidateOpen(false)
-    setIsEditingCandidate(false)
-    setEditingCandidateData(null)
-    setUploadedImage(null)
-    setNewCandidate({
-      firstName: "",
-      lastName: "",
-      profilePic: "",
-      mandate: "",
-      positionId: "",
-      electionId: ""
-    })
   }
 
   const handleDeleteElection = async (electionId) => {
@@ -637,15 +403,6 @@ function Elections() {
             <Plus className="mr-2 h-4 w-4" />
             Create Election
           </Button>
-          {selectedElection && (
-            <Button 
-              variant="outline"
-              onClick={() => setSelectedElection(null)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Clear Selection
-            </Button>
-          )}
         </div>
       </div>
 
@@ -740,19 +497,6 @@ function Elections() {
                     variant="outline" 
                     size="sm" 
                     className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
-                    onClick={() => handleOpenEditElection(election)}
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <div className="p-1 bg-primary/10 rounded-full">
-                        <Edit className="h-3 w-3" />
-                      </div>
-                      <span>Edit</span>
-                    </div>
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200 text-xs"
                     onClick={() => {
                       setSelectedElection(election)
                       setIsAddPositionOpen(true)
@@ -801,15 +545,13 @@ function Elections() {
         )}
       </div>
 
-      {/* Create/Edit Election Dialog */}
-      <Modal isOpen={isManageElectionOpen} onClose={handleCloseEditModal}>
+      {/* Create Election Dialog */}
+      <Modal isOpen={isManageElectionOpen} onClose={() => setIsManageElectionOpen(false)}>
         <div className="bg-background rounded-[20px] shadow-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">
-                  {isEditingElection ? 'Edit Election' : 'Create New Election'}
-                </h2>
-                <Button variant="ghost" size="sm" onClick={handleCloseEditModal}>
+                <h2 className="text-2xl font-bold">Create New Election</h2>
+                <Button variant="ghost" size="sm" onClick={() => setIsManageElectionOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -824,14 +566,8 @@ function Elections() {
                     type="text"
                     placeholder="e.g., Spring 2024 Student Council Election"
                     className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                    value={isEditingElection ? editingElectionData?.title || '' : newElection.title}
-                    onChange={(e) => {
-                      if (isEditingElection) {
-                        setEditingElectionData({ ...editingElectionData, title: e.target.value })
-                      } else {
-                        setNewElection({ ...newElection, title: e.target.value })
-                      }
-                    }}
+                    value={newElection.title}
+                    onChange={(e) => setNewElection({ ...newElection, title: e.target.value })}
                   />
                 </div>
 
@@ -844,14 +580,8 @@ function Elections() {
                       id="election-start"
                       type="date"
                       className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={isEditingElection ? editingElectionData?.startDate || '' : newElection.startDate}
-                      onChange={(e) => {
-                        if (isEditingElection) {
-                          setEditingElectionData({ ...editingElectionData, startDate: e.target.value })
-                        } else {
-                          setNewElection({ ...newElection, startDate: e.target.value })
-                        }
-                      }}
+                      value={newElection.startDate}
+                      onChange={(e) => setNewElection({ ...newElection, startDate: e.target.value })}
                     />
                   </div>
 
@@ -863,84 +593,71 @@ function Elections() {
                       id="election-end"
                       type="date"
                       className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={isEditingElection ? editingElectionData?.endDate || '' : newElection.endDate}
-                      onChange={(e) => {
-                        if (isEditingElection) {
-                          setEditingElectionData({ ...editingElectionData, endDate: e.target.value })
-                        } else {
-                          setNewElection({ ...newElection, endDate: e.target.value })
-                        }
-                      }}
-                      min={isEditingElection ? editingElectionData?.startDate || '' : newElection.startDate}
+                      value={newElection.endDate}
+                      onChange={(e) => setNewElection({ ...newElection, endDate: e.target.value })}
+                      min={newElection.startDate}
                     />
                   </div>
                 </div>
 
-                {!isEditingElection && (
-                  <div className="space-y-2">
-                    <label className="block text-sm font-medium">
-                      Upload Student IDs (Excel)
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => document.getElementById('studentIdsUpload').click()}
-                        disabled={isUploading}
-                        className="w-full"
-                      >
-                        <Upload className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Select Student IDs File'}
-                      </Button>
-                      <input
-                        id="studentIdsUpload"
-                        type="file"
-                        className="hidden"
-                        accept=".xlsx,.xls"
-                        onChange={handleFileSelect}
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Upload an Excel file containing student IDs. The file should have student IDs in the first column.
-                      {newElection.studentIdFile && (
-                        <span className="block mt-1 text-green-600">
-                          File selected: {newElection.studentIdFile.name}
-                        </span>
-                      )}
-                    </p>
+                <div className="space-y-2">
+                  <label className="block text-sm font-medium">
+                    Upload Student IDs (Excel)
+                  </label>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => document.getElementById('studentIdsUpload').click()}
+                      disabled={isUploading}
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      {isUploading ? 'Uploading...' : 'Select Student IDs File'}
+                    </Button>
+                    <input
+                      id="studentIdsUpload"
+                      type="file"
+                      className="hidden"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileSelect}
+                    />
                   </div>
-                )}
+                  <p className="text-xs text-muted-foreground">
+                    Upload an Excel file containing student IDs. The file should have student IDs in the first column.
+                    {newElection.studentIdFile && (
+                      <span className="block mt-1 text-green-600">
+                        File selected: {newElection.studentIdFile.name}
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={handleCloseEditModal}>
+                <Button variant="outline" onClick={() => setIsManageElectionOpen(false)}>
                   Cancel
                 </Button>
                 <Button 
                   className="bg-primary hover:bg-primary/90"
-                  onClick={isEditingElection ? handleUpdateElection : handleCreateElection}
-                  disabled={isEditingElection ? 
-                    !editingElectionData?.title || !editingElectionData?.startDate || !editingElectionData?.endDate
-                    : !newElection.title || !newElection.startDate || !newElection.endDate
-                  }
+                  onClick={handleCreateElection}
+                  disabled={!newElection.title || !newElection.startDate || !newElection.endDate}
                 >
-                  {isEditingElection ? 'Update Election' : 'Create Election'}
+                  Create Election
                 </Button>
               </div>
             </div>
           </div>
       </Modal>
 
-      {/* Add/Edit Position Dialog */}
+      {/* Add Position Dialog */}
       {isAddPositionOpen && selectedElection && (
         <div className="modal-backdrop p-4">
           <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">
-                  {isEditingPosition ? 'Edit Position' : 'Add Position'}
-                </h2>
-                <Button variant="ghost" size="sm" onClick={handleClosePositionModal}>
+                <h2 className="text-2xl font-bold">Add Position</h2>
+                <Button variant="ghost" size="sm" onClick={() => setIsAddPositionOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -955,28 +672,22 @@ function Elections() {
                     type="text"
                     placeholder="e.g., President"
                     className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                    value={isEditingPosition ? editingPositionData?.title || '' : newPosition.title}
-                    onChange={(e) => {
-                      if (isEditingPosition) {
-                        setEditingPositionData({ ...editingPositionData, title: e.target.value })
-                      } else {
-                        setNewPosition({ ...newPosition, title: e.target.value })
-                      }
-                    }}
+                    value={newPosition.title}
+                    onChange={(e) => setNewPosition({ ...newPosition, title: e.target.value })}
                   />
                 </div>
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={handleClosePositionModal}>
+                <Button variant="outline" onClick={() => setIsAddPositionOpen(false)}>
                   Cancel
                 </Button>
                 <Button 
                   className="bg-primary hover:bg-primary/90"
-                  onClick={isEditingPosition ? handleUpdatePosition : handleAddPosition}
-                  disabled={isEditingPosition ? !editingPositionData?.title : !newPosition.title}
+                  onClick={handleAddPosition}
+                  disabled={!newPosition.title}
                 >
-                  {isEditingPosition ? 'Update Position' : 'Add Position'}
+                  Add Position
                 </Button>
               </div>
             </div>
@@ -984,16 +695,14 @@ function Elections() {
         </div>
       )}
 
-      {/* Add/Edit Candidate Dialog */}
+      {/* Add Candidate Dialog */}
       {isAddCandidateOpen && selectedElection && (
         <div className="modal-backdrop p-4">
-          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full max-h-[90vh] overflow-y-auto">
+          <div className="bg-background rounded-[20px] shadow-lg max-w-md w-full">
             <div className="p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-2xl font-bold">
-                  {isEditingCandidate ? 'Edit Candidate' : 'Add Candidate'}
-                </h2>
-                <Button variant="ghost" size="sm" onClick={handleCloseCandidateModal}>
+                <h2 className="text-2xl font-bold">Add Candidate</h2>
+                <Button variant="ghost" size="sm" onClick={() => setIsAddCandidateOpen(false)}>
                   <X className="h-4 w-4" />
                 </Button>
               </div>
@@ -1008,14 +717,8 @@ function Elections() {
                       id="candidate-firstname"
                       type="text"
                       className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={isEditingCandidate ? editingCandidateData?.firstName || '' : newCandidate.firstName}
-                      onChange={(e) => {
-                        if (isEditingCandidate) {
-                          setEditingCandidateData({ ...editingCandidateData, firstName: e.target.value })
-                        } else {
-                          setNewCandidate({ ...newCandidate, firstName: e.target.value })
-                        }
-                      }}
+                      value={newCandidate.firstName}
+                      onChange={(e) => setNewCandidate({ ...newCandidate, firstName: e.target.value })}
                     />
                   </div>
 
@@ -1027,14 +730,8 @@ function Elections() {
                       id="candidate-lastname"
                       type="text"
                       className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                      value={isEditingCandidate ? editingCandidateData?.lastName || '' : newCandidate.lastName}
-                      onChange={(e) => {
-                        if (isEditingCandidate) {
-                          setEditingCandidateData({ ...editingCandidateData, lastName: e.target.value })
-                        } else {
-                          setNewCandidate({ ...newCandidate, lastName: e.target.value })
-                        }
-                      }}
+                      value={newCandidate.lastName}
+                      onChange={(e) => setNewCandidate({ ...newCandidate, lastName: e.target.value })}
                     />
                   </div>
                 </div>
@@ -1046,14 +743,8 @@ function Elections() {
                   <select
                     id="candidate-position"
                     className="w-full h-10 rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                    value={isEditingCandidate ? editingCandidateData?.positionId || '' : newCandidate.positionId}
-                    onChange={(e) => {
-                      if (isEditingCandidate) {
-                        setEditingCandidateData({ ...editingCandidateData, positionId: e.target.value })
-                      } else {
-                        setNewCandidate({ ...newCandidate, positionId: e.target.value })
-                      }
-                    }}
+                    value={newCandidate.positionId}
+                    onChange={(e) => setNewCandidate({ ...newCandidate, positionId: e.target.value })}
                   >
                     <option value="">Select Position</option>
                     {positions
@@ -1073,14 +764,8 @@ function Elections() {
                   <textarea
                     id="candidate-mandate"
                     className="w-full min-h-[100px] rounded-[20px] border border-input bg-background px-3 py-2 text-sm"
-                    value={isEditingCandidate ? editingCandidateData?.mandate || '' : newCandidate.mandate}
-                    onChange={(e) => {
-                      if (isEditingCandidate) {
-                        setEditingCandidateData({ ...editingCandidateData, mandate: e.target.value })
-                      } else {
-                        setNewCandidate({ ...newCandidate, mandate: e.target.value })
-                      }
-                    }}
+                    value={newCandidate.mandate}
+                    onChange={(e) => setNewCandidate({ ...newCandidate, mandate: e.target.value })}
                   />
                 </div>
 
@@ -1117,7 +802,7 @@ function Elections() {
                         className="w-full"
                       >
                         <Upload className="h-4 w-4 mr-2" />
-                        {isUploading ? 'Uploading...' : 'Change Image'}
+                        {isUploading ? 'Uploading...' : 'Upload Image'}
                       </Button>
                       <input
                         id="profile-upload"
@@ -1135,142 +820,17 @@ function Elections() {
               </div>
 
               <div className="flex justify-between mt-6">
-                <Button variant="outline" onClick={handleCloseCandidateModal}>
+                <Button variant="outline" onClick={() => setIsAddCandidateOpen(false)}>
                   Cancel
                 </Button>
                 <Button 
                   className="bg-primary hover:bg-primary/90"
-                  onClick={isEditingCandidate ? handleUpdateCandidate : handleAddCandidate}
-                  disabled={isEditingCandidate ? 
-                    !editingCandidateData?.firstName || !editingCandidateData?.lastName || !editingCandidateData?.positionId || !editingCandidateData?.mandate || !editingCandidateData?.profilePic
-                    : !newCandidate.firstName || !newCandidate.lastName || !newCandidate.positionId || !newCandidate.mandate || !newCandidate.profilePic
-                  }
+                  onClick={handleAddCandidate}
+                  disabled={!newCandidate.firstName || !newCandidate.lastName || !newCandidate.positionId || !newCandidate.mandate || !newCandidate.profilePic}
                 >
-                  {isEditingCandidate ? 'Update Candidate' : 'Add Candidate'}
+                  Add Candidate
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Positions and Candidates Management Section */}
-      {selectedElection && (
-        <div className="space-y-6 mt-8 p-6 bg-muted/30 rounded-[20px]">
-          <h2 className="text-2xl font-bold">Manage: {selectedElection.title}</h2>
-
-          {/* Positions Section */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Positions</h3>
-              <Button 
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setIsAddPositionOpen(true)
-                  setIsEditingPosition(false)
-                  setNewPosition({ title: "", electionId: selectedElection._id })
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Position
-              </Button>
-            </div>
-            <div className="grid gap-3">
-              {positions.filter(p => p.electionId === selectedElection._id).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No positions added yet</p>
-              ) : (
-                positions.filter(p => p.electionId === selectedElection._id).map(position => (
-                  <div key={position._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
-                    <div>
-                      <p className="font-medium">{position.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {candidates.filter(c => c.positionId === position._id).length} candidate(s)
-                      </p>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleOpenEditPosition(position)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="destructive"
-                        className="h-8 w-8 p-0"
-                        onClick={() => handleDeletePosition(position._id)}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Candidates Section */}
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold">Candidates</h3>
-              <Button 
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setIsAddCandidateOpen(true)
-                  setIsEditingCandidate(false)
-                  setUploadedImage(null)
-                  setNewCandidate({ firstName: "", lastName: "", profilePic: "", mandate: "", positionId: "", electionId: selectedElection._id })
-                }}
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Add Candidate
-              </Button>
-            </div>
-            <div className="grid gap-3">
-              {candidates.filter(c => c.electionId === selectedElection._id).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No candidates added yet</p>
-              ) : (
-                candidates.filter(c => c.electionId === selectedElection._id).map(candidate => {
-                  const position = positions.find(p => p._id === candidate.positionId)
-                  return (
-                    <div key={candidate._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
-                      <div className="flex items-center gap-3 flex-1">
-                        <img
-                          src={candidate.profilePic}
-                          alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="w-10 h-10 rounded-full object-cover"
-                        />
-                        <div>
-                          <p className="font-medium">{candidate.firstName} {candidate.lastName}</p>
-                          <p className="text-xs text-muted-foreground">{position?.title || 'Unknown Position'}</p>
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleOpenEditCandidate(candidate)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          className="h-8 w-8 p-0"
-                          onClick={() => handleDeleteCandidate(candidate._id)}
-                        >
-                          <Trash className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
             </div>
           </div>
         </div>
