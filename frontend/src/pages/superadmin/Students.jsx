@@ -51,7 +51,17 @@ function Students() {
         getAllElections()
       ])
 
-      setStudents(studentsData || [])
+      // Find active elections (ongoing or upcoming)
+      const activeElectionIds = electionsData
+        ?.filter(e => e.status === 'ongoing' || e.status === 'upcoming')
+        .map(e => e._id) || [];
+
+      // Filter students to only those in active elections
+      const activeStudents = (studentsData || []).filter(student => 
+        student.electionId && activeElectionIds.includes(student.electionId)
+      );
+
+      setStudents(activeStudents)
       setVotes(votesData || [])
       setElections(electionsData || [])
       
@@ -59,7 +69,7 @@ function Students() {
       const ongoingElection = electionsData?.find(e => e.status === 'ongoing')
       setCurrentElection(ongoingElection)
       
-      setFilteredStudents(studentsData || [])
+      setFilteredStudents(activeStudents)
     } catch (error) {
       console.error("Error fetching data:", error)
       setError("Failed to fetch data. Please try again later.")
