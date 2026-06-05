@@ -62,13 +62,13 @@ function SuperAdminDashboard() {
         setVotes(votesData || [])
         setPositions(positionsData || [])
         setCandidates(candidatesData || [])
-          } catch (error) {
+      } catch (error) {
         console.error("Error fetching data:", error)
         setError("Failed to fetch data. Please try again later.")
       } finally {
-            setLoading(false)
-          }
-        }
+        setLoading(false)
+      }
+    }
     fetchData()
   }, [])
 
@@ -115,16 +115,16 @@ function SuperAdminDashboard() {
     }
 
     const totalStudents = students.length
-    
+
     // Get all positions for the current election
     const electionPositions = positions.filter(p => p.electionId === currentElection._id)
-    const juniorMinisterPositions = electionPositions.filter(p => 
+    const juniorMinisterPositions = electionPositions.filter(p =>
       p.title.toLowerCase().includes('junior minister')
     )
-    const regularPositions = electionPositions.filter(p => 
+    const regularPositions = electionPositions.filter(p =>
       !p.title.toLowerCase().includes('junior minister')
     )
-    
+
     // Get unique students who have voted in the current election
     const studentVotes = new Map() // Map to track votes per student
     votes.forEach(vote => {
@@ -144,13 +144,13 @@ function SuperAdminDashboard() {
 
       if (student.level === 'lower') {
         // Lower level students need to vote for all junior minister positions
-        const hasVotedAll = juniorMinisterPositions.every(position => 
+        const hasVotedAll = juniorMinisterPositions.every(position =>
           studentVoteSet.has(position._id)
         )
         return hasVotedAll ? count + 1 : count
       } else if (student.level === 'upper') {
         // Upper level students need to vote for all regular positions
-        const hasVotedAll = regularPositions.every(position => 
+        const hasVotedAll = regularPositions.every(position =>
           studentVoteSet.has(position._id)
         )
         return hasVotedAll ? count + 1 : count
@@ -159,7 +159,7 @@ function SuperAdminDashboard() {
     }, 0)
 
     const notVotedStudents = totalStudents - votedStudents
-    
+
     // Calculate percentages
     const votedPercentage = totalStudents > 0 ? (votedStudents / totalStudents) * 100 : 0
     const notVotedPercentage = totalStudents > 0 ? (notVotedStudents / totalStudents) * 100 : 0
@@ -206,10 +206,10 @@ function SuperAdminDashboard() {
     return elections.map(election => {
       const electionPositions = positions.filter(p => p.electionId === election._id)
       const electionCandidates = candidates.filter(c => c.electionId === election._id)
-      const positionsWithCandidates = electionPositions.filter(pos => 
+      const positionsWithCandidates = electionPositions.filter(pos =>
         electionCandidates.some(cand => cand.positionId === pos._id)
       )
-      
+
       // Calculate voter turnout
       const electionVotes = votes.filter(v => v.electionId === election._id)
       const eligibleVoters = students.length // Can be refined based on election criteria
@@ -217,8 +217,8 @@ function SuperAdminDashboard() {
 
       // Calculate candidate distribution
       const totalCandidates = electionCandidates.length
-      const avgCandidatesPerPosition = electionPositions.length > 0 
-        ? totalCandidates / electionPositions.length 
+      const avgCandidatesPerPosition = electionPositions.length > 0
+        ? totalCandidates / electionPositions.length
         : 0
 
       return {
@@ -226,8 +226,8 @@ function SuperAdminDashboard() {
         positions: electionPositions.length,
         candidates: totalCandidates,
         filledPositions: positionsWithCandidates.length,
-        positionsFillRate: electionPositions.length > 0 
-          ? (positionsWithCandidates.length / electionPositions.length) * 100 
+        positionsFillRate: electionPositions.length > 0
+          ? (positionsWithCandidates.length / electionPositions.length) * 100
           : 0,
         candidatesPerPosition: avgCandidatesPerPosition,
         voterTurnout,
@@ -280,7 +280,7 @@ function SuperAdminDashboard() {
   const electionStats = getElectionStats()
   const studentStats = getStudentStats()
   const adminStats = getAdminStats()
-  
+
   return (
     <div className="space-y-4">
       <div className="flex justify-between items-center">
@@ -309,9 +309,8 @@ function SuperAdminDashboard() {
           <CardHeader className="pb-1">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm font-medium">Election Overview</CardTitle>
-              <div className={`flex items-center space-x-1 ${
-                electionStats.trend === 'up' ? 'text-green-600' : 'text-gray-600'
-              }`}>
+              <div className={`flex items-center space-x-1 ${electionStats.trend === 'up' ? 'text-green-600' : 'text-gray-600'
+                }`}>
                 {electionStats.trend === 'up' ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                 <span className="text-xs">{electionStats.lastMonthElections} new</span>
               </div>
@@ -354,25 +353,25 @@ function SuperAdminDashboard() {
                   </div>
                   <div className="h-2 w-full rounded-full overflow-hidden flex">
                     {/* Ongoing Elections */}
-                    <div 
+                    <div
                       className="h-full bg-green-500 dark:bg-green-400 transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${(electionStats.activeElections / electionStats.totalElections) * 100}%`,
                         marginRight: electionStats.activeElections > 0 ? '1px' : '0'
                       }}
                     />
                     {/* Completed Elections */}
-                    <div 
+                    <div
                       className="h-full bg-blue-500 dark:bg-blue-400 transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${(electionStats.completedElections / electionStats.totalElections) * 100}%`,
                         marginRight: electionStats.completedElections > 0 ? '1px' : '0'
                       }}
                     />
                     {/* Upcoming Elections */}
-                    <div 
+                    <div
                       className="h-full bg-yellow-500 dark:bg-yellow-400 transition-all duration-500"
-                      style={{ 
+                      style={{
                         width: `${(electionStats.upcomingElections / electionStats.totalElections) * 100}%`
                       }}
                     />
@@ -427,7 +426,7 @@ function SuperAdminDashboard() {
                           </span>
                         </div>
                       </div>
-                      
+
                       {/* Positions progress */}
                       <div className="space-y-2">
                         <div className="flex justify-between items-center text-xs">
@@ -435,7 +434,7 @@ function SuperAdminDashboard() {
                           <span className="text-gray-500">{election.filledPositions}/{election.positions} positions</span>
                         </div>
                         <div className="h-2 bg-purple-100 dark:bg-purple-900/20 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-purple-500 dark:bg-purple-400 rounded-full transition-all duration-500"
                             style={{ width: `${election.positionsFillRate}%` }}
                           />
@@ -449,9 +448,9 @@ function SuperAdminDashboard() {
                           <span className="text-gray-500">{election.candidates} total</span>
                         </div>
                         <div className="h-2 bg-orange-100 dark:bg-orange-900/20 rounded-full overflow-hidden">
-                          <div 
+                          <div
                             className="h-full bg-orange-500 dark:bg-orange-400 rounded-full transition-all duration-500"
-                            style={{ 
+                            style={{
                               width: `${Math.min((election.candidatesPerPosition / 3) * 100, 100)}%`
                             }}
                           />
@@ -479,9 +478,8 @@ function SuperAdminDashboard() {
           <CardHeader className="pb-1">
             <div className="flex justify-between items-center">
               <CardTitle className="text-sm font-medium">Student Participation</CardTitle>
-              <div className={`flex items-center space-x-1 ${
-                studentStats.trend === 'up' ? 'text-green-600' : 'text-gray-600'
-              }`}>
+              <div className={`flex items-center space-x-1 ${studentStats.trend === 'up' ? 'text-green-600' : 'text-gray-600'
+                }`}>
                 {studentStats.trend === 'up' ? <TrendingUp className="h-3.5 w-3.5" /> : <TrendingDown className="h-3.5 w-3.5" />}
                 <span className="text-xs">{studentStats.lastHourVotes} new votes</span>
               </div>
@@ -513,14 +511,14 @@ function SuperAdminDashboard() {
                 <div className="h-[8.3rem]">
                   <PieChartWrapper
                     data={[
-                      { 
-                        name: 'Voted', 
+                      {
+                        name: 'Voted',
                         value: studentStats.votedStudents,
                         percentage: studentStats.votedPercentage,
                         total: studentStats.totalStudents
                       },
-                      { 
-                        name: 'Not Voted', 
+                      {
+                        name: 'Not Voted',
                         value: studentStats.notVotedStudents,
                         percentage: studentStats.notVotedPercentage,
                         total: studentStats.totalStudents
@@ -565,7 +563,7 @@ function SuperAdminDashboard() {
                 <CardTitle className="text-lg">Students</CardTitle>
                 <CardDescription className="mt-1">Students registered for the current election</CardDescription>
               </div>
-              <div 
+              <div
                 onClick={() => navigate("/superadmin/students")}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer transition-colors"
                 title="View all students"
@@ -587,8 +585,8 @@ function SuperAdminDashboard() {
                 </thead>
                 <tbody>
                   {students.slice(0, 5).map((student, index) => (
-                    <tr 
-                      key={student._id} 
+                    <tr
+                      key={student._id}
                       className={`
                         hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors
                         ${index !== students.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}
@@ -668,7 +666,7 @@ function SuperAdminDashboard() {
                 <CardTitle className="text-lg">Admins</CardTitle>
                 <CardDescription className="mt-1">Administrators with access to the system</CardDescription>
               </div>
-              <div 
+              <div
                 onClick={() => navigate("/superadmin/admins")}
                 className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full cursor-pointer transition-colors"
                 title="View all admins"
@@ -689,8 +687,8 @@ function SuperAdminDashboard() {
                 </thead>
                 <tbody>
                   {admins.slice(0, 5).map((admin, index) => (
-                    <tr 
-                      key={admin._id} 
+                    <tr
+                      key={admin._id}
                       className={`
                         hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors
                         ${index !== admins.length - 1 ? 'border-b border-gray-100 dark:border-gray-800' : ''}
@@ -713,12 +711,12 @@ function SuperAdminDashboard() {
                       </td>
                       <td className="py-3 px-4">
                         <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium
-                          ${admin.isApproved 
+                          ${admin.isApproved
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                             : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
                           }`}>
                           <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                            ${admin.isApproved 
+                            ${admin.isApproved
                               ? 'bg-green-500 dark:bg-green-400'
                               : 'bg-yellow-500 dark:bg-yellow-400'
                             }`}

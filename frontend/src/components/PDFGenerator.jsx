@@ -25,8 +25,8 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
             <div
               key={position._id}
               ref={el => chartRefs.current[position._id] = el}
-              style={{ 
-                width: '400px', 
+              style={{
+                width: '400px',
                 height: '300px',
                 backgroundColor: 'white',
                 padding: '20px',
@@ -52,7 +52,7 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
           );
         });
       setCharts(newCharts);
-      
+
       setTimeout(() => {
         setIsReady(true);
       }, 1000);
@@ -92,13 +92,13 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
       // Add header with logo or title
       pdf.setFillColor(41, 128, 185); // Nice blue color
       pdf.rect(0, 0, 210, 30, 'F');
-      
+
       // Add title with custom styling
       pdf.setTextColor(255, 255, 255);
       pdf.setFontSize(24);
       pdf.setFont('helvetica', 'bold');
       pdf.text(election.title, 105, 20, { align: 'center' });
-      
+
       // Add subtitle
       pdf.setFontSize(12);
       pdf.setFont('helvetica', 'normal');
@@ -106,7 +106,7 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
 
       // Reset text color for content
       pdf.setTextColor(0, 0, 0);
-      
+
       // Add date with styling
       pdf.setFontSize(10);
       pdf.setTextColor(100, 100, 100);
@@ -116,10 +116,10 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
 
       // Process each position
       const electionPositions = positions.filter(p => p.electionId === election._id);
-      
+
       for (const position of electionPositions) {
         const positionResults = getPositionResults(position._id);
-        
+
         // Add position title with styling
         pdf.setFontSize(16);
         pdf.setFont('helvetica', 'bold');
@@ -134,7 +134,7 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
 
         // Get the chart element
         const chartElement = chartRefs.current[position._id];
-        
+
         if (chartElement) {
           try {
             // Convert chart to canvas with specific options
@@ -165,7 +165,7 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
             pdf.setFontSize(12);
             pdf.setFont('helvetica', 'bold');
             pdf.setTextColor(41, 128, 185);
-            
+
             // Table header
             pdf.text('Candidate', 20, yOffset);
             pdf.text('Votes', 120, yOffset);
@@ -212,7 +212,7 @@ const PDFGenerator = forwardRef(({ election, positions, getPositionResults }, re
       // Save the PDF with a clean filename
       const fileName = `election_results_${election.title.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${format(new Date(), 'yyyy-MM-dd')}.pdf`;
       pdf.save(fileName);
-      
+
       return true;
     } catch (error) {
       console.error('Error generating PDF:', error);

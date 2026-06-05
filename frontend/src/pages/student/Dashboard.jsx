@@ -24,30 +24,30 @@ function StudentDashboard() {
   useEffect(() => {
     document.title = "Student Dashboard | Election System"
     const fetchData = async () => {
-          try {
+      try {
         const [usersData, positionsData, candidatesData, electionsData, votesData] = await Promise.all([
-              getAllUsers(), 
-              getAllPositions(),
-              getAllCandidates(),
+          getAllUsers(),
+          getAllPositions(),
+          getAllCandidates(),
           getAllElections(),
           getAllVotes()
-            ])
-            setStudents(usersData || [])
-            setCandidates(candidatesData || [])
-            setPositions(positionsData || [])
+        ])
+        setStudents(usersData || [])
+        setCandidates(candidatesData || [])
+        setPositions(positionsData || [])
         setElections(Array.isArray(electionsData) ? electionsData : [electionsData])
         setVotes(votesData || [])
-        
+
         // Find the current ongoing election
         const ongoingElection = electionsData.find(election => election.status === 'ongoing')
         setCurrentElection(ongoingElection)
-          } catch (error) {
+      } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
         setLoading(false)
-          }
-        }
-        fetchData()
+      }
+    }
+    fetchData()
   }, [])
 
   // Calculate pagination
@@ -57,7 +57,7 @@ function StudentDashboard() {
   const currentStudents = students.slice(startIndex, endIndex)
 
   // Filter positions and candidates for current election
-  const electionPositions = currentElection 
+  const electionPositions = currentElection
     ? positions.filter(position => position.electionId === currentElection._id)
     : []
   const electionCandidates = currentElection
@@ -65,10 +65,10 @@ function StudentDashboard() {
     : []
 
   // Get positions based on student level
-  const juniorMinisterPositions = electionPositions.filter(p => 
+  const juniorMinisterPositions = electionPositions.filter(p =>
     p.title.toLowerCase().includes('junior minister')
   )
-  const regularPositions = electionPositions.filter(p => 
+  const regularPositions = electionPositions.filter(p =>
     !p.title.toLowerCase().includes('junior minister')
   )
 
@@ -94,13 +94,13 @@ function StudentDashboard() {
 
     if (student.level === 'lower') {
       // Lower level students need to vote for all junior minister positions
-      const hasVotedAll = juniorMinisterPositions.every(position => 
+      const hasVotedAll = juniorMinisterPositions.every(position =>
         studentVoteSet.has(position._id)
       )
       return hasVotedAll ? count + 1 : count
     } else if (student.level === 'upper') {
       // Upper level students need to vote for all regular positions
-      const hasVotedAll = regularPositions.every(position => 
+      const hasVotedAll = regularPositions.every(position =>
         studentVoteSet.has(position._id)
       )
       return hasVotedAll ? count + 1 : count
@@ -175,7 +175,7 @@ function StudentDashboard() {
   const LEVEL_COLORS = ['#10B981', '#F59E0B', '#3B82F6', '#8B5CF6']
 
   return (
-    <motion.div 
+    <motion.div
       className="space-y-6 p-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
@@ -184,7 +184,7 @@ function StudentDashboard() {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight font-satoshi">Student Dashboard</h1>
         <p className="text-muted-foreground">
-          {currentElection 
+          {currentElection
             ? `Current Election: ${currentElection.title}`
             : "No active election at the moment"}
         </p>
@@ -215,17 +215,16 @@ function StudentDashboard() {
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <Card className="hover:shadow-lg transition-shadow">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Voter Participation</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Voter Participation</CardTitle>
               <Vote className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{votedCount}</div>
               <div className="flex justify-between items-center mt-1">
                 <p className="text-xs text-muted-foreground">{participationRate}% participation rate</p>
-                <div className={`flex items-center gap-1 ${
-                  votingTrend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
-                }`}>
+                <div className={`flex items-center gap-1 ${votingTrend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
+                  }`}>
                   {votingTrend === 'up' ? (
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
@@ -288,44 +287,44 @@ function StudentDashboard() {
             <CardHeader>
               <CardTitle className="text-sm">Voter Participation</CardTitle>
               <CardDescription className="text-xs">Percentage of students who voted in the current election</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[150px]">
-              {totalStudents > 0 ? (
-                <PieChartWrapper
-                  data={[
-                    { 
-                      name: 'All Positions Voted',
-                      value: votedCount,
-                      percentage: votedPercentage.toFixed(1),
-                      total: totalStudents
-                    },
-                    { 
-                      name: 'Not Voted',
-                      value: students.filter(student => !studentVotes.has(student._id)).length,
-                      percentage: ((students.filter(student => !studentVotes.has(student._id)).length / totalStudents) * 100).toFixed(1),
-                      total: totalStudents
-                    }
-                  ]}
-                  colors={['#10B981', '#FFA600']}
-                  innerRadius={40}
-                  outerRadius={50}
-                  paddingAngle={2}
-                  height="100%"
-                  showLegend={true}
-                  showTooltip={true}
-                  startAngle={90}
-                  endAngle={-270}
-                />
-              ) : (
-                <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                  <PieChartIcon className="w-8 h-8 mb-2" />
-                  <p className="text-xs">No voting data available</p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[150px]">
+                {totalStudents > 0 ? (
+                  <PieChartWrapper
+                    data={[
+                      {
+                        name: 'All Positions Voted',
+                        value: votedCount,
+                        percentage: votedPercentage.toFixed(1),
+                        total: totalStudents
+                      },
+                      {
+                        name: 'Not Voted',
+                        value: students.filter(student => !studentVotes.has(student._id)).length,
+                        percentage: ((students.filter(student => !studentVotes.has(student._id)).length / totalStudents) * 100).toFixed(1),
+                        total: totalStudents
+                      }
+                    ]}
+                    colors={['#10B981', '#FFA600']}
+                    innerRadius={40}
+                    outerRadius={50}
+                    paddingAngle={2}
+                    height="100%"
+                    showLegend={true}
+                    showTooltip={true}
+                    startAngle={90}
+                    endAngle={-270}
+                  />
+                ) : (
+                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                    <PieChartIcon className="w-8 h-8 mb-2" />
+                    <p className="text-xs">No voting data available</p>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </motion.div>
 
         <motion.div
@@ -337,8 +336,8 @@ function StudentDashboard() {
             <CardHeader>
               <CardTitle className="text-sm">Voters by Level</CardTitle>
               <CardDescription className="text-xs">Level distribution and voting progress</CardDescription>
-          </CardHeader>
-          <CardContent>
+            </CardHeader>
+            <CardContent>
               <div className="h-[150px]">
                 {levelChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
@@ -353,14 +352,14 @@ function StudentDashboard() {
                         dataKey="total"
                       >
                         {levelChartData.map((entry, index) => (
-                          <Cell 
-                            key={`cell-${index}`} 
+                          <Cell
+                            key={`cell-${index}`}
                             fill={LEVEL_COLORS[index % LEVEL_COLORS.length]}
                             className="transition-all duration-300 hover:opacity-80"
                           />
                         ))}
                       </Pie>
-                      <Tooltip 
+                      <Tooltip
                         content={({ active, payload }) => {
                           if (active && payload && payload.length) {
                             const data = payload[0].payload;
@@ -399,8 +398,8 @@ function StudentDashboard() {
                           return null;
                         }}
                       />
-                      <Legend 
-                        verticalAlign="bottom" 
+                      <Legend
+                        verticalAlign="bottom"
                         height={36}
                         iconType="circle"
                         iconSize={8}
@@ -450,21 +449,21 @@ function StudentDashboard() {
                           <stop offset="100%" stopColor="#F97316" />
                         </linearGradient>
                         <filter id="shadow">
-                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1"/>
+                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1" />
                         </filter>
                       </defs>
-                      <CartesianGrid 
-                        strokeDasharray="3 3" 
-                        vertical={false} 
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
                         opacity={0.1}
                         stroke="#94A3B8"
                       />
-                      <XAxis 
-                        dataKey="name" 
+                      <XAxis
+                        dataKey="name"
                         angle={-45}
                         textAnchor="end"
                         height={60}
-                        tick={{ 
+                        tick={{
                           fontSize: 10,
                           fill: '#64748B',
                           fontWeight: 500
@@ -495,7 +494,7 @@ function StudentDashboard() {
                           }
                           return null
                         }}
-                        cursor={{ 
+                        cursor={{
                           fill: 'rgba(148, 163, 184, 0.1)',
                           radius: [4, 4, 0, 0]
                         }}
@@ -547,141 +546,140 @@ function StudentDashboard() {
         transition={{ duration: 0.5, delay: 0.8 }}
       >
         <Card className="hover:shadow-lg transition-shadow">
-        <CardHeader>
+          <CardHeader>
             <CardTitle>Student Voting Status</CardTitle>
             <CardDescription>Overview of student participation in the current election</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 dark:bg-gray-800">
-                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
-                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
-                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Voting Status</th>
-                  <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                {currentStudents.map((student) => (
-                    <tr 
-                      key={student._id} 
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Voting Status</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                  {currentStudents.map((student) => (
+                    <tr
+                      key={student._id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
                     >
-                    <td className="p-3">
-                      <div className="flex items-center gap-3">
-                        <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
-                          {student.firstName.charAt(0)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
-                          <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
-                    <td className="p-3">
-                      {(() => {
-                        const studentVoteSet = studentVotes.get(student._id)
-                        let hasCompletedVoting = false
-                        let totalRequired = 0
-                        let completed = 0
-                        
-                        if (currentElection && studentVoteSet) {
-                          if (student.level === 'lower') {
-                            totalRequired = juniorMinisterPositions.length
-                            completed = juniorMinisterPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                            hasCompletedVoting = completed === totalRequired
-                          } else if (student.level === 'upper') {
-                            totalRequired = regularPositions.length
-                            completed = regularPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                            hasCompletedVoting = completed === totalRequired
-                          }
-                        }
-
-                        return (
-                          <div className="flex items-center gap-2">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
-                              ${hasCompletedVoting
-                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                                : completed > 0
-                                  ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                  : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
-                              }`}>
-                              <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                                ${hasCompletedVoting
-                                  ? 'bg-green-500 dark:bg-green-400'
-                                  : completed > 0
-                                    ? 'bg-yellow-500 dark:bg-yellow-400'
-                                    : 'bg-gray-500 dark:bg-gray-400'
-                                }`}
-                              />
-                              {hasCompletedVoting
-                                ? 'Completed'
-                                : completed > 0
-                                  ? `${completed}/${totalRequired} Positions`
-                                  : 'Not Voted'}
-                            </span>
+                      <td className="p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
+                            {student.firstName.charAt(0)}
                           </div>
-                        )
-                      })()}
-                    </td>
-                    <td className="p-3 text-gray-600 dark:text-gray-300">
-                      {student.createdAt ? (
-                        new Date(student.createdAt).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })
-                      ) : (
-                        <span className="text-gray-400 dark:text-gray-500">Not available</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
+                      <td className="p-3">
+                        {(() => {
+                          const studentVoteSet = studentVotes.get(student._id)
+                          let hasCompletedVoting = false
+                          let totalRequired = 0
+                          let completed = 0
 
-          {/* Pagination Controls */}
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Showing {startIndex + 1} to {Math.min(endIndex, students.length)} of {students.length} students
+                          if (currentElection && studentVoteSet) {
+                            if (student.level === 'lower') {
+                              totalRequired = juniorMinisterPositions.length
+                              completed = juniorMinisterPositions.filter(pos => studentVoteSet.has(pos._id)).length
+                              hasCompletedVoting = completed === totalRequired
+                            } else if (student.level === 'upper') {
+                              totalRequired = regularPositions.length
+                              completed = regularPositions.filter(pos => studentVoteSet.has(pos._id)).length
+                              hasCompletedVoting = completed === totalRequired
+                            }
+                          }
+
+                          return (
+                            <div className="flex items-center gap-2">
+                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
+                              ${hasCompletedVoting
+                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                                  : completed > 0
+                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                                    : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
+                                }`}>
+                                <span className={`h-1.5 w-1.5 rounded-full mr-1.5
+                                ${hasCompletedVoting
+                                    ? 'bg-green-500 dark:bg-green-400'
+                                    : completed > 0
+                                      ? 'bg-yellow-500 dark:bg-yellow-400'
+                                      : 'bg-gray-500 dark:bg-gray-400'
+                                  }`}
+                                />
+                                {hasCompletedVoting
+                                  ? 'Completed'
+                                  : completed > 0
+                                    ? `${completed}/${totalRequired} Positions`
+                                    : 'Not Voted'}
+                              </span>
+                            </div>
+                          )
+                        })()}
+                      </td>
+                      <td className="p-3 text-gray-600 dark:text-gray-300">
+                        {student.createdAt ? (
+                          new Date(student.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500">Not available</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Previous
-              </button>
-              <div className="flex items-center gap-1">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                  <button
-                    key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm rounded-[20px] transition-colors ${
-                      currentPage === page
-                        ? 'bg-primary text-white dark:bg-primary-600'
-                        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                ))}
+
+            {/* Pagination Controls */}
+            <div className="flex items-center justify-between mt-4">
+              <div className="text-sm text-gray-600 dark:text-gray-400">
+                Showing {startIndex + 1} to {Math.min(endIndex, students.length)} of {students.length} students
               </div>
-              <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                  disabled={currentPage === 1}
                   className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Next
-              </button>
+                >
+                  Previous
+                </button>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 text-sm rounded-[20px] transition-colors ${currentPage === page
+                          ? 'bg-primary text-white dark:bg-primary-600'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+                        }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                </div>
+                <button
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  Next
+                </button>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
       </motion.div>
     </motion.div>
   )

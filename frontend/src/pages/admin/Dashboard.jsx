@@ -36,7 +36,7 @@ function AdminDashboard() {
       try {
 
         const [usersData, positionsData, candidatesData, electionsData, adminsData] = await Promise.all([
-          getAllUsers(), 
+          getAllUsers(),
           getAllPositions(),
           getAllCandidates(),
           getAllElections(),
@@ -48,7 +48,7 @@ function AdminDashboard() {
         setAdmins(adminsData || [])
 
         const currentElection = Array.isArray(electionsData) ? electionsData[0] : electionsData;
-        
+
         setElectionData([
           {
             name: currentElection?.title || "Current Election",
@@ -99,21 +99,21 @@ function AdminDashboard() {
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={electionData} className="fill-none" margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#eee" />
-                  <XAxis 
-                    dataKey="name" 
+                  <XAxis
+                    dataKey="name"
                     fontSize={10}
                     tickLine={false}
                     axisLine={{ stroke: '#E0E0E0' }}
                   />
-                  <YAxis 
+                  <YAxis
                     fontSize={12}
                     tickLine={false}
                     axisLine={{ stroke: '#E0E0E0' }}
                     tickFormatter={(value) => `${value}`}
                   />
-                  <Tooltip 
+                  <Tooltip
                     cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
-                    contentStyle={{ 
+                    contentStyle={{
                       backgroundColor: '#ffffff',
                       border: '1px solid #e0e0e0',
                       borderRadius: '12px',
@@ -125,23 +125,23 @@ function AdminDashboard() {
                     }}
                     wrapperStyle={{ outline: 'none' }}
                     labelStyle={{ color: '#666666', marginBottom: '4px' }}
-                    itemStyle={{ padding: '4px 0'}}
+                    itemStyle={{ padding: '4px 0' }}
                   />
-                  <Legend 
+                  <Legend
                     verticalAlign="bottom"
                     wrapperStyle={{ fontSize: '12px' }}
                     height={28}
                     iconType="circle"
                   />
-                  <Bar 
-                    dataKey="candidates" 
+                  <Bar
+                    dataKey="candidates"
                     fill="#46A977"
                     radius={[4, 4, 0, 0]}
                     barSize={30}
                     animationDuration={1500}
                   />
-                  <Bar 
-                    dataKey="positions" 
+                  <Bar
+                    dataKey="positions"
                     fill="#F79F21"
                     radius={[4, 4, 0, 0]}
                     barSize={30}
@@ -166,14 +166,14 @@ function AdminDashboard() {
                 return (
                   <PieChartWrapper
                     data={[
-                      { 
-                        name: 'Voted', 
+                      {
+                        name: 'Voted',
                         value: votedCount,
                         percentage: total > 0 ? ((votedCount / total) * 100).toFixed(1) : 0,
                         total: total
                       },
-                      { 
-                        name: 'Not Voted', 
+                      {
+                        name: 'Not Voted',
                         value: notVotedCount,
                         percentage: total > 0 ? ((notVotedCount / total) * 100).toFixed(1) : 0,
                         total: total
@@ -191,8 +191,8 @@ function AdminDashboard() {
               })()}
             </div>
           </CardContent>
-        </Card>              
-        </div>
+        </Card>
+      </div>
 
       <div className="grid gap-4 md:grid-cols-2">
         <Card>
