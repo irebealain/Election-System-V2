@@ -471,15 +471,6 @@ function Elections() {
             <Plus className="w-4 h-4 mr-2" />
             Create Election
           </Button>
-          {selectedElection && (
-            <Button
-              variant="outline"
-              onClick={() => setSelectedElection(null)}
-              className="text-muted-foreground hover:text-foreground"
-            >
-              Clear Selection
-            </Button>
-          )}
         </div>
       </div>
 
@@ -527,9 +518,9 @@ function Elections() {
                     </div>
                   </div>
                   <div className={`px-3 py-1 rounded-full text-xs font-medium ${election.status === "ongoing" ? "bg-green-100 text-green-800" :
-                      election.status === "upcoming" ? "bg-blue-100 text-blue-800" :
-                        election.status === "completed" ? "bg-purple-100 text-purple-800" :
-                          "bg-gray-100 text-gray-800"
+                    election.status === "upcoming" ? "bg-blue-100 text-blue-800" :
+                      election.status === "completed" ? "bg-purple-100 text-purple-800" :
+                        "bg-gray-100 text-gray-800"
                     }`}>
                     {election.status.charAt(0).toUpperCase() + election.status.slice(1)}
                   </div>
@@ -959,92 +950,6 @@ function Elections() {
                   Add Candidate
                 </Button>
               </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Positions and Candidates Management Section */}
-      {selectedElection && (
-        <div className="space-y-6 mt-8 p-6 bg-muted/30 rounded-[20px]">
-          <h2 className="text-2xl font-bold">Manage: {selectedElection.title}</h2>
-
-          {/* Positions Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Positions</h3>
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setIsAddPositionOpen(true)
-                  setIsEditingPosition(false)
-                  setNewPosition({ title: "", electionId: selectedElection._id })
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Position
-              </Button>
-            </div>
-            <div className="grid gap-3">
-              {positions.filter(p => p.electionId === selectedElection._id).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No positions added yet</p>
-              ) : (
-                positions.filter(p => p.electionId === selectedElection._id).map(position => (
-                  <div key={position._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
-                    <div>
-                      <p className="font-medium">{position.title}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {candidates.filter(c => c.positionId === position._id).length} candidate(s)
-                      </p>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </div>
-
-          {/* Candidates Section */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Candidates</h3>
-              <Button
-                size="sm"
-                className="bg-primary hover:bg-primary/90"
-                onClick={() => {
-                  setIsAddCandidateOpen(true)
-                  setIsEditingCandidate(false)
-                  setUploadedImage(null)
-                  setNewCandidate({ firstName: "", lastName: "", profilePic: "", mandate: "", positionId: "", electionId: selectedElection._id })
-                }}
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Add Candidate
-              </Button>
-            </div>
-            <div className="grid gap-3">
-              {candidates.filter(c => c.electionId === selectedElection._id).length === 0 ? (
-                <p className="text-sm text-muted-foreground">No candidates added yet</p>
-              ) : (
-                candidates.filter(c => c.electionId === selectedElection._id).map(candidate => {
-                  const position = positions.find(p => p._id === candidate.positionId)
-                  return (
-                    <div key={candidate._id} className="flex items-center justify-between p-3 bg-background rounded-[12px] border border-border">
-                      <div className="flex items-center flex-1 gap-3">
-                        <img
-                          src={candidate.profilePic}
-                          alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="object-cover w-10 h-10 rounded-full"
-                        />
-                        <div>
-                          <p className="font-medium">{candidate.firstName} {candidate.lastName}</p>
-                          <p className="text-xs text-muted-foreground">{position?.title || 'Unknown Position'}</p>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })
-              )}
             </div>
           </div>
         </div>
