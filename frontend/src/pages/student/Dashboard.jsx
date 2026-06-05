@@ -7,11 +7,17 @@ import { getAllUsers } from "../../services/UserService"
 import { getAllElections } from "../../services/electionService"
 import { getAllVotes } from "../../services/voteService"
 import { motion } from "framer-motion"
-import { Users, Vote, Award, Clock, BarChart2, PieChart as PieChartIcon } from "lucide-react"
+import { Users, Vote, Award, Clock, BarChart2, PieChart as PieChartIcon, Search, Filter, ChevronLeft, ChevronRight } from "lucide-react"
 import PieChartWrapper from "../../components/common/PieChartWrapper"
+import Button from "../../components/common/Button"
+import { Input } from "../../components/common/Input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/common/Select"
 
 function StudentDashboard() {
   const [students, setStudents] = useState([])
+  const [filteredStudents, setFilteredStudents] = useState([])
+  const [searchQuery, setSearchQuery] = useState("")
+  const [selectedLevel, setSelectedLevel] = useState("all")
   const [loading, setLoading] = useState(true)
   const [positions, setPositions] = useState([])
   const [candidates, setCandidates] = useState([])
@@ -33,6 +39,7 @@ function StudentDashboard() {
           getAllVotes()
         ])
         setStudents(usersData || [])
+        setFilteredStudents(usersData || [])
         setCandidates(candidatesData || [])
         setPositions(positionsData || [])
         setElections(Array.isArray(electionsData) ? electionsData : [electionsData])
@@ -50,11 +57,34 @@ function StudentDashboard() {
     fetchData()
   }, [])
 
+  useEffect(() => {
+    let result = [...students]
+
+    if (searchQuery) {
+      result = result.filter(student => 
+        student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        student.email.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    }
+
+    if (selectedLevel !== "all") {
+      result = result.filter(student => student.level === selectedLevel)
+    }
+
+    setFilteredStudents(result)
+    setCurrentPage(1)
+  }, [students, searchQuery, selectedLevel])
+
   // Calculate pagination
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const totalPages = Math.ceil(students.length / itemsPerPage)
-  const currentStudents = students.slice(startIndex, endIndex)
+  const indexOfLastItem = currentPage * itemsPerPage
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage
+  const currentItems = filteredStudents.slice(indexOfFirstItem, indexOfLastItem)
+  const totalPages = Math.ceil(filteredStudents.length / itemsPerPage)
+
+  const handlePageChange = (page) => {
+    setCurrentPage(page)
+  }
 
   // Filter positions and candidates for current election
   const electionPositions = currentElection
@@ -532,84 +562,132 @@ function StudentDashboard() {
         transition={{ duration: 0.5, delay: 0.8 }}
       >
         <Card className="transition-all duration-300 hover:shadow-xl border-primary/20 bg-gradient-to-br from-background to-muted/50">
-          <CardHeader>
-            <CardTitle className="text-lg">Registered Students</CardTitle>
-            <CardDescription>Complete student directory for the current election</CardDescription>
+          <CardHeader className="pb-2">
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <CardTitle className="text-lg">Total Voters</CardTitle>
+                <CardDescription>Complete student directory for the current election</CardDescription>
+              </div>
+              <div className="flex flex-col md:flex-row md:items-center gap-4">
+                <div className="relative">
+                  <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search students..."
+                    className="pl-8 w-full md:w-[250px] text-xs bg-white/50 dark:bg-gray-900/50"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+                <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+                  <SelectTrigger className="w-[140px] h-8 text-xs bg-white/50 dark:bg-gray-900/50">
+                    <Filter className="h-3.5 w-3.5 mr-2" />
+                    <SelectValue placeholder="Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all" className="text-xs">All Levels</SelectItem>
+                    <SelectItem value="upper" className="text-xs">Upper Level</SelectItem>
+                    <SelectItem value="lower" className="text-xs">Lower Level</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow">
-              <table className="w-full text-sm">
+            <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
+              <table className="w-full text-xs">
                 <thead>
-                  <tr className="bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/20">
-                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Student Information</th>
-                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Level</th>
-                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Registration Date</th>
+                  <tr className="bg-gray-50 dark:bg-gray-800">
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Status</th>
+                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-                  {currentStudents.map((student) => (
-                    <tr
-                      key={student._id}
-                      className="transition-all duration-200 border-b border-gray-200 hover:bg-primary/5 dark:hover:bg-primary/10 dark:border-gray-700 last:border-b-0"
-                    >
-                      <td className="p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 font-medium rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400">
-                            {student.firstName.charAt(0)}
+                  {currentItems.map((student) => {
+                    const hasVoted = currentElection ? votes.some(v => v.studentId === student._id && v.electionId === currentElection._id) : false
+                    return (
+                      <tr key={student._id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                        <td className="p-3">
+                          <div className="flex items-center gap-3">
+                            <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
+                              {student.firstName.charAt(0)}
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
+                              <p className="text-[10px] text-gray-500 dark:text-gray-400">{student.email}</p>
+                            </div>
                           </div>
-                          <div>
-                            <p className="font-medium text-gray-900 dark:text-gray-100">{student.firstName} {student.lastName}</p>
-                            <p className="text-xs text-gray-500 dark:text-gray-400">{student.email}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-3 font-medium text-gray-600 capitalize dark:text-gray-300">{student.level}</td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">
-                        {student.createdAt ? (
-                          new Date(student.createdAt).toLocaleDateString('en-US', {
+                        </td>
+                        <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
+                        <td className="p-3">
+                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
+                            ${hasVoted 
+                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
+                              : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
+                            }`}>
+                            <span className={`h-1.5 w-1.5 rounded-full mr-1.5
+                              ${hasVoted 
+                                ? 'bg-green-500 dark:bg-green-400'
+                                : 'bg-yellow-500 dark:bg-yellow-400'
+                              }`}
+                            />
+                            {hasVoted ? 'Voted' : 'Not Voted'}
+                          </span>
+                        </td>
+                        <td className="p-3 text-gray-600 dark:text-gray-300">
+                          {student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
                             month: 'short',
                             day: 'numeric'
-                          })
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500">Not available</span>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                          }) : <span className="text-gray-400 dark:text-gray-500">Not available</span>}
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination Controls - Modern Style */}
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
-                {students.length} student{students.length !== 1 ? 's' : ''} total
-              </div>
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="flex items-center justify-center w-9 h-9 rounded-[12px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
-                  title="Previous page"
-                >
-                  &lt;
-                </button>
-                <div className="flex items-center gap-1 px-4 py-2 rounded-[12px] bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
-                  <span className="font-bold text-primary dark:text-primary-400">{currentPage}</span>
-                  <span className="font-medium text-gray-500 dark:text-gray-400">/</span>
-                  <span className="font-semibold text-gray-700 dark:text-gray-300">{totalPages}</span>
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="flex flex-col sm:flex-row items-center justify-between mt-4 gap-4">
+                <div className="text-[10px] text-gray-600 dark:text-gray-400 text-center sm:text-left">
+                  Showing {indexOfFirstItem + 1} to {Math.min(indexOfLastItem, filteredStudents.length)} of {filteredStudents.length} entries
                 </div>
-                <button
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="flex items-center justify-center w-9 h-9 rounded-[12px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
-                  title="Next page"
-                >
-                  &gt;
-                </button>
+                <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="text-[10px] h-7"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                  </Button>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <Button
+                      key={page}
+                      variant={currentPage === page ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="w-7 h-7 p-0 text-[10px]"
+                    >
+                      {page}
+                    </Button>
+                  ))}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePageChange(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="text-[10px] h-7"
+                  >
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
               </div>
-            </div>
+            )}
           </CardContent>
         </Card>
       </motion.div>
