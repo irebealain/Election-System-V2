@@ -38,16 +38,23 @@ function StudentDashboard() {
           getAllElections(),
           getAllVotes()
         ])
-        setStudents(usersData || [])
-        setFilteredStudents(usersData || [])
+        
+        // Find the current ongoing election first
+        const electionsArray = Array.isArray(electionsData) ? electionsData : [electionsData]
+        const ongoingElection = electionsArray.find(election => election && election.status === 'ongoing')
+        setCurrentElection(ongoingElection)
+
+        // Filter users registered only in the current or ongoing election
+        const electionUsers = ongoingElection
+          ? (usersData || []).filter(user => user.electionId === ongoingElection._id)
+          : []
+
+        setStudents(electionUsers)
+        setFilteredStudents(electionUsers)
         setCandidates(candidatesData || [])
         setPositions(positionsData || [])
-        setElections(Array.isArray(electionsData) ? electionsData : [electionsData])
+        setElections(electionsArray)
         setVotes(votesData || [])
-
-        // Find the current ongoing election
-        const ongoingElection = electionsData.find(election => election.status === 'ongoing')
-        setCurrentElection(ongoingElection)
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {
@@ -599,7 +606,6 @@ function StudentDashboard() {
                   <tr className="bg-gray-50 dark:bg-gray-800">
                     <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
                     <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Status</th>
                     <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
                   </tr>
                 </thead>
