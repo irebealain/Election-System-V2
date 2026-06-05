@@ -245,7 +245,7 @@ function Elections() {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="flex flex-col items-center space-y-4">
-          <div className="animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          <div className="w-12 h-12 border-4 rounded-full animate-spin border-primary border-t-transparent"></div>
           <p className="text-muted-foreground">Loading election data...</p>
         </div>
       </div>
@@ -262,7 +262,7 @@ function Elections() {
       >
         <div className="relative mb-8">
           <motion.div
-            className="w-24 h-24 rounded-full bg-primary/10 flex items-center justify-center"
+            className="flex items-center justify-center w-24 h-24 rounded-full bg-primary/10"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
@@ -270,7 +270,7 @@ function Elections() {
             <CalendarX className="w-12 h-12 text-primary" />
           </motion.div>
           <motion.div
-            className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+            className="absolute flex items-center justify-center w-8 h-8 rounded-full -top-2 -right-2 bg-secondary"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
@@ -279,8 +279,8 @@ function Elections() {
           </motion.div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-2 font-satoshi">No Active Election</h2>
-        <p className="text-muted-foreground max-w-md mb-6">
+        <h2 className="mb-2 text-2xl font-bold font-satoshi">No Active Election</h2>
+        <p className="max-w-md mb-6 text-muted-foreground">
           {positions.length === 0
             ? "There are no positions with candidates in the current election."
             : "There is currently no ongoing election. Please check back later or wait for the next election period to begin."}
@@ -309,7 +309,7 @@ function Elections() {
       >
         <div className="relative mb-8">
           <motion.div
-            className="w-24 h-24 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center"
+            className="flex items-center justify-center w-24 h-24 bg-green-100 rounded-full dark:bg-green-900/20"
             initial={{ scale: 0.8 }}
             animate={{ scale: 1 }}
             transition={{ duration: 0.5, type: "spring" }}
@@ -317,7 +317,7 @@ function Elections() {
             <CheckCircle2 className="w-12 h-12 text-green-600 dark:text-green-400" />
           </motion.div>
           <motion.div
-            className="absolute -top-2 -right-2 w-8 h-8 rounded-full bg-secondary flex items-center justify-center"
+            className="absolute flex items-center justify-center w-8 h-8 rounded-full -top-2 -right-2 bg-secondary"
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             transition={{ delay: 0.2, duration: 0.5, type: "spring" }}
@@ -326,8 +326,8 @@ function Elections() {
           </motion.div>
         </div>
 
-        <h2 className="text-2xl font-bold mb-2 font-satoshi">Thank You for Voting!</h2>
-        <p className="text-muted-foreground max-w-md mb-6">
+        <h2 className="mb-2 text-2xl font-bold font-satoshi">Thank You for Voting!</h2>
+        <p className="max-w-md mb-6 text-muted-foreground">
           You have already cast your votes in this election. The results will be announced after the election period ends.
         </p>
 
@@ -350,7 +350,7 @@ function Elections() {
           <Button
             variant="outline"
             onClick={() => (window.location.href = "/student/dashboard")}
-            className="border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30 transition-colors duration-200"
+            className="transition-colors duration-200 border-primary/20 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/30"
           >
             Return to Dashboard
           </Button>
@@ -381,7 +381,7 @@ function Elections() {
           <CardDescription>
             {hasVoted ? (
               <div className="flex items-center text-green-600 dark:text-green-400">
-                <CheckCircle2 className="h-5 w-5 mr-2" />
+                <CheckCircle2 className="w-5 h-5 mr-2" />
                 <span>You have already voted in this election</span>
               </div>
             ) : (
@@ -401,7 +401,7 @@ function Elections() {
               ></div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
               {positions.map((position) => (
                 <motion.div
                   key={position._id}
@@ -414,7 +414,7 @@ function Elections() {
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
                 >
-                  <p className="font-medium mb-1">{position.title}</p>
+                  <p className="mb-1 font-medium">{position.title}</p>
                   <p className="text-sm text-muted-foreground">
                     {votes[position.title]
                       ? (candidates.find(c => c != null && c._id === votes[position.title])?.firstName || "") +
@@ -438,7 +438,7 @@ function Elections() {
                   <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium">Please vote for all positions before submitting</p>
-                    <p className="text-sm mt-1">You still need to vote for: {getUnvotedPositions().join(", ")}</p>
+                    <p className="mt-1 text-sm">You still need to vote for: {getUnvotedPositions().join(", ")}</p>
                   </div>
                 </motion.div>
               )}
@@ -454,7 +454,7 @@ function Elections() {
                   <CheckCircle2 className="h-5 w-5 mr-2 flex-shrink-0 mt-0.5" />
                   <div>
                     <p className="font-medium">All positions voted!</p>
-                    <p className="text-sm mt-1">You can now submit your votes</p>
+                    <p className="mt-1 text-sm">You can now submit your votes</p>
                   </div>
                 </motion.div>
               )}
@@ -494,41 +494,41 @@ function Elections() {
                         <img
                           src={candidate.profilePic || "/placeholder.svg"}
                           alt={`${candidate.firstName} ${candidate.lastName}`}
-                          className="w-full h-full object-contain p-3 transition-transform duration-300 hover:scale-105"
+                          className="object-contain w-full h-full p-3 transition-transform duration-300 hover:scale-105"
                           loading="lazy"
                         />
                         {hasVoted && votes[positionName] === candidate._id && (
-                          <div className="absolute top-2 right-2 z-20">
+                          <div className="absolute z-20 top-2 right-2">
                             <div className="inline-flex items-center rounded-full bg-green-500/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
                               Voted
                             </div>
                           </div>
                         )}
                         {!hasVoted && votes[positionName] === candidate._id && (
-                          <div className="absolute top-2 right-2 z-20">
+                          <div className="absolute z-20 top-2 right-2">
                             <div className="inline-flex items-center rounded-full bg-primary/90 backdrop-blur-sm px-2 py-0.5 text-xs font-medium text-white shadow-lg">
-                              <CheckCircle2 className="h-3 w-3 mr-1" />
+                              <CheckCircle2 className="w-3 h-3 mr-1" />
                               Selected
                             </div>
                           </div>
                         )}
                       </div>
                     </CardHeader>
-                    <CardContent className="p-3 flex-grow relative">
+                    <CardContent className="relative flex-grow p-3">
                       <CardTitle className="text-lg mb-1.5 font-satoshi">
                         {candidate.firstName} {candidate.lastName}
                       </CardTitle>
-                      <CardDescription className="line-clamp-2 text-sm">
+                      <CardDescription className="text-sm line-clamp-2">
                         {candidate.mandate}
                       </CardDescription>
                     </CardContent>
-                    <CardFooter className="flex justify-between p-3 pt-0 gap-2">
+                    <CardFooter className="flex justify-between gap-2 p-3 pt-0">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openCandidateDetails(candidate)}
-                        className="hover:bg-primary/10 flex-1 h-8"
+                        className="flex-1 h-8 hover:bg-primary/10"
                       >
                         <Info className="h-3.5 w-3.5 mr-1.5" />
                         Details
@@ -583,13 +583,13 @@ function Elections() {
         >
           {hasVoted ? (
             <span className="flex items-center">
-              <CheckCircle2 className="mr-2 h-4 w-4" />
+              <CheckCircle2 className="w-4 h-4 mr-2" />
               Already Voted
             </span>
           ) : submitting ? (
             <span className="flex items-center">
               <svg
-                className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                className="w-4 h-4 mr-2 -ml-1 text-white animate-spin"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
@@ -606,7 +606,7 @@ function Elections() {
           ) : (
             <>
               Submit All Votes
-              <ChevronRight className="ml-2 h-4 w-4" />
+              <ChevronRight className="w-4 h-4 ml-2" />
             </>
           )}
         </Button>
@@ -616,7 +616,7 @@ function Elections() {
       <AnimatePresence>
         {dialogOpen && selectedCandidate && (
           <div
-            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
             onClick={(e) => {
               if (e.target === e.currentTarget) setDialogOpen(false)
             }}
@@ -629,16 +629,16 @@ function Elections() {
               transition={{ duration: 0.3 }}
             >
               <div className="p-6">
-                <h3 className="text-xl font-bold mb-1">
+                <h3 className="mb-1 text-xl font-bold">
                   {selectedCandidate.firstName} {selectedCandidate.lastName}
                 </h3>
-                <p className="text-muted-foreground mb-4">
+                <p className="mb-4 text-muted-foreground">
                   Candidate for {positions.find(p => p._id === selectedCandidate.positionId)?.title}
                 </p>
 
                 <div className="grid gap-4 py-4">
                   <div className="flex items-center gap-4">
-                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center text-lg font-bold">
+                    <div className="flex items-center justify-center w-16 h-16 text-lg font-bold rounded-full bg-muted">
                       {selectedCandidate.firstName.charAt(0)}
                     </div>
                     <div>
@@ -651,7 +651,7 @@ function Elections() {
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium mb-2">Mandate:</h4>
+                    <h4 className="mb-2 font-medium">Mandate:</h4>
                     <p className="text-sm">{selectedCandidate.mandate}</p>
                   </div>
                 </div>

@@ -277,19 +277,19 @@ function StudentDashboard() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid gap-4 grid-cols-3">
+      <div className="grid gap-6 grid-cols-3">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
-              <CardTitle className="text-sm">Voter Participation</CardTitle>
-              <CardDescription className="text-xs">Percentage of students who voted in the current election</CardDescription>
+              <CardTitle className="text-base font-bold">Voter Participation</CardTitle>
+              <CardDescription className="text-xs">Students who completed all required votes</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[150px]">
+              <div className="h-[200px]">
                 {totalStudents > 0 ? (
                   <PieChartWrapper
                     data={[
@@ -306,10 +306,10 @@ function StudentDashboard() {
                         total: totalStudents
                       }
                     ]}
-                    colors={['#10B981', '#FFA600']}
-                    innerRadius={40}
-                    outerRadius={50}
-                    paddingAngle={2}
+                    colors={['#06B6D4', '#F97316']}
+                    innerRadius={50}
+                    outerRadius={70}
+                    paddingAngle={3}
                     height="100%"
                     showLegend={true}
                     showTooltip={true}
@@ -332,13 +332,13 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
-              <CardTitle className="text-sm">Voters by Level</CardTitle>
-              <CardDescription className="text-xs">Level distribution and voting progress</CardDescription>
+              <CardTitle className="text-base font-bold">Voters by Level</CardTitle>
+              <CardDescription className="text-xs">Student level distribution with voting status</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[150px]">
+              <div className="h-[200px]">
                 {levelChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
@@ -355,7 +355,7 @@ function StudentDashboard() {
                           <Cell
                             key={`cell-${index}`}
                             fill={LEVEL_COLORS[index % LEVEL_COLORS.length]}
-                            className="transition-all duration-300 hover:opacity-80"
+                            className="transition-all duration-300 hover:opacity-90 cursor-pointer filter drop-shadow-md"
                           />
                         ))}
                       </Pie>
@@ -428,28 +428,28 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
+          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
-              <CardTitle className="text-sm">Positions and Candidates</CardTitle>
-              <CardDescription className="text-xs">Candidates per position</CardDescription>
+              <CardTitle className="text-base font-bold">Positions & Candidates</CardTitle>
+              <CardDescription className="text-xs">Candidate distribution across positions</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="h-[150px]">
+              <div className="h-[200px]">
                 {positionChartData.length > 0 ? (
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart
                       data={positionChartData}
-                      margin={{ top: 20, right: 10, left: 10, bottom: 5 }}
-                      barSize={24}
-                      barGap={2}
+                      margin={{ top: 20, right: 15, left: 15, bottom: 60 }}
+                      barSize={32}
+                      barGap={4}
                     >
                       <defs>
                         <linearGradient id="barGradient" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="0%" stopColor="#F59E0B" />
-                          <stop offset="100%" stopColor="#F97316" />
+                          <stop offset="0%" stopColor="#8B5CF6" />
+                          <stop offset="100%" stopColor="#D946EF" />
                         </linearGradient>
                         <filter id="shadow">
-                          <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.1" />
+                          <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.15" />
                         </filter>
                       </defs>
                       <CartesianGrid
@@ -502,26 +502,12 @@ function StudentDashboard() {
                       />
                       <Bar
                         dataKey="candidates"
-                        radius={[6, 6, 0, 0]}
+                        radius={[10, 10, 0, 0]}
                         fill="url(#barGradient)"
                         filter="url(#shadow)"
                         animationBegin={200}
-                        animationDuration={1000}
-                        onMouseEnter={(data, index) => {
-                          const bar = document.querySelector(`path[name=candidates-${index}]`);
-                          if (bar) {
-                            bar.style.filter = 'brightness(1.1)';
-                            bar.style.transform = 'translateY(-2px)';
-                            bar.style.transition = 'all 0.3s ease';
-                          }
-                        }}
-                        onMouseLeave={(data, index) => {
-                          const bar = document.querySelector(`path[name=candidates-${index}]`);
-                          if (bar) {
-                            bar.style.filter = 'none';
-                            bar.style.transform = 'none';
-                          }
-                        }}
+                        animationDuration={1200}
+                        animationEasing="ease-out"
                       />
                     </BarChart>
                   </ResponsiveContainer>
@@ -545,27 +531,26 @@ function StudentDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <Card className="hover:shadow-lg transition-shadow">
+        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
           <CardHeader>
-            <CardTitle>Student Voting Status</CardTitle>
-            <CardDescription>Overview of student participation in the current election</CardDescription>
+            <CardTitle className="text-lg">Registered Students</CardTitle>
+            <CardDescription>Complete student directory for the current election</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700">
+            <div className="overflow-x-auto rounded-[20px] border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg transition-shadow">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 dark:bg-gray-800">
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Student Information</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Level</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Voting Status</th>
-                    <th className="text-left p-3 font-medium text-gray-600 dark:text-gray-300">Registration Date</th>
+                  <tr className="bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/20">
+                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Student Information</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Level</th>
+                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Registration Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {currentStudents.map((student) => (
                     <tr
                       key={student._id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                      className="hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
                     >
                       <td className="p-3">
                         <div className="flex items-center gap-3">
@@ -578,103 +563,51 @@ function StudentDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
-                      <td className="p-3">
-                        {(() => {
-                          const studentVoteSet = studentVotes.get(student._id)
-                          let hasCompletedVoting = false
-                          let totalRequired = 0
-                          let completed = 0
-
-                          if (currentElection && studentVoteSet) {
-                            if (student.level === 'lower') {
-                              totalRequired = juniorMinisterPositions.length
-                              completed = juniorMinisterPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                              hasCompletedVoting = completed === totalRequired
-                            } else if (student.level === 'upper') {
-                              totalRequired = regularPositions.length
-                              completed = regularPositions.filter(pos => studentVoteSet.has(pos._id)).length
-                              hasCompletedVoting = completed === totalRequired
-                            }
-                          }
-
-                          return (
-                            <div className="flex items-center gap-2">
-                              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
-                              ${hasCompletedVoting
-                                  ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                                  : completed > 0
-                                    ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                                    : 'bg-gray-100 dark:bg-gray-900/30 text-gray-800 dark:text-gray-400'
-                                }`}>
-                                <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                                ${hasCompletedVoting
-                                    ? 'bg-green-500 dark:bg-green-400'
-                                    : completed > 0
-                                      ? 'bg-yellow-500 dark:bg-yellow-400'
-                                      : 'bg-gray-500 dark:bg-gray-400'
-                                  }`}
-                                />
-                                {hasCompletedVoting
-                                  ? 'Completed'
-                                  : completed > 0
-                                    ? `${completed}/${totalRequired} Positions`
-                                    : 'Not Voted'}
-                              </span>
-                            </div>
-                          )
-                        })()}
-                      </td>
+                      <td className="p-3 text-gray-600 dark:text-gray-300 font-medium capitalize">{student.level}</td>
                       <td className="p-3 text-gray-600 dark:text-gray-300">
-                        {student.createdAt ? (
-                          new Date(student.createdAt).toLocaleDateString('en-US', {
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric'
-                          })
-                        ) : (
-                          <span className="text-gray-400 dark:text-gray-500">Not available</span>
-                        )}
-                      </td>
+                        <td className="p-3 text-gray-600 dark:text-gray-300">
+                          {student.createdAt ? (
+                            new Date(student.createdAt).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'short',
+                              day: 'numeric'
+                            })
+                          ) : (
+                            <span className="text-gray-400 dark:text-gray-500">Not available</span>
+                          )}
+                        </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            {/* Pagination Controls */}
-            <div className="flex items-center justify-between mt-4">
-              <div className="text-sm text-gray-600 dark:text-gray-400">
-                Showing {startIndex + 1} to {Math.min(endIndex, students.length)} of {students.length} students
+            {/* Pagination Controls - Modern Style */}
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                {students.length} student{students.length !== 1 ? 's' : ''} total
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3">
                 <button
                   onClick={() => setCurrentPage(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center justify-center w-9 h-9 rounded-[12px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
+                  title="Previous page"
                 >
-                  Previous
+                  &lt;
                 </button>
-                <div className="flex items-center gap-1">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <button
-                      key={page}
-                      onClick={() => setCurrentPage(page)}
-                      className={`w-8 h-8 text-sm rounded-[20px] transition-colors ${currentPage === page
-                          ? 'bg-primary text-white dark:bg-primary-600'
-                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-                        }`}
-                    >
-                      {page}
-                    </button>
-                  ))}
+                <div className="flex items-center gap-1 px-4 py-2 rounded-[12px] bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
+                  <span className="font-bold text-primary dark:text-primary-400">{currentPage}</span>
+                  <span className="text-gray-500 dark:text-gray-400 font-medium">/</span>
+                  <span className="font-semibold text-gray-700 dark:text-gray-300">{totalPages}</span>
                 </div>
                 <button
                   onClick={() => setCurrentPage(currentPage + 1)}
                   disabled={currentPage === totalPages}
-                  className="px-3 py-1 text-sm rounded-[20px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="flex items-center justify-center w-9 h-9 rounded-[12px] border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-primary hover:text-white hover:border-primary transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed font-bold text-lg"
+                  title="Next page"
                 >
-                  Next
+                  &gt;
                 </button>
               </div>
             </div>
