@@ -61,7 +61,7 @@ function StudentDashboard() {
     let result = [...students]
 
     if (searchQuery) {
-      result = result.filter(student => 
+      result = result.filter(student =>
         student.firstName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.lastName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         student.email.toLowerCase().includes(searchQuery.toLowerCase())
@@ -620,21 +620,6 @@ function StudentDashboard() {
                           </div>
                         </td>
                         <td className="p-3 text-gray-600 dark:text-gray-300">{student.level}</td>
-                        <td className="p-3">
-                          <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-medium
-                            ${hasVoted 
-                              ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
-                              : 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                            }`}>
-                            <span className={`h-1.5 w-1.5 rounded-full mr-1.5
-                              ${hasVoted 
-                                ? 'bg-green-500 dark:bg-green-400'
-                                : 'bg-yellow-500 dark:bg-yellow-400'
-                              }`}
-                            />
-                            {hasVoted ? 'Voted' : 'Not Voted'}
-                          </span>
-                        </td>
                         <td className="p-3 text-gray-600 dark:text-gray-300">
                           {student.createdAt ? new Date(student.createdAt).toLocaleDateString('en-US', {
                             year: 'numeric',
