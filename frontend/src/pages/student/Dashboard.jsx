@@ -176,7 +176,7 @@ function StudentDashboard() {
 
   return (
     <motion.div
-      className="space-y-6 p-6"
+      className="p-6 space-y-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
@@ -197,10 +197,10 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.1 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="transition-shadow hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">Total Voters</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <Users className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{totalStudents}</div>
@@ -214,23 +214,23 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="transition-shadow hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">Voter Participation</CardTitle>
-              <Vote className="h-4 w-4 text-muted-foreground" />
+              <Vote className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{votedCount}</div>
-              <div className="flex justify-between items-center mt-1">
+              <div className="flex items-center justify-between mt-1">
                 <p className="text-xs text-muted-foreground">{participationRate}% participation rate</p>
                 <div className={`flex items-center gap-1 ${votingTrend === 'up' ? 'text-green-600 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'
                   }`}>
                   {votingTrend === 'up' ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M12 7a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0V8.414l-4.293 4.293a1 1 0 01-1.414 0L8 10.414l-4.293 4.293a1 1 0 01-1.414-1.414l5-5a1 1 0 011.414 0L11 10.586 14.586 7H12z" clipRule="evenodd" />
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" viewBox="0 0 20 20" fill="currentColor">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
                       <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
                   )}
@@ -246,10 +246,10 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.3 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="transition-shadow hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">Total Positions</CardTitle>
-              <Award className="h-4 w-4 text-muted-foreground" />
+              <Award className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{electionPositions.length}</div>
@@ -263,10 +263,10 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <Card className="hover:shadow-lg transition-shadow">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <Card className="transition-shadow hover:shadow-lg">
+            <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
               <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
-              <Award className="h-4 w-4 text-muted-foreground" />
+              <Award className="w-4 h-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{electionCandidates.length}</div>
@@ -277,13 +277,13 @@ function StudentDashboard() {
       </div>
 
       {/* Charts Section */}
-      <div className="grid gap-6 grid-cols-3">
+      <div className="grid grid-cols-3 gap-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.5 }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
+          <Card className="transition-all duration-300 hover:shadow-xl border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
               <CardTitle className="text-base font-bold">Voter Participation</CardTitle>
               <CardDescription className="text-xs">Students who completed all required votes</CardDescription>
@@ -317,7 +317,7 @@ function StudentDashboard() {
                     endAngle={-270}
                   />
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <PieChartIcon className="w-8 h-8 mb-2" />
                     <p className="text-xs">No voting data available</p>
                   </div>
@@ -332,7 +332,7 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.6 }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
+          <Card className="transition-all duration-300 hover:shadow-xl border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
               <CardTitle className="text-base font-bold">Voters by Level</CardTitle>
               <CardDescription className="text-xs">Student level distribution with voting status</CardDescription>
@@ -355,7 +355,7 @@ function StudentDashboard() {
                           <Cell
                             key={`cell-${index}`}
                             fill={LEVEL_COLORS[index % LEVEL_COLORS.length]}
-                            className="transition-all duration-300 hover:opacity-90 cursor-pointer filter drop-shadow-md"
+                            className="transition-all duration-300 cursor-pointer hover:opacity-90 filter drop-shadow-md"
                           />
                         ))}
                       </Pie>
@@ -365,7 +365,7 @@ function StudentDashboard() {
                             const data = payload[0].payload;
                             return (
                               <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {data.name} Level
                                 </p>
                                 <div className="mt-2 space-y-1">
@@ -385,7 +385,7 @@ function StudentDashboard() {
                                     <span className="text-gray-500 dark:text-gray-400">No Votes:</span>
                                     <span className="font-medium text-gray-600 dark:text-gray-400">{data.notVoted}</span>
                                   </div>
-                                  <div className="mt-2 pt-2 border-t border-gray-100 dark:border-gray-700">
+                                  <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-700">
                                     <div className="flex items-center justify-between text-xs">
                                       <span className="text-gray-500 dark:text-gray-400">Complete Voting:</span>
                                       <span className="font-medium text-primary">{data.completePercentage.toFixed(1)}%</span>
@@ -404,7 +404,7 @@ function StudentDashboard() {
                         iconType="circle"
                         iconSize={8}
                         formatter={(value, entry) => (
-                          <span className="text-xs font-medium flex items-center gap-1">
+                          <span className="flex items-center gap-1 text-xs font-medium">
                             <span>{entry.payload.name}</span>
                             <span className="text-primary">({entry.payload.percentage.toFixed(0)}%)</span>
                           </span>
@@ -413,7 +413,7 @@ function StudentDashboard() {
                     </PieChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                     <PieChartIcon className="w-8 h-8 mb-2" />
                     <p className="text-xs">No level data available</p>
                   </div>
@@ -428,7 +428,7 @@ function StudentDashboard() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.7 }}
         >
-          <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
+          <Card className="transition-all duration-300 hover:shadow-xl border-primary/20 bg-gradient-to-br from-background to-muted/50">
             <CardHeader>
               <CardTitle className="text-base font-bold">Positions & Candidates</CardTitle>
               <CardDescription className="text-xs">Candidate distribution across positions</CardDescription>
@@ -478,12 +478,12 @@ function StudentDashboard() {
                           if (active && payload && payload.length) {
                             return (
                               <div className="bg-white/95 backdrop-blur-sm dark:bg-gray-800/95 p-3 rounded-[20px] shadow-xl border border-gray-100 dark:border-gray-700">
-                                <p className="font-semibold text-sm text-gray-900 dark:text-gray-100">
+                                <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                   {payload[0].payload.name}
                                 </p>
                                 <div className="mt-1.5">
                                   <div className="flex items-center gap-1.5">
-                                    <div className="h-2 w-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500" />
+                                    <div className="w-2 h-2 rounded-full bg-gradient-to-r from-amber-500 to-orange-500" />
                                     <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
                                       {payload[0].value} candidates
                                     </p>
@@ -512,11 +512,11 @@ function StudentDashboard() {
                     </BarChart>
                   </ResponsiveContainer>
                 ) : (
-                  <div className="h-full flex flex-col items-center justify-center text-muted-foreground">
-                    <div className="rounded-full bg-gray-100 p-2 dark:bg-gray-800">
+                  <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                    <div className="p-2 bg-gray-100 rounded-full dark:bg-gray-800">
                       <BarChart2 className="w-8 h-8" />
                     </div>
-                    <p className="text-xs mt-2">No position data available</p>
+                    <p className="mt-2 text-xs">No position data available</p>
                   </div>
                 )}
               </div>
@@ -531,7 +531,7 @@ function StudentDashboard() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.8 }}
       >
-        <Card className="hover:shadow-xl transition-all duration-300 border-primary/20 bg-gradient-to-br from-background to-muted/50">
+        <Card className="transition-all duration-300 hover:shadow-xl border-primary/20 bg-gradient-to-br from-background to-muted/50">
           <CardHeader>
             <CardTitle className="text-lg">Registered Students</CardTitle>
             <CardDescription>Complete student directory for the current election</CardDescription>
@@ -541,20 +541,20 @@ function StudentDashboard() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-gradient-to-r from-primary/10 to-transparent dark:from-primary/20">
-                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Student Information</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Level</th>
-                    <th className="text-left p-3 font-semibold text-gray-700 dark:text-gray-200">Registration Date</th>
+                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Student Information</th>
+                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Level</th>
+                    <th className="p-3 font-semibold text-left text-gray-700 dark:text-gray-200">Registration Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                   {currentStudents.map((student) => (
                     <tr
                       key={student._id}
-                      className="hover:bg-primary/5 dark:hover:bg-primary/10 transition-all duration-200 border-b border-gray-200 dark:border-gray-700 last:border-b-0"
+                      className="transition-all duration-200 border-b border-gray-200 hover:bg-primary/5 dark:hover:bg-primary/10 dark:border-gray-700 last:border-b-0"
                     >
                       <td className="p-3">
                         <div className="flex items-center gap-3">
-                          <div className="h-8 w-8 rounded-full bg-primary/10 dark:bg-primary/20 flex items-center justify-center text-primary dark:text-primary-400 font-medium">
+                          <div className="flex items-center justify-center w-8 h-8 font-medium rounded-full bg-primary/10 dark:bg-primary/20 text-primary dark:text-primary-400">
                             {student.firstName.charAt(0)}
                           </div>
                           <div>
@@ -563,19 +563,18 @@ function StudentDashboard() {
                           </div>
                         </div>
                       </td>
-                      <td className="p-3 text-gray-600 dark:text-gray-300 font-medium capitalize">{student.level}</td>
+                      <td className="p-3 font-medium text-gray-600 capitalize dark:text-gray-300">{student.level}</td>
                       <td className="p-3 text-gray-600 dark:text-gray-300">
-                        <td className="p-3 text-gray-600 dark:text-gray-300">
-                          {student.createdAt ? (
-                            new Date(student.createdAt).toLocaleDateString('en-US', {
-                              year: 'numeric',
-                              month: 'short',
-                              day: 'numeric'
-                            })
-                          ) : (
-                            <span className="text-gray-400 dark:text-gray-500">Not available</span>
-                          )}
-                        </td>
+                        {student.createdAt ? (
+                          new Date(student.createdAt).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })
+                        ) : (
+                          <span className="text-gray-400 dark:text-gray-500">Not available</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -598,7 +597,7 @@ function StudentDashboard() {
                 </button>
                 <div className="flex items-center gap-1 px-4 py-2 rounded-[12px] bg-primary/10 dark:bg-primary/20 border border-primary/20 dark:border-primary/30">
                   <span className="font-bold text-primary dark:text-primary-400">{currentPage}</span>
-                  <span className="text-gray-500 dark:text-gray-400 font-medium">/</span>
+                  <span className="font-medium text-gray-500 dark:text-gray-400">/</span>
                   <span className="font-semibold text-gray-700 dark:text-gray-300">{totalPages}</span>
                 </div>
                 <button
