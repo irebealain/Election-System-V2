@@ -47,7 +47,7 @@ function LoginPage() {
       try {
         const electionsResponse = await axios.get(`${import.meta.env.VITE_API_URL}/api/elections`);
         if (electionsResponse.data.success && electionsResponse.data.data.length > 0) {
-          const currentElection = electionsResponse.data.data.find(election => 
+          const currentElection = electionsResponse.data.data.find(election =>
             election.status === 'ongoing' || election.status === 'upcoming'
           );
           if (currentElection) {
@@ -401,7 +401,7 @@ function LoginPage() {
       ), { duration: 3000 });
       setLoading(false);
     },
-    flow: "auth-code",
+    flow: "implicit",
     scope: "openid email profile",
   });
 
@@ -691,9 +691,8 @@ function LoginPage() {
                             value={name}
                             onChange={handleInputChange}
                             placeholder="John Doe"
-                            className={`w-full h-10 rounded-[20px] border ${
-                              errors.name ? "border-red-500" : validations.name ? "border-green-500" : "border-input"
-                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                            className={`w-full h-10 rounded-[20px] border ${errors.name ? "border-red-500" : validations.name ? "border-green-500" : "border-input"
+                              } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                           />
                           {validations.name && (
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
@@ -723,9 +722,8 @@ function LoginPage() {
                           value={email}
                           onChange={handleInputChange}
                           placeholder="you@example.com"
-                          className={`w-full h-10 rounded-[20px] border ${
-                            errors.email ? "border-red-500" : validations.email ? "border-green-500" : "border-input"
-                          } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                          className={`w-full h-10 rounded-[20px] border ${errors.email ? "border-red-500" : validations.email ? "border-green-500" : "border-input"
+                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                         />
                         {validations.email && (
                           <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
@@ -753,9 +751,8 @@ function LoginPage() {
                           type={showPassword ? "text" : "password"}
                           value={password}
                           onChange={handleInputChange}
-                          className={`w-full h-10 rounded-[20px] border ${
-                            errors.password ? "border-red-500" : validations.password ? "border-green-500" : "border-input"
-                          } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                          className={`w-full h-10 rounded-[20px] border ${errors.password ? "border-red-500" : validations.password ? "border-green-500" : "border-input"
+                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                         />
                         <button
                           type="button"
@@ -786,9 +783,8 @@ function LoginPage() {
                             type={showPassword ? "text" : "password"}
                             value={confirmPassword}
                             onChange={handleInputChange}
-                            className={`w-full h-10 rounded-[20px] border ${
-                              errors.confirmPassword ? "border-red-500" : validations.confirmPassword ? "border-green-500" : "border-input"
-                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                            className={`w-full h-10 rounded-[20px] border ${errors.confirmPassword ? "border-red-500" : validations.confirmPassword ? "border-green-500" : "border-input"
+                              } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                           />
                           <button
                             type="button"
@@ -865,9 +861,8 @@ function LoginPage() {
                             value={studentId}
                             onChange={handleInputChange}
                             placeholder="Enter your student ID"
-                            className={`w-full h-10 rounded-[20px] border ${
-                              errors.studentId ? "border-red-500" : validations.studentId ? "border-green-500" : "border-input"
-                            } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
+                            className={`w-full h-10 rounded-[20px] border ${errors.studentId ? "border-red-500" : validations.studentId ? "border-green-500" : "border-input"
+                              } bg-background pl-10 pr-10 py-2 text-sm transition-colors focus:outline-none focus:ring-2 focus:ring-primary`}
                           />
                           {validations.studentId && (
                             <div className="absolute inset-y-0 right-0 flex items-center pr-3 text-green-500">
